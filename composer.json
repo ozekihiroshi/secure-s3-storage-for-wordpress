@@ -1,0 +1,21 @@
+{
+    "name": "ozeki/secure-s3-storage-for-wordpress",
+    "description": "Security-focused Amazon S3 storage plugin for WordPress",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Ozeki\\SecureS3StorageForWordpress\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Hiroshi Ozeki",
+            "email": "ozeki.hiroshi@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "aws/aws-sdk-php": "^3.33"
+    }
+}
