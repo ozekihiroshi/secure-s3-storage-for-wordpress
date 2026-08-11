@@ -9,16 +9,63 @@ use Throwable;
 
 class ConnectionTester
 {
-    public function test(S3Client $client, string $bucket): array
-    {
+    public function test(
+        S3Client $client,
+        string $bucket,
+        string $prefix = ''
+    ): array {
+        $testKey = '';
+        $objectCreated = false;
+
         try {
             $client->headBucket([
                 'Bucket' => $bucket,
             ]);
 
+            $prefix = $this->normalizePrefix($prefix);
+
+            $testKey = $prefix
+                . 'secure-s3-storage-connection-test-'
+                . bin2hex(random_bytes(8))
+                . '.txt';
+
+            $testContent = 'Secure S3 Storage connection test: '
+                . gmdate('c')
+                . ' '
+                . bin2hex(random_bytes(8));
+
+            $client->putObject([
+                'Bucket' => $bucket,
+                'Key'    => $testKey,
+                'Body'   => $testContent,
+            ]);
+
+            $objectCreated = true;
+
+            $result = $client->getObject([
+                'Bucket' => $bucket,
+                'Key'    => $testKey,
+            ]);
+
+            $body = (string) $result['Body'];
+
+            if (! hash_equals($testContent, $body)) {
+                return [
+                    'success' => false,
+                    'message' => 'S3 test object content verification failed.',
+                ];
+            }
+
+            $client->deleteObject([
+                'Bucket' => $bucket,
+                'Key'    => $testKey,
+            ]);
+
+            $objectCreated = false;
+
             return [
                 'success' => true,
-                'message' => 'S3 bucket connection successful.',
+                'message' => 'S3 read/write/delete test successful.',
             ];
 
         } catch (CredentialsException $e) {
@@ -38,7 +85,27 @@ class ConnectionTester
                 'success' => false,
                 'message' => 'An unexpected error occurred while testing the S3 connection.',
             ];
+
+        } finally {
+            if ($objectCreated && $testKey !== '') {
+                try {
+                    $client->deleteObject([
+                        'Bucket' => $bucket,
+                        'Key'    => $testKey,
+                    ]);
+                } catch (Throwable $e) {
+                    // Do not expose cleanup errors or credentials.
+                }
+            }
         }
+    }
+
+    private function normalizePrefix(string $prefix): string
+    {
+        $prefix = trim($prefix);
+        $prefix = trim($prefix, '/');
+
+        return $prefix === '' ? '' : $prefix . '/';
     }
 
     private function safeAwsErrorMessage(AwsException $e): string
@@ -47,13 +114,13 @@ class ConnectionTester
         $errorCode = $e->getAwsErrorCode();
 
         if ($statusCode === 403 || $errorCode === 'AccessDenied') {
-            return 'Access denied to the configured S3 bucket.';
+            return 'Access denied while testing S3 object operations.';
         }
 
         if ($statusCode === 404 || $errorCode === 'NoSuchBucket') {
             return 'The configured S3 bucket was not found.';
         }
 
-        return 'Unable to connect to the configured S3 bucket.';
+        return 'Unable to complete the S3 connection test.';
     }
 }
