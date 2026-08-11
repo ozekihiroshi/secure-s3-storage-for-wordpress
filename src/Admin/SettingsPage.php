@@ -2,16 +2,25 @@
 
 namespace SecureS3StorageForWordpress\Admin;
 
+use SecureS3StorageForWordpress\Aws\ConnectionTester;
+use SecureS3StorageForWordpress\Aws\S3ClientFactory;
+
 class SettingsPage
 {
     private const OPTION_NAME = 'secure_s3_storage_settings';
     private const OPTION_GROUP = 'secure_s3_storage';
     private const PAGE_SLUG = 'secure-s3-storage';
+    private const TEST_ACTION = 'secure_s3_storage_test_connection';
 
     public function register(): void
     {
         add_action('admin_menu', [$this, 'add_settings_page']);
         add_action('admin_init', [$this, 'register_settings']);
+
+        add_action(
+            'admin_post_' . self::TEST_ACTION,
+            [$this, 'handle_test_connection']
+        );
     }
 
     public function add_settings_page(): void
@@ -79,6 +88,8 @@ class SettingsPage
         <div class="wrap">
             <h1>Secure S3 Storage</h1>
 
+            <?php $this->render_test_notice(); ?>
+
             <form method="post" action="options.php">
                 <?php
                 settings_fields(self::OPTION_GROUP);
@@ -90,9 +101,36 @@ class SettingsPage
             <hr>
 
             <h2>Authentication</h2>
+
             <p>
                 AWS Default Credential Provider
             </p>
+
+            <h2>Connection</h2>
+
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                <input
+                    type="hidden"
+                    name="action"
+                    value="<?php echo esc_attr(self::TEST_ACTION); ?>"
+                >
+
+                <?php
+                wp_nonce_field(
+                    self::TEST_ACTION,
+                    'secure_s3_storage_test_nonce'
+                );
+                ?>
+
+                <?php
+                submit_button(
+                    'Test Connection',
+                    'secondary',
+                    'submit',
+                    false
+                );
+                ?>
+            </form>
         </div>
         <?php
     }
@@ -145,6 +183,83 @@ class SettingsPage
             'bucket' => sanitize_text_field($input['bucket'] ?? ''),
             'prefix' => sanitize_text_field($input['prefix'] ?? ''),
         ];
+    }
+
+    public function handle_test_connection(): void
+    {
+        if (! current_user_can('manage_options')) {
+            wp_die('You are not allowed to perform this action.');
+        }
+
+        check_admin_referer(
+            self::TEST_ACTION,
+            'secure_s3_storage_test_nonce'
+        );
+
+        $options = $this->get_options();
+
+        $region = $options['region'] ?? '';
+        $bucket = $options['bucket'] ?? '';
+
+        if ($region === '' || $bucket === '') {
+            $this->redirect_with_test_result(
+                false,
+                'Region and bucket are required.'
+            );
+        }
+
+        $client_factory = new S3ClientFactory();
+        $client = $client_factory->create($region);
+
+        $tester = new ConnectionTester();
+        $result = $tester->test($client, $bucket);
+
+        $this->redirect_with_test_result(
+            (bool) $result['success'],
+            (string) $result['message']
+        );
+    }
+
+    private function render_test_notice(): void
+    {
+        if (! isset($_GET['s3_test_status'], $_GET['s3_test_message'])) {
+            return;
+        }
+
+        $status = sanitize_key(
+            wp_unslash($_GET['s3_test_status'])
+        );
+
+        $message = sanitize_text_field(
+            wp_unslash($_GET['s3_test_message'])
+        );
+
+        $class = $status === 'success'
+            ? 'notice notice-success'
+            : 'notice notice-error';
+
+        printf(
+            '<div class="%1$s"><p>%2$s</p></div>',
+            esc_attr($class),
+            esc_html($message)
+        );
+    }
+
+    private function redirect_with_test_result(
+        bool $success,
+        string $message
+    ): void {
+        $url = add_query_arg(
+            [
+                'page' => self::PAGE_SLUG,
+                's3_test_status' => $success ? 'success' : 'error',
+                's3_test_message' => $message,
+            ],
+            admin_url('options-general.php')
+        );
+
+        wp_safe_redirect($url);
+        exit;
     }
 
     private function get_options(): array
