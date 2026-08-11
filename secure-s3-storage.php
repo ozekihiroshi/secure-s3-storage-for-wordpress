@@ -14,6 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $autoload = __DIR__ . '/vendor/autoload.php';
 
-if ( file_exists( $autoload ) ) {
-    require_once $autoload;
+if ( ! file_exists( $autoload ) ) {
+    return;
 }
+
+require_once $autoload;
+
+$plugin = new SecureS3StorageForWordpress\Plugin();
+$plugin->run();
