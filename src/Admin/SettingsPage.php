@@ -212,7 +212,13 @@ class SettingsPage
         $client = $client_factory->create($region);
 
         $tester = new ConnectionTester();
-        $result = $tester->test($client, $bucket);
+        $prefix = $options['prefix'] ?? '';
+
+        $result = $tester->test(
+            $client,
+            $bucket,
+            $prefix
+        );
 
         $this->redirect_with_test_result(
             (bool) $result['success'],
