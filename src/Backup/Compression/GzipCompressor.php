@@ -1,0 +1,123 @@
+<?php
+
+namespace SecureS3StorageForWordpress\Backup\Compression;
+
+use RuntimeException;
+use Throwable;
+
+final class GzipCompressor implements Compressor
+{
+    private const BUFFER_SIZE = 1024 * 1024;
+
+    public function compress(string $sourcePath): CompressedResult
+    {
+        if (! is_file($sourcePath)) {
+            throw new RuntimeException(
+                'Source file for compression does not exist.'
+            );
+        }
+
+        $destinationPath = $sourcePath . '.gz';
+
+        $input = null;
+        $output = null;
+        $success = false;
+
+        try {
+            $input = fopen($sourcePath, 'rb');
+
+            if ($input === false) {
+                throw new RuntimeException(
+                    'Unable to open source file for compression.'
+                );
+            }
+
+            $output = gzopen($destinationPath, 'wb9');
+
+            if ($output === false) {
+                throw new RuntimeException(
+                    'Unable to create gzip output file.'
+                );
+            }
+
+            while (! feof($input)) {
+                $chunk = fread(
+                    $input,
+                    self::BUFFER_SIZE
+                );
+
+                if ($chunk === false) {
+                    throw new RuntimeException(
+                        'Unable to read source file during compression.'
+                    );
+                }
+
+                if ($chunk === '') {
+                    continue;
+                }
+
+                $written = gzwrite(
+                    $output,
+                    $chunk
+                );
+
+                if ($written === false) {
+                    throw new RuntimeException(
+                        'Unable to write gzip output file.'
+                    );
+                }
+            }
+
+            fclose($input);
+            $input = null;
+
+            gzclose($output);
+            $output = null;
+
+            if (! is_file($destinationPath)) {
+                throw new RuntimeException(
+                    'Compressed file was not created.'
+                );
+            }
+
+            $size = filesize($destinationPath);
+
+            if ($size === false || $size <= 0) {
+                throw new RuntimeException(
+                    'Compressed file is empty.'
+                );
+            }
+
+            $success = true;
+
+            return new CompressedResult(
+                path: $destinationPath,
+                sizeBytes: $size,
+                algorithm: 'gzip'
+            );
+
+        } catch (Throwable $e) {
+            throw new RuntimeException(
+                'File compression failed.',
+                0,
+                $e
+            );
+
+        } finally {
+            if (is_resource($input)) {
+                fclose($input);
+            }
+
+            if (is_resource($output)) {
+                gzclose($output);
+            }
+
+            if (
+                ! $success
+                && is_file($destinationPath)
+            ) {
+                @unlink($destinationPath);
+            }
+        }
+    }
+}
