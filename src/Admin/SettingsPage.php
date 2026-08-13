@@ -27,6 +27,9 @@ class SettingsPage
     private const BACKUP_ACTION =
         'secure_s3_storage_backup_database';
 
+    private const TEST_NOTICE_PREFIX =
+        'secure_s3_storage_test_notice_';
+
     private const BACKUP_NOTICE_PREFIX =
         'secure_s3_storage_backup_notice_';
 
@@ -1031,31 +1034,32 @@ class SettingsPage
 
     private function render_test_notice(): void
     {
-        if (
-            ! isset(
-                $_GET['s3_test_status'],
-                $_GET['s3_test_message']
-            )
-        ) {
+        $userId =
+            get_current_user_id();
+
+        $key =
+            self::TEST_NOTICE_PREFIX
+            . $userId;
+
+        $notice =
+            get_transient($key);
+
+        if (! is_array($notice)) {
             return;
         }
 
-        $status =
-            sanitize_key(
-                wp_unslash(
-                    $_GET['s3_test_status']
-                )
-            );
+        delete_transient($key);
+
+        $success =
+            ! empty($notice['success']);
 
         $message =
-            sanitize_text_field(
-                wp_unslash(
-                    $_GET['s3_test_message']
-                )
-            );
+            isset($notice['message'])
+                ? (string) $notice['message']
+                : '';
 
         $class =
-            $status === 'success'
+            $success
                 ? 'notice notice-success'
                 : 'notice notice-error';
 
@@ -1063,6 +1067,24 @@ class SettingsPage
             '<div class="%1$s"><p>%2$s</p></div>',
             esc_attr($class),
             esc_html($message)
+        );
+    }
+
+    private function store_test_notice(
+        bool $success,
+        string $message
+    ): void {
+        $userId =
+            get_current_user_id();
+
+        set_transient(
+            self::TEST_NOTICE_PREFIX
+                . $userId,
+            [
+                'success' => $success,
+                'message' => $message,
+            ],
+            60
         );
     }
 
@@ -1346,24 +1368,12 @@ class SettingsPage
         bool $success,
         string $message
     ): void {
-        $url =
-            add_query_arg(
-                [
-                    'page' => self::PAGE_SLUG,
-                    's3_test_status' =>
-                        $success
-                            ? 'success'
-                            : 'error',
-                    's3_test_message' =>
-                        $message,
-                ],
-                admin_url(
-                    'options-general.php'
-                )
-            );
+        $this->store_test_notice(
+            $success,
+            $message
+        );
 
-        wp_safe_redirect($url);
-        exit;
+        $this->redirect_to_settings_page();
     }
 
     private function redirect_to_settings_page(): void
