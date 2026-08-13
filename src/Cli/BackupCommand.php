@@ -52,7 +52,10 @@ final class BackupCommand
             || $bucket === ''
         ) {
             WP_CLI::error(
-                'AWS region and S3 bucket are required.'
+                __(
+                    'AWS region and S3 bucket are required.',
+                    'secure-s3-storage'
+                )
             );
         }
 
@@ -66,7 +69,10 @@ final class BackupCommand
 
         try {
             WP_CLI::log(
-                'Starting database backup...'
+                __(
+                    'Starting database backup...',
+                    'secure-s3-storage'
+                )
             );
 
             $connectionFactory =
@@ -87,7 +93,13 @@ final class BackupCommand
                     ->getSelectedBackendName();
 
             WP_CLI::log(
-                'Backend: ' . $backend
+                sprintf(
+                    __(
+                        'Backend: %s',
+                        'secure-s3-storage'
+                    ),
+                    $backend
+                )
             );
 
             $clientFactory =
@@ -129,7 +141,10 @@ final class BackupCommand
                 );
 
             $historyMessage =
-                'WP-CLI backup completed successfully.';
+                __(
+                    'WP-CLI backup completed successfully.',
+                    'secure-s3-storage'
+                );
 
             if ($retentionMessage !== '') {
                 $historyMessage .= ' '
@@ -163,7 +178,10 @@ final class BackupCommand
 
             WP_CLI::success(
                 sprintf(
-                    'Backup completed: s3://%s/%s (%d bytes)',
+                    __(
+                        'Backup completed: s3://%1$s/%2$s (%3$d bytes)',
+                        'secure-s3-storage'
+                    ),
                     $result->getBucket(),
                     $result->getKey(),
                     $result->getSizeBytes()
@@ -186,7 +204,10 @@ final class BackupCommand
              * credential, or command details.
              */
             WP_CLI::error(
-                'Database backup failed.'
+                __(
+                    'Database backup failed.',
+                    'secure-s3-storage'
+                )
             );
         }
     }
@@ -227,7 +248,10 @@ final class BackupCommand
 
             if ($candidates === []) {
                 return sprintf(
-                    'Retention: keeping the latest %d backups; no old backups required deletion.',
+                    __(
+                        'Retention: keeping the latest %d backups; no old backups required deletion.',
+                        'secure-s3-storage'
+                    ),
                     $keepCount
                 );
             }
@@ -238,13 +262,18 @@ final class BackupCommand
                 );
 
             return sprintf(
-                'Retention: deleted %d old backup(s), keeping the latest %d.',
+                __(
+                    'Retention: deleted %1$d old backup(s), keeping the latest %2$d.',
+                    'secure-s3-storage'
+                ),
                 $result->getDeletedCount(),
                 $keepCount
             );
         } catch (Throwable $e) {
-            return
-                'Retention cleanup failed; the new backup was preserved.';
+            return __(
+                'Retention cleanup failed; the new backup was preserved.',
+                'secure-s3-storage'
+            );
         }
     }
 
@@ -293,8 +322,10 @@ final class BackupCommand
                     $databaseName,
                 backend:
                     $backend,
-                message:
-                    'WP-CLI database backup failed.'
+                message: __(
+                    'WP-CLI database backup failed.',
+                    'secure-s3-storage'
+                )
             )
         );
     }

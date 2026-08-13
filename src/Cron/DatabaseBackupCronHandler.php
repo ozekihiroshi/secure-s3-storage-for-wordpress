@@ -85,8 +85,10 @@ final class DatabaseBackupCronHandler
             $this->recordFailure(
                 databaseName: $databaseName,
                 backend: $backend,
-                message:
-                    'Automatic backup skipped because S3 configuration is incomplete.'
+                message: __(
+                    'Automatic backup skipped because S3 configuration is incomplete.',
+                    'secure-s3-storage'
+                )
             );
 
             return;
@@ -154,7 +156,10 @@ final class DatabaseBackupCronHandler
                 );
 
             $message =
-                'Automatic backup completed successfully.';
+                __(
+                    'Automatic backup completed successfully.',
+                    'secure-s3-storage'
+                );
 
             if ($retentionMessage !== '') {
                 $message .= ' '
@@ -194,8 +199,10 @@ final class DatabaseBackupCronHandler
             $this->recordFailure(
                 databaseName: $databaseName,
                 backend: $backend,
-                message:
-                    'Automatic database backup failed.'
+                message: __(
+                    'Automatic database backup failed.',
+                    'secure-s3-storage'
+                )
             );
         }
     }
@@ -234,7 +241,10 @@ final class DatabaseBackupCronHandler
 
             if ($candidates === []) {
                 return sprintf(
-                    'Retention: keeping the latest %d backups; no old backups required deletion.',
+                    __(
+                        'Retention: keeping the latest %d backups; no old backups required deletion.',
+                        'secure-s3-storage'
+                    ),
                     $keepCount
                 );
             }
@@ -245,7 +255,10 @@ final class DatabaseBackupCronHandler
                 );
 
             return sprintf(
-                'Retention: deleted %d old backup(s), keeping the latest %d.',
+                __(
+                    'Retention: deleted %1$d old backup(s), keeping the latest %2$d.',
+                    'secure-s3-storage'
+                ),
                 $deleteResult
                     ->getDeletedCount(),
                 $keepCount
@@ -255,8 +268,10 @@ final class DatabaseBackupCronHandler
              * Retention failure must not change a successful
              * database backup into a failed backup.
              */
-            return
-                'Retention cleanup failed; the new backup was preserved.';
+            return __(
+                'Retention cleanup failed; the new backup was preserved.',
+                'secure-s3-storage'
+            );
         }
     }
 
