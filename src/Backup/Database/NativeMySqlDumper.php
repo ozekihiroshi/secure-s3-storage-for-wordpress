@@ -277,6 +277,7 @@ final class NativeMySqlDumper implements DatabaseDumper
             throw new RuntimeException(
                 'Unable to start database dump process.',
                 0,
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained, not output.
                 $e
             );
         }

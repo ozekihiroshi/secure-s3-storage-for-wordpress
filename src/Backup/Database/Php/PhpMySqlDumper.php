@@ -111,6 +111,7 @@ final class PhpMySqlDumper implements DatabaseDumper
             throw new RuntimeException(
                 'PHP database dump failed.',
                 0,
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained, not output.
                 $e
             );
         } finally {

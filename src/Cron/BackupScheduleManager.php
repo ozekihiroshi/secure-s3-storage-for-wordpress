@@ -54,6 +54,7 @@ final class BackupScheduleManager
 
         if (is_wp_error($result)) {
             throw new RuntimeException(
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to schedule automatic database backup.',
                     'secure-s3-storage'
@@ -63,6 +64,7 @@ final class BackupScheduleManager
 
         if ($result !== true) {
             throw new RuntimeException(
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to schedule automatic database backup.',
                     'secure-s3-storage'
@@ -82,6 +84,7 @@ final class BackupScheduleManager
 
         if (is_wp_error($result)) {
             throw new RuntimeException(
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to clear automatic database backup schedule.',
                     'secure-s3-storage'
@@ -91,6 +94,7 @@ final class BackupScheduleManager
 
         if ($result === false) {
             throw new RuntimeException(
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to clear automatic database backup schedule.',
                     'secure-s3-storage'

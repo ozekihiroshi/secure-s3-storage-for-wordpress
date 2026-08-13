@@ -62,8 +62,10 @@ final class S3Storage
 
         } catch (AwsException $e) {
             throw new RuntimeException(
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception message is not HTML output.
                 $this->safeAwsErrorMessage($e),
                 0,
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained, not output.
                 $e
             );
 
@@ -71,6 +73,7 @@ final class S3Storage
             throw new RuntimeException(
                 'Unable to upload backup to Amazon S3.',
                 0,
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained, not output.
                 $e
             );
         }

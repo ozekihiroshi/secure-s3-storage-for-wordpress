@@ -63,6 +63,7 @@ final class DatabaseBackupService
             throw new RuntimeException(
                 'Database backup failed.',
                 0,
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained, not output.
                 $e
             );
 
