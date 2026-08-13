@@ -20,5 +20,23 @@ if ( ! file_exists( $autoload ) ) {
 
 require_once $autoload;
 
-$plugin = new SecureS3StorageForWordpress\Plugin();
+register_activation_hook(
+    __FILE__,
+    [
+        SecureS3StorageForWordpress\Lifecycle\PluginLifecycle::class,
+        'activate',
+    ]
+);
+
+register_deactivation_hook(
+    __FILE__,
+    [
+        SecureS3StorageForWordpress\Lifecycle\PluginLifecycle::class,
+        'deactivate',
+    ]
+);
+
+$plugin =
+    new SecureS3StorageForWordpress\Plugin();
+
 $plugin->run();
