@@ -10,6 +10,8 @@ use SecureS3StorageForWordpress\Backup\Compression\GzipCompressor;
 use SecureS3StorageForWordpress\Backup\DatabaseBackupService;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryEntry;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryRepository;
+use SecureS3StorageForWordpress\Backup\Retention\RetentionPolicy;
+use SecureS3StorageForWordpress\Backup\Retention\S3BackupRetentionManager;
 use SecureS3StorageForWordpress\WordPress\WordPressDatabaseConnectionFactory;
 use Throwable;
 
@@ -23,6 +25,9 @@ final class DatabaseBackupCronHandler
 
     private const LOCK_TTL =
         30 * MINUTE_IN_SECONDS;
+
+    private const RETENTION_DISABLED =
+        0;
 
     public function register(): void
     {
@@ -49,23 +54,39 @@ final class DatabaseBackupCronHandler
 
     private function runBackup(): void
     {
-        $options = $this->getOptions();
+        $options =
+            $this->getOptions();
 
-        $region = $options['region'] ?? '';
-        $bucket = $options['bucket'] ?? '';
-        $prefix = $options['prefix'] ?? '';
+        $region =
+            $options['region'] ?? '';
 
-        $databaseName = defined('DB_NAME')
-            ? (string) DB_NAME
-            : 'unknown';
+        $bucket =
+            $options['bucket'] ?? '';
+
+        $prefix =
+            $options['prefix'] ?? '';
+
+        $retentionKeepCount =
+            $this->getRetentionKeepCount(
+                $options
+            );
+
+        $databaseName =
+            defined('DB_NAME')
+                ? (string) DB_NAME
+                : 'unknown';
 
         $backend = 'unknown';
 
-        if ($region === '' || $bucket === '') {
+        if (
+            $region === ''
+            || $bucket === ''
+        ) {
             $this->recordFailure(
                 databaseName: $databaseName,
                 backend: $backend,
-                message: 'Automatic backup skipped because S3 configuration is incomplete.'
+                message:
+                    'Automatic backup skipped because S3 configuration is incomplete.'
             );
 
             return;
@@ -79,22 +100,28 @@ final class DatabaseBackupCronHandler
                 $connectionFactory->create();
 
             $databaseName =
-                $databaseConnection->getDatabaseName();
+                $databaseConnection
+                    ->getDatabaseName();
 
             $backupService =
                 new BackupService();
 
             $backend =
-                $backupService->getSelectedBackendName();
+                $backupService
+                    ->getSelectedBackendName();
 
             $clientFactory =
                 new S3ClientFactory();
 
             $client =
-                $clientFactory->create($region);
+                $clientFactory->create(
+                    $region
+                );
 
             $storage =
-                new S3Storage($client);
+                new S3Storage(
+                    $client
+                );
 
             $compressor =
                 new GzipCompressor();
@@ -106,12 +133,33 @@ final class DatabaseBackupCronHandler
                     $storage
                 );
 
+            /*
+             * The database backup must complete successfully
+             * before retention is allowed to run.
+             */
             $result =
                 $databaseBackupService->backup(
                     $databaseConnection,
                     $bucket,
                     $prefix
                 );
+
+            $retentionMessage =
+                $this->runRetentionAfterBackup(
+                    client: $client,
+                    bucket: $bucket,
+                    prefix: $prefix,
+                    keepCount:
+                        $retentionKeepCount
+                );
+
+            $message =
+                'Automatic backup completed successfully.';
+
+            if ($retentionMessage !== '') {
+                $message .= ' '
+                    . $retentionMessage;
+            }
 
             $history =
                 new BackupHistoryRepository();
@@ -134,23 +182,109 @@ final class DatabaseBackupCronHandler
                     sizeBytes:
                         $result->getSizeBytes(),
                     message:
-                        'Automatic backup completed successfully.'
+                        $message
                 )
             );
         } catch (Throwable $e) {
             /*
-             * Never expose exception details here.
-             *
-             * They may contain database connection information,
-             * filesystem paths, SQL fragments, AWS details,
-             * or other sensitive operational information.
+             * Never expose database credentials,
+             * AWS credentials, raw SQL, filesystem paths,
+             * commands, or SDK exception details.
              */
             $this->recordFailure(
                 databaseName: $databaseName,
                 backend: $backend,
-                message: 'Automatic database backup failed.'
+                message:
+                    'Automatic database backup failed.'
             );
         }
+    }
+
+    private function runRetentionAfterBackup(
+        object $client,
+        string $bucket,
+        string $prefix,
+        int $keepCount
+    ): string {
+        if (
+            $keepCount
+            === self::RETENTION_DISABLED
+        ) {
+            return '';
+        }
+
+        try {
+            $manager =
+                new S3BackupRetentionManager(
+                    $client
+                );
+
+            $policy =
+                new RetentionPolicy(
+                    $keepCount
+                );
+
+            $candidates =
+                $manager
+                    ->findDeletionCandidates(
+                        $bucket,
+                        $prefix,
+                        $policy
+                    );
+
+            if ($candidates === []) {
+                return sprintf(
+                    'Retention: keeping the latest %d backups; no old backups required deletion.',
+                    $keepCount
+                );
+            }
+
+            $deleteResult =
+                $manager->deleteCandidates(
+                    $candidates
+                );
+
+            return sprintf(
+                'Retention: deleted %d old backup(s), keeping the latest %d.',
+                $deleteResult
+                    ->getDeletedCount(),
+                $keepCount
+            );
+        } catch (Throwable $e) {
+            /*
+             * Retention failure must not change a successful
+             * database backup into a failed backup.
+             */
+            return
+                'Retention cleanup failed; the new backup was preserved.';
+        }
+    }
+
+    private function getRetentionKeepCount(
+        array $options
+    ): int {
+        $value =
+            $options['retention_keep_count']
+            ?? self::RETENTION_DISABLED;
+
+        if (! is_numeric($value)) {
+            return self::RETENTION_DISABLED;
+        }
+
+        $keepCount =
+            (int) $value;
+
+        if (
+            ! in_array(
+                $keepCount,
+                [7, 14, 30],
+                true
+            )
+        ) {
+            return self::RETENTION_DISABLED;
+        }
+
+        return $keepCount;
     }
 
     private function recordFailure(
@@ -168,19 +302,23 @@ final class DatabaseBackupCronHandler
                     'now',
                     wp_timezone()
                 ),
-                databaseName: $databaseName,
-                backend: $backend,
-                message: $message
+                databaseName:
+                    $databaseName,
+                backend:
+                    $backend,
+                message:
+                    $message
             )
         );
     }
 
     private function getOptions(): array
     {
-        $options = get_option(
-            self::OPTION_NAME,
-            []
-        );
+        $options =
+            get_option(
+                self::OPTION_NAME,
+                []
+            );
 
         return is_array($options)
             ? $options
