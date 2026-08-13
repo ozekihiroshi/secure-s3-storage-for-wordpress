@@ -29,6 +29,11 @@ class ConnectionTester
                 . bin2hex(random_bytes(8))
                 . '.txt';
 
+            /*
+             * This content is temporary machine-generated test data,
+             * not administrator-facing UI text, so it is intentionally
+             * not translated.
+             */
             $testContent = 'Secure S3 Storage connection test: '
                 . gmdate('c')
                 . ' '
@@ -52,7 +57,10 @@ class ConnectionTester
             if (! hash_equals($testContent, $body)) {
                 return [
                     'success' => false,
-                    'message' => 'S3 test object content verification failed.',
+                    'message' => __(
+                        'S3 test object content verification failed.',
+                        'secure-s3-storage'
+                    ),
                 ];
             }
 
@@ -65,13 +73,19 @@ class ConnectionTester
 
             return [
                 'success' => true,
-                'message' => 'S3 read/write/delete test successful.',
+                'message' => __(
+                    'S3 read/write/delete test successful.',
+                    'secure-s3-storage'
+                ),
             ];
 
         } catch (CredentialsException $e) {
             return [
                 'success' => false,
-                'message' => 'AWS credentials could not be found.',
+                'message' => __(
+                    'AWS credentials could not be found.',
+                    'secure-s3-storage'
+                ),
             ];
 
         } catch (AwsException $e) {
@@ -83,7 +97,10 @@ class ConnectionTester
         } catch (Throwable $e) {
             return [
                 'success' => false,
-                'message' => 'An unexpected error occurred while testing the S3 connection.',
+                'message' => __(
+                    'An unexpected error occurred while testing the S3 connection.',
+                    'secure-s3-storage'
+                ),
             ];
 
         } finally {
@@ -114,13 +131,22 @@ class ConnectionTester
         $errorCode = $e->getAwsErrorCode();
 
         if ($statusCode === 403 || $errorCode === 'AccessDenied') {
-            return 'Access denied while testing S3 object operations.';
+            return __(
+                'Access denied while testing S3 object operations.',
+                'secure-s3-storage'
+            );
         }
 
         if ($statusCode === 404 || $errorCode === 'NoSuchBucket') {
-            return 'The configured S3 bucket was not found.';
+            return __(
+                'The configured S3 bucket was not found.',
+                'secure-s3-storage'
+            );
         }
 
-        return 'Unable to complete the S3 connection test.';
+        return __(
+            'Unable to complete the S3 connection test.',
+            'secure-s3-storage'
+        );
     }
 }

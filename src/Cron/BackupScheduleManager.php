@@ -54,13 +54,19 @@ final class BackupScheduleManager
 
         if (is_wp_error($result)) {
             throw new RuntimeException(
-                'Unable to schedule automatic database backup.'
+                __(
+                    'Unable to schedule automatic database backup.',
+                    'secure-s3-storage'
+                )
             );
         }
 
         if ($result !== true) {
             throw new RuntimeException(
-                'Unable to schedule automatic database backup.'
+                __(
+                    'Unable to schedule automatic database backup.',
+                    'secure-s3-storage'
+                )
             );
         }
     }
@@ -76,13 +82,19 @@ final class BackupScheduleManager
 
         if (is_wp_error($result)) {
             throw new RuntimeException(
-                'Unable to clear automatic database backup schedule.'
+                __(
+                    'Unable to clear automatic database backup schedule.',
+                    'secure-s3-storage'
+                )
             );
         }
 
         if ($result === false) {
             throw new RuntimeException(
-                'Unable to clear automatic database backup schedule.'
+                __(
+                    'Unable to clear automatic database backup schedule.',
+                    'secure-s3-storage'
+                )
             );
         }
     }
