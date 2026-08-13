@@ -11,6 +11,7 @@ use SecureS3StorageForWordpress\Backup\Compression\GzipCompressor;
 use SecureS3StorageForWordpress\Backup\DatabaseBackupService;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryEntry;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryRepository;
+use SecureS3StorageForWordpress\Cron\BackupScheduleManager;
 use SecureS3StorageForWordpress\WordPress\WordPressDatabaseConnectionFactory;
 use Throwable;
 
@@ -20,11 +21,20 @@ class SettingsPage
     private const OPTION_GROUP = 'secure_s3_storage';
     private const PAGE_SLUG = 'secure-s3-storage';
 
-    private const TEST_ACTION = 'secure_s3_storage_test_connection';
-    private const BACKUP_ACTION = 'secure_s3_storage_backup_database';
+    private const TEST_ACTION =
+        'secure_s3_storage_test_connection';
+
+    private const BACKUP_ACTION =
+        'secure_s3_storage_backup_database';
 
     private const BACKUP_NOTICE_PREFIX =
         'secure_s3_storage_backup_notice_';
+
+    private const BACKUP_SCHEDULE_DISABLED =
+        'disabled';
+
+    private const BACKUP_SCHEDULE_DAILY =
+        'daily';
 
     public function register(): void
     {
@@ -46,6 +56,13 @@ class SettingsPage
         add_action(
             'admin_post_' . self::BACKUP_ACTION,
             [$this, 'handle_database_backup']
+        );
+
+        add_action(
+            'update_option_' . self::OPTION_NAME,
+            [$this, 'handle_settings_updated'],
+            10,
+            2
         );
     }
 
@@ -101,6 +118,21 @@ class SettingsPage
             [$this, 'render_prefix_field'],
             self::PAGE_SLUG,
             'secure_s3_storage_aws'
+        );
+
+        add_settings_section(
+            'secure_s3_storage_backup_schedule',
+            'Automatic Backup',
+            [$this, 'render_backup_schedule_description'],
+            self::PAGE_SLUG
+        );
+
+        add_settings_field(
+            'backup_schedule',
+            'Schedule',
+            [$this, 'render_backup_schedule_field'],
+            self::PAGE_SLUG,
+            'secure_s3_storage_backup_schedule'
         );
     }
 
@@ -268,8 +300,90 @@ class SettingsPage
         );
     }
 
+    public function render_backup_schedule_description(): void
+    {
+        echo '<p>'
+            . esc_html(
+                'Configure automatic database backups using WordPress Cron.'
+            )
+            . '</p>';
+    }
+
+    public function render_backup_schedule_field(): void
+    {
+        $options = $this->get_options();
+
+        $value =
+            $options['backup_schedule']
+            ?? self::BACKUP_SCHEDULE_DISABLED;
+
+        ?>
+        <select
+            name="<?php echo esc_attr(
+                self::OPTION_NAME
+            ); ?>[backup_schedule]"
+        >
+            <option
+                value="<?php echo esc_attr(
+                    self::BACKUP_SCHEDULE_DISABLED
+                ); ?>"
+                <?php
+                selected(
+                    $value,
+                    self::BACKUP_SCHEDULE_DISABLED
+                );
+                ?>
+            >
+                Disabled
+            </option>
+
+            <option
+                value="<?php echo esc_attr(
+                    self::BACKUP_SCHEDULE_DAILY
+                ); ?>"
+                <?php
+                selected(
+                    $value,
+                    self::BACKUP_SCHEDULE_DAILY
+                );
+                ?>
+            >
+                Daily
+            </option>
+        </select>
+
+        <p class="description">
+            <?php
+            echo esc_html(
+                'Daily backups are executed by WordPress Cron. '
+                . 'Actual execution time may depend on site activity.'
+            );
+            ?>
+        </p>
+        <?php
+    }
+
     public function sanitize_settings(array $input): array
     {
+        $schedule = sanitize_key(
+            $input['backup_schedule']
+            ?? self::BACKUP_SCHEDULE_DISABLED
+        );
+
+        if (
+            ! in_array(
+                $schedule,
+                [
+                    self::BACKUP_SCHEDULE_DISABLED,
+                    self::BACKUP_SCHEDULE_DAILY,
+                ],
+                true
+            )
+        ) {
+            $schedule =
+                self::BACKUP_SCHEDULE_DISABLED;
+        }
+
         return [
             'region' => sanitize_text_field(
                 $input['region'] ?? ''
@@ -280,7 +394,42 @@ class SettingsPage
             'prefix' => sanitize_text_field(
                 $input['prefix'] ?? ''
             ),
+            'backup_schedule' => $schedule,
         ];
+    }
+
+    public function handle_settings_updated(
+        mixed $oldValue,
+        mixed $newValue
+    ): void {
+        if (! is_array($newValue)) {
+            return;
+        }
+
+        $schedule =
+            $newValue['backup_schedule']
+            ?? self::BACKUP_SCHEDULE_DISABLED;
+
+        $manager =
+            new BackupScheduleManager();
+
+        try {
+            if (
+                $schedule
+                === self::BACKUP_SCHEDULE_DAILY
+            ) {
+                $manager->scheduleDaily();
+
+                return;
+            }
+
+            $manager->unschedule();
+        } catch (Throwable $e) {
+            /*
+             * Do not interrupt WordPress settings saving because of
+             * a scheduling error. Diagnostics can be added later.
+             */
+        }
     }
 
     public function handle_test_connection(): void
@@ -312,19 +461,23 @@ class SettingsPage
         }
 
         try {
-            $clientFactory = new S3ClientFactory();
+            $clientFactory =
+                new S3ClientFactory();
 
-            $client = $clientFactory->create(
-                $region
-            );
+            $client =
+                $clientFactory->create(
+                    $region
+                );
 
-            $tester = new ConnectionTester();
+            $tester =
+                new ConnectionTester();
 
-            $result = $tester->test(
-                $client,
-                $bucket,
-                $prefix
-            );
+            $result =
+                $tester->test(
+                    $client,
+                    $bucket,
+                    $prefix
+                );
 
             $this->redirect_with_test_result(
                 (bool) $result['success'],
@@ -395,16 +548,21 @@ class SettingsPage
                 new S3ClientFactory();
 
             $client =
-                $clientFactory->create($region);
+                $clientFactory->create(
+                    $region
+                );
 
             $storage =
-                new S3Storage($client);
+                new S3Storage(
+                    $client
+                );
 
             $backupService =
                 new BackupService();
 
             $backend =
-                $backupService->getSelectedBackendName();
+                $backupService
+                    ->getSelectedBackendName();
 
             $compressor =
                 new GzipCompressor();
@@ -467,11 +625,12 @@ class SettingsPage
             /*
              * Never expose database credentials,
              * AWS credentials, raw SQL, shell commands,
-             * temporary filenames, or SDK exceptions
+             * temporary filenames, or SDK exception details
              * in the administrator-facing message.
              */
 
-            $message = 'Database backup failed.';
+            $message =
+                'Database backup failed.';
 
             $history =
                 new BackupHistoryRepository();
@@ -531,21 +690,24 @@ class SettingsPage
             return;
         }
 
-        $status = sanitize_key(
-            wp_unslash(
-                $_GET['s3_test_status']
-            )
-        );
+        $status =
+            sanitize_key(
+                wp_unslash(
+                    $_GET['s3_test_status']
+                )
+            );
 
-        $message = sanitize_text_field(
-            wp_unslash(
-                $_GET['s3_test_message']
-            )
-        );
+        $message =
+            sanitize_text_field(
+                wp_unslash(
+                    $_GET['s3_test_message']
+                )
+            );
 
-        $class = $status === 'success'
-            ? 'notice notice-success'
-            : 'notice notice-error';
+        $class =
+            $status === 'success'
+                ? 'notice notice-success'
+                : 'notice notice-error';
 
         printf(
             '<div class="%1$s"><p>%2$s</p></div>',
@@ -558,10 +720,12 @@ class SettingsPage
         bool $success,
         string $message
     ): void {
-        $userId = get_current_user_id();
+        $userId =
+            get_current_user_id();
 
         set_transient(
-            self::BACKUP_NOTICE_PREFIX . $userId,
+            self::BACKUP_NOTICE_PREFIX
+                . $userId,
             [
                 'success' => $success,
                 'message' => $message,
@@ -572,12 +736,15 @@ class SettingsPage
 
     private function render_backup_notice(): void
     {
-        $userId = get_current_user_id();
+        $userId =
+            get_current_user_id();
 
         $key =
-            self::BACKUP_NOTICE_PREFIX . $userId;
+            self::BACKUP_NOTICE_PREFIX
+            . $userId;
 
-        $notice = get_transient($key);
+        $notice =
+            get_transient($key);
 
         if (! is_array($notice)) {
             return;
@@ -593,9 +760,10 @@ class SettingsPage
                 ? (string) $notice['message']
                 : '';
 
-        $class = $success
-            ? 'notice notice-success'
-            : 'notice notice-error';
+        $class =
+            $success
+                ? 'notice notice-success'
+                : 'notice notice-error';
 
         printf(
             '<div class="%1$s"><p>%2$s</p></div>',
@@ -668,11 +836,14 @@ class SettingsPage
 
             if (
                 isset($entry['sizeBytes'])
-                && is_numeric($entry['sizeBytes'])
+                && is_numeric(
+                    $entry['sizeBytes']
+                )
             ) {
-                $size = size_format(
-                    (int) $entry['sizeBytes']
-                );
+                $size =
+                    size_format(
+                        (int) $entry['sizeBytes']
+                    );
             }
 
             $s3Object = '-';
@@ -681,11 +852,12 @@ class SettingsPage
                 ! empty($entry['bucket'])
                 && ! empty($entry['key'])
             ) {
-                $s3Object = sprintf(
-                    's3://%s/%s',
-                    (string) $entry['bucket'],
-                    (string) $entry['key']
-                );
+                $s3Object =
+                    sprintf(
+                        's3://%s/%s',
+                        (string) $entry['bucket'],
+                        (string) $entry['key']
+                    );
             }
 
             $message =
@@ -753,8 +925,12 @@ class SettingsPage
                 new DateTimeImmutable($date);
 
             return $dateTime
-                ->setTimezone(wp_timezone())
-                ->format('Y-m-d H:i:s');
+                ->setTimezone(
+                    wp_timezone()
+                )
+                ->format(
+                    'Y-m-d H:i:s'
+                );
         } catch (Throwable $e) {
             return $date;
         }
@@ -764,15 +940,21 @@ class SettingsPage
         bool $success,
         string $message
     ): void {
-        $url = add_query_arg(
-            [
-                'page' => self::PAGE_SLUG,
-                's3_test_status' =>
-                    $success ? 'success' : 'error',
-                's3_test_message' => $message,
-            ],
-            admin_url('options-general.php')
-        );
+        $url =
+            add_query_arg(
+                [
+                    'page' => self::PAGE_SLUG,
+                    's3_test_status' =>
+                        $success
+                            ? 'success'
+                            : 'error',
+                    's3_test_message' =>
+                        $message,
+                ],
+                admin_url(
+                    'options-general.php'
+                )
+            );
 
         wp_safe_redirect($url);
         exit;
@@ -780,12 +962,15 @@ class SettingsPage
 
     private function redirect_to_settings_page(): void
     {
-        $url = add_query_arg(
-            [
-                'page' => self::PAGE_SLUG,
-            ],
-            admin_url('options-general.php')
-        );
+        $url =
+            add_query_arg(
+                [
+                    'page' => self::PAGE_SLUG,
+                ],
+                admin_url(
+                    'options-general.php'
+                )
+            );
 
         wp_safe_redirect($url);
         exit;
@@ -793,10 +978,11 @@ class SettingsPage
 
     private function get_options(): array
     {
-        $options = get_option(
-            self::OPTION_NAME,
-            []
-        );
+        $options =
+            get_option(
+                self::OPTION_NAME,
+                []
+            );
 
         return is_array($options)
             ? $options

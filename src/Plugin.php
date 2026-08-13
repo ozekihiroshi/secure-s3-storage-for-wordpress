@@ -3,12 +3,20 @@
 namespace SecureS3StorageForWordpress;
 
 use SecureS3StorageForWordpress\Admin\SettingsPage;
+use SecureS3StorageForWordpress\Cron\DatabaseBackupCronHandler;
 
-class Plugin
+final class Plugin
 {
     public function run(): void
     {
-        $settings_page = new SettingsPage();
-        $settings_page->register();
+        $settingsPage =
+            new SettingsPage();
+
+        $settingsPage->register();
+
+        $cronHandler =
+            new DatabaseBackupCronHandler();
+
+        $cronHandler->register();
     }
 }
