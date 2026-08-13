@@ -50,7 +50,7 @@ final class StatusCommand
 
         WP_CLI::log(
             sprintf(
-                /* translators: %s: date and time of the next scheduled backup. */
+                /* translators: %s: configured backup schedule. */
                 __(
                     'Schedule: %s',
                     'secure-s3-storage'
@@ -61,7 +61,7 @@ final class StatusCommand
 
         WP_CLI::log(
             sprintf(
-                /* translators: %s: configured backup retention policy. */
+                /* translators: %s: date and time of the next scheduled backup. */
                 __(
                     'Next backup: %s',
                     'secure-s3-storage'
@@ -72,7 +72,7 @@ final class StatusCommand
 
         WP_CLI::log(
             sprintf(
-                /* translators: %s: date and time of the last successful backup. */
+                /* translators: %s: configured backup retention policy. */
                 __(
                     'Retention: %s',
                     'secure-s3-storage'
@@ -83,7 +83,7 @@ final class StatusCommand
 
         WP_CLI::log(
             sprintf(
-            /* translators: %s: date and time of the last successful backup. */
+                /* translators: %s: date and time of the last successful backup. */
                 __(
                     'Last successful backup: %s',
                     'secure-s3-storage'
