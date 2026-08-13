@@ -13,25 +13,52 @@ final class NativeMySqlDumper implements DatabaseDumper
      */
     private array $binaryCandidates;
 
+    private ExecutableFinder $executableFinder;
+
+    /**
+     * @param list<string> $binaryCandidates
+     */
     public function __construct(
-        array $binaryCandidates = ['mysqldump', 'mariadb-dump']
+        array $binaryCandidates = [
+            'mysqldump',
+            'mariadb-dump',
+        ],
+        ?ExecutableFinder $executableFinder = null
     ) {
-        $this->binaryCandidates = $binaryCandidates;
+        $this->binaryCandidates =
+            $binaryCandidates;
+
+        $this->executableFinder =
+            $executableFinder
+            ?? new ExecutableFinder();
     }
 
-    public function dump(DatabaseConnection $connection): DumpResult
-    {
-        $binary = $this->findDumpBinary();
+    public function dump(
+        DatabaseConnection $connection
+    ): DumpResult {
+        if (! $this->canExecuteProcesses()) {
+            throw new RuntimeException(
+                'Process execution is unavailable.'
+            );
+        }
+
+        $binary =
+            $this->findDumpBinary();
 
         $optionFile = null;
         $dumpFile = null;
         $success = false;
 
         try {
-            $optionFile = $this->createOptionFile($connection);
-            $dumpFile = $this->createDumpFilePath(
-                $connection->getDatabaseName()
-            );
+            $optionFile =
+                $this->createOptionFile(
+                    $connection
+                );
+
+            $dumpFile =
+                $this->createDumpFilePath(
+                    $connection->getDatabaseName()
+                );
 
             $this->runDump(
                 $binary,
@@ -46,9 +73,13 @@ final class NativeMySqlDumper implements DatabaseDumper
                 );
             }
 
-            $size = filesize($dumpFile);
+            $size =
+                filesize($dumpFile);
 
-            if ($size === false || $size <= 0) {
+            if (
+                $size === false
+                || $size <= 0
+            ) {
                 throw new RuntimeException(
                     'Database dump file is empty.'
                 );
@@ -59,12 +90,17 @@ final class NativeMySqlDumper implements DatabaseDumper
             return new DumpResult(
                 path: $dumpFile,
                 sizeBytes: $size,
-                databaseName: $connection->getDatabaseName(),
+                databaseName:
+                    $connection->getDatabaseName(),
                 engine: 'mysql',
-                createdAt: new DateTimeImmutable()
+                createdAt:
+                    new DateTimeImmutable()
             );
         } finally {
-            if ($optionFile !== null && is_file($optionFile)) {
+            if (
+                $optionFile !== null
+                && is_file($optionFile)
+            ) {
                 @unlink($optionFile);
             }
 
@@ -80,8 +116,14 @@ final class NativeMySqlDumper implements DatabaseDumper
 
     private function findDumpBinary(): string
     {
-        foreach ($this->binaryCandidates as $candidate) {
-            $path = $this->findExecutable($candidate);
+        foreach (
+            $this->binaryCandidates
+            as $candidate
+        ) {
+            $path =
+                $this->executableFinder->find(
+                    $candidate
+                );
 
             if ($path !== null) {
                 return $path;
@@ -93,45 +135,14 @@ final class NativeMySqlDumper implements DatabaseDumper
         );
     }
 
-    private function findExecutable(string $binary): ?string
-    {
-        $process = proc_open(
-            ['which', $binary],
-            [
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes
-        );
-
-        if (! is_resource($process)) {
-            return null;
-        }
-
-        $stdout = stream_get_contents($pipes[1]);
-        stream_get_contents($pipes[2]);
-
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        $exitCode = proc_close($process);
-
-        if ($exitCode !== 0) {
-            return null;
-        }
-
-        $path = trim((string) $stdout);
-
-        return $path !== '' ? $path : null;
-    }
-
     private function createOptionFile(
         DatabaseConnection $connection
     ): string {
-        $path = tempnam(
-            sys_get_temp_dir(),
-            'secure-s3-mysql-'
-        );
+        $path =
+            tempnam(
+                sys_get_temp_dir(),
+                'secure-s3-mysql-'
+            );
 
         if ($path === false) {
             throw new RuntimeException(
@@ -141,21 +152,37 @@ final class NativeMySqlDumper implements DatabaseDumper
 
         $lines = [
             '[client]',
-            'host=' . $connection->getHost(),
-            'port=' . $connection->getPort(),
-            'user=' . $connection->getUsername(),
-            'password=' . $this->escapeOptionValue(
-                $connection->getPassword()
-            ),
+            'host='
+                . $connection->getHost(),
+            'port='
+                . $connection->getPort(),
+            'user='
+                . $connection->getUsername(),
+            'password='
+                . $this->escapeOptionValue(
+                    $connection->getPassword()
+                ),
         ];
 
         if ($connection->hasSocket()) {
-            $lines[] = 'socket=' . $connection->getSocket();
+            $lines[] =
+                'socket='
+                . $connection->getSocket();
         }
 
-        $content = implode(PHP_EOL, $lines) . PHP_EOL;
+        $content =
+            implode(
+                PHP_EOL,
+                $lines
+            )
+            . PHP_EOL;
 
-        if (file_put_contents($path, $content) === false) {
+        if (
+            file_put_contents(
+                $path,
+                $content
+            ) === false
+        ) {
             @unlink($path);
 
             throw new RuntimeException(
@@ -174,18 +201,24 @@ final class NativeMySqlDumper implements DatabaseDumper
         return $path;
     }
 
-    private function createDumpFilePath(string $databaseName): string
-    {
-        $safeDatabaseName = preg_replace(
-            '/[^A-Za-z0-9._-]/',
-            '_',
-            $databaseName
-        );
+    private function createDumpFilePath(
+        string $databaseName
+    ): string {
+        $safeDatabaseName =
+            preg_replace(
+                '/[^A-Za-z0-9._-]/',
+                '_',
+                $databaseName
+            );
 
-        $directory = sys_get_temp_dir();
+        $directory =
+            sys_get_temp_dir();
 
         try {
-            $suffix = bin2hex(random_bytes(8));
+            $suffix =
+                bin2hex(
+                    random_bytes(8)
+                );
         } catch (Throwable $e) {
             throw new RuntimeException(
                 'Unable to generate temporary dump filename.'
@@ -194,8 +227,12 @@ final class NativeMySqlDumper implements DatabaseDumper
 
         return sprintf(
             '%s/secure-s3-dump-%s-%s.sql',
-            rtrim($directory, DIRECTORY_SEPARATOR),
-            $safeDatabaseName ?: 'database',
+            rtrim(
+                $directory,
+                DIRECTORY_SEPARATOR
+            ),
+            $safeDatabaseName
+                ?: 'database',
             $suffix
         );
     }
@@ -206,9 +243,16 @@ final class NativeMySqlDumper implements DatabaseDumper
         string $dumpFile,
         DatabaseConnection $connection
     ): void {
+        if (! $this->canExecuteProcesses()) {
+            throw new RuntimeException(
+                'Process execution is unavailable.'
+            );
+        }
+
         $command = [
             $binary,
-            '--defaults-extra-file=' . $optionFile,
+            '--defaults-extra-file='
+                . $optionFile,
             '--single-transaction',
             '--quick',
             '--skip-lock-tables',
@@ -217,16 +261,25 @@ final class NativeMySqlDumper implements DatabaseDumper
         ];
 
         $descriptors = [
-            0 => ['file', '/dev/null', 'r'],
+            0 => ['pipe', 'r'],
             1 => ['file', $dumpFile, 'w'],
             2 => ['pipe', 'w'],
         ];
 
-        $process = proc_open(
-            $command,
-            $descriptors,
-            $pipes
-        );
+        try {
+            $process =
+                proc_open(
+                    $command,
+                    $descriptors,
+                    $pipes
+                );
+        } catch (Throwable $e) {
+            throw new RuntimeException(
+                'Unable to start database dump process.',
+                0,
+                $e
+            );
+        }
 
         if (! is_resource($process)) {
             throw new RuntimeException(
@@ -234,10 +287,28 @@ final class NativeMySqlDumper implements DatabaseDumper
             );
         }
 
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
+        if (
+            isset($pipes[0])
+            && is_resource($pipes[0])
+        ) {
+            fclose($pipes[0]);
+        }
 
-        $exitCode = proc_close($process);
+        if (
+            isset($pipes[2])
+            && is_resource($pipes[2])
+        ) {
+            stream_get_contents(
+                $pipes[2]
+            );
+
+            fclose($pipes[2]);
+        }
+
+        $exitCode =
+            proc_close(
+                $process
+            );
 
         if ($exitCode !== 0) {
             throw new RuntimeException(
@@ -246,8 +317,9 @@ final class NativeMySqlDumper implements DatabaseDumper
         }
     }
 
-    private function escapeOptionValue(string $value): string
-    {
+    private function escapeOptionValue(
+        string $value
+    ): string {
         return '"'
             . str_replace(
                 ['\\', '"'],
@@ -255,5 +327,11 @@ final class NativeMySqlDumper implements DatabaseDumper
                 $value
             )
             . '"';
+    }
+
+    private function canExecuteProcesses(): bool
+    {
+        return function_exists('proc_open')
+            && is_callable('proc_open');
     }
 }

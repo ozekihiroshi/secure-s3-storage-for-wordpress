@@ -7,38 +7,66 @@ use SecureS3StorageForWordpress\Backup\Database\Php\PhpMySqlDumper;
 final class DumpBackendSelector
 {
     /**
+     * @var list<string>
+     */
+    private array $binaryCandidates;
+
+    private ExecutableFinder $executableFinder;
+
+    /**
      * @param list<string> $binaryCandidates
      */
     public function __construct(
-        private array $binaryCandidates = [
+        array $binaryCandidates = [
             'mysqldump',
             'mariadb-dump',
-        ]
+        ],
+        ?ExecutableFinder $executableFinder = null
     ) {
+        $this->binaryCandidates =
+            $binaryCandidates;
+
+        $this->executableFinder =
+            $executableFinder
+            ?? new ExecutableFinder();
     }
 
     public function select(): DatabaseDumper
     {
-        if ($this->hasNativeDumpUtility()) {
-            return new NativeMySqlDumper(
-                $this->binaryCandidates
-            );
+        $binary =
+            $this->getDetectedUtility();
+
+        if ($binary === null) {
+            return new PhpMySqlDumper();
         }
 
-        return new PhpMySqlDumper();
+        return new NativeMySqlDumper(
+            [$binary],
+            $this->executableFinder
+        );
     }
 
     public function getSelectedBackendName(): string
     {
-        return $this->hasNativeDumpUtility()
+        return $this->getDetectedUtility() !== null
             ? 'native'
             : 'php';
     }
 
     public function getDetectedUtility(): ?string
     {
-        foreach ($this->binaryCandidates as $candidate) {
-            $path = $this->findExecutable($candidate);
+        if (! $this->canExecuteProcesses()) {
+            return null;
+        }
+
+        foreach (
+            $this->binaryCandidates
+            as $candidate
+        ) {
+            $path =
+                $this->executableFinder->find(
+                    $candidate
+                );
 
             if ($path !== null) {
                 return $path;
@@ -48,40 +76,9 @@ final class DumpBackendSelector
         return null;
     }
 
-    private function hasNativeDumpUtility(): bool
+    private function canExecuteProcesses(): bool
     {
-        return $this->getDetectedUtility() !== null;
-    }
-
-    private function findExecutable(string $binary): ?string
-    {
-        $process = proc_open(
-            ['which', $binary],
-            [
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes
-        );
-
-        if (! is_resource($process)) {
-            return null;
-        }
-
-        $stdout = stream_get_contents($pipes[1]);
-        stream_get_contents($pipes[2]);
-
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        $exitCode = proc_close($process);
-
-        if ($exitCode !== 0) {
-            return null;
-        }
-
-        $path = trim((string) $stdout);
-
-        return $path !== '' ? $path : null;
+        return function_exists('proc_open')
+            && is_callable('proc_open');
     }
 }

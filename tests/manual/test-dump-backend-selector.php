@@ -4,22 +4,56 @@ use SecureS3StorageForWordpress\Backup\Database\DumpBackendSelector;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-//$selector = new DumpBackendSelector();
-$selector = new DumpBackendSelector([
-    'definitely-not-installed',
-]);
+echo "Native detection test" . PHP_EOL;
+echo "=====================" . PHP_EOL;
 
+$nativeSelector =
+    new DumpBackendSelector();
 
-$backend = $selector->select();
+$nativeBackend =
+    $nativeSelector->select();
 
 echo 'Selected backend: '
-    . get_class($backend)
+    . get_class($nativeBackend)
     . PHP_EOL;
 
 echo 'Backend name: '
-    . $selector->getSelectedBackendName()
+    . $nativeSelector->getSelectedBackendName()
     . PHP_EOL;
 
 echo 'Detected utility: '
-    . ($selector->getDetectedUtility() ?? 'none')
+    . (
+        $nativeSelector->getDetectedUtility()
+        ?? 'none'
+    )
+    . PHP_EOL;
+
+echo PHP_EOL;
+
+echo "Fallback test" . PHP_EOL;
+echo "=============" . PHP_EOL;
+
+$fallbackSelector =
+    new DumpBackendSelector(
+        [
+            'definitely-not-installed',
+        ]
+    );
+
+$fallbackBackend =
+    $fallbackSelector->select();
+
+echo 'Selected backend: '
+    . get_class($fallbackBackend)
+    . PHP_EOL;
+
+echo 'Backend name: '
+    . $fallbackSelector->getSelectedBackendName()
+    . PHP_EOL;
+
+echo 'Detected utility: '
+    . (
+        $fallbackSelector->getDetectedUtility()
+        ?? 'none'
+    )
     . PHP_EOL;
