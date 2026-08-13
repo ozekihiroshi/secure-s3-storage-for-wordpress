@@ -9,16 +9,25 @@ final class BackupScheduleManager
     public const HOOK =
         'secure_s3_storage_database_backup_cron';
 
-    private const RECURRENCE = 'daily';
+    private const RECURRENCE =
+        'daily';
+
+    private const DAILY_RUN_HOUR =
+        3;
 
     public function isScheduled(): bool
     {
-        return wp_next_scheduled(self::HOOK) !== false;
+        return wp_next_scheduled(
+            self::HOOK
+        ) !== false;
     }
 
     public function getNextScheduledTimestamp(): ?int
     {
-        $timestamp = wp_next_scheduled(self::HOOK);
+        $timestamp =
+            wp_next_scheduled(
+                self::HOOK
+            );
 
         return $timestamp === false
             ? null
@@ -31,13 +40,25 @@ final class BackupScheduleManager
             return;
         }
 
-        $scheduled = wp_schedule_event(
-            time(),
-            self::RECURRENCE,
-            self::HOOK
-        );
+        $timestamp =
+            $this->getNextDailyRunTimestamp();
 
-        if ($scheduled === false) {
+        $result =
+            wp_schedule_event(
+                $timestamp,
+                self::RECURRENCE,
+                self::HOOK,
+                [],
+                true
+            );
+
+        if (is_wp_error($result)) {
+            throw new RuntimeException(
+                'Unable to schedule automatic database backup.'
+            );
+        }
+
+        if ($result !== true) {
             throw new RuntimeException(
                 'Unable to schedule automatic database backup.'
             );
@@ -46,14 +67,45 @@ final class BackupScheduleManager
 
     public function unschedule(): void
     {
-        $result = wp_clear_scheduled_hook(
-            self::HOOK
-        );
+        $result =
+            wp_clear_scheduled_hook(
+                self::HOOK,
+                [],
+                true
+            );
+
+        if (is_wp_error($result)) {
+            throw new RuntimeException(
+                'Unable to clear automatic database backup schedule.'
+            );
+        }
 
         if ($result === false) {
             throw new RuntimeException(
                 'Unable to clear automatic database backup schedule.'
             );
         }
+    }
+
+    private function getNextDailyRunTimestamp(): int
+    {
+        $now =
+            current_datetime();
+
+        $nextRun =
+            $now->setTime(
+                self::DAILY_RUN_HOUR,
+                0,
+                0
+            );
+
+        if ($nextRun <= $now) {
+            $nextRun =
+                $nextRun->modify(
+                    '+1 day'
+                );
+        }
+
+        return $nextRun->getTimestamp();
     }
 }

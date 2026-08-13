@@ -22,19 +22,19 @@ class SettingsPage
     private const PAGE_SLUG = 'secure-s3-storage';
 
     private const TEST_ACTION =
-        'secure_s3_storage_test_connection';
+    'secure_s3_storage_test_connection';
 
     private const BACKUP_ACTION =
-        'secure_s3_storage_backup_database';
+    'secure_s3_storage_backup_database';
 
     private const BACKUP_NOTICE_PREFIX =
-        'secure_s3_storage_backup_notice_';
+    'secure_s3_storage_backup_notice_';
 
     private const BACKUP_SCHEDULE_DISABLED =
-        'disabled';
+    'disabled';
 
     private const BACKUP_SCHEDULE_DAILY =
-        'daily';
+    'daily';
 
     public function register(): void
     {
@@ -142,7 +142,7 @@ class SettingsPage
             return;
         }
 
-        ?>
+?>
         <div class="wrap">
             <h1>Secure S3 Storage</h1>
 
@@ -174,16 +174,14 @@ class SettingsPage
             <form
                 method="post"
                 action="<?php echo esc_url(
-                    admin_url('admin-post.php')
-                ); ?>"
-            >
+                            admin_url('admin-post.php')
+                        ); ?>">
                 <input
                     type="hidden"
                     name="action"
                     value="<?php echo esc_attr(
-                        self::TEST_ACTION
-                    ); ?>"
-                >
+                                self::TEST_ACTION
+                            ); ?>">
 
                 <?php
                 wp_nonce_field(
@@ -212,16 +210,14 @@ class SettingsPage
             <form
                 method="post"
                 action="<?php echo esc_url(
-                    admin_url('admin-post.php')
-                ); ?>"
-            >
+                            admin_url('admin-post.php')
+                        ); ?>">
                 <input
                     type="hidden"
                     name="action"
                     value="<?php echo esc_attr(
-                        self::BACKUP_ACTION
-                    ); ?>"
-                >
+                                self::BACKUP_ACTION
+                            ); ?>">
 
                 <?php
                 wp_nonce_field(
@@ -240,7 +236,7 @@ class SettingsPage
 
             <?php $this->render_backup_history(); ?>
         </div>
-        <?php
+    <?php
     }
 
     public function render_section_description(): void
@@ -259,10 +255,10 @@ class SettingsPage
 
         printf(
             '<input type="text" '
-            . 'name="%1$s[region]" '
-            . 'value="%2$s" '
-            . 'class="regular-text" '
-            . 'placeholder="ap-northeast-1">',
+                . 'name="%1$s[region]" '
+                . 'value="%2$s" '
+                . 'class="regular-text" '
+                . 'placeholder="ap-northeast-1">',
             esc_attr(self::OPTION_NAME),
             esc_attr($value)
         );
@@ -275,10 +271,10 @@ class SettingsPage
 
         printf(
             '<input type="text" '
-            . 'name="%1$s[bucket]" '
-            . 'value="%2$s" '
-            . 'class="regular-text" '
-            . 'placeholder="ceri-secure-s3-storage-test">',
+                . 'name="%1$s[bucket]" '
+                . 'value="%2$s" '
+                . 'class="regular-text" '
+                . 'placeholder="ceri-secure-s3-storage-test">',
             esc_attr(self::OPTION_NAME),
             esc_attr($value)
         );
@@ -291,10 +287,10 @@ class SettingsPage
 
         printf(
             '<input type="text" '
-            . 'name="%1$s[prefix]" '
-            . 'value="%2$s" '
-            . 'class="regular-text" '
-            . 'placeholder="wordpress-test/">',
+                . 'name="%1$s[prefix]" '
+                . 'value="%2$s" '
+                . 'class="regular-text" '
+                . 'placeholder="wordpress-test/">',
             esc_attr(self::OPTION_NAME),
             esc_attr($value)
         );
@@ -317,37 +313,34 @@ class SettingsPage
             $options['backup_schedule']
             ?? self::BACKUP_SCHEDULE_DISABLED;
 
-        ?>
+    ?>
         <select
             name="<?php echo esc_attr(
-                self::OPTION_NAME
-            ); ?>[backup_schedule]"
-        >
+                        self::OPTION_NAME
+                    ); ?>[backup_schedule]">
             <option
                 value="<?php echo esc_attr(
-                    self::BACKUP_SCHEDULE_DISABLED
-                ); ?>"
+                            self::BACKUP_SCHEDULE_DISABLED
+                        ); ?>"
                 <?php
                 selected(
                     $value,
                     self::BACKUP_SCHEDULE_DISABLED
                 );
-                ?>
-            >
+                ?>>
                 Disabled
             </option>
 
             <option
                 value="<?php echo esc_attr(
-                    self::BACKUP_SCHEDULE_DAILY
-                ); ?>"
+                            self::BACKUP_SCHEDULE_DAILY
+                        ); ?>"
                 <?php
                 selected(
                     $value,
                     self::BACKUP_SCHEDULE_DAILY
                 );
-                ?>
-            >
+                ?>>
                 Daily
             </option>
         </select>
@@ -356,18 +349,20 @@ class SettingsPage
             <?php
             echo esc_html(
                 'Daily backups are executed by WordPress Cron. '
-                . 'Actual execution time may depend on site activity.'
+                    . 'Actual execution time may depend on site activity.'
             );
             ?>
         </p>
-        <?php
+        <?php $this->render_last_successful_backup(); ?>
+        <?php $this->render_next_scheduled_backup(); ?>
+<?php
     }
 
     public function sanitize_settings(array $input): array
     {
         $schedule = sanitize_key(
             $input['backup_schedule']
-            ?? self::BACKUP_SCHEDULE_DISABLED
+                ?? self::BACKUP_SCHEDULE_DISABLED
         );
 
         if (
@@ -562,7 +557,7 @@ class SettingsPage
 
             $backend =
                 $backupService
-                    ->getSelectedBackendName();
+                ->getSelectedBackendName();
 
             $compressor =
                 new GzipCompressor();
@@ -583,9 +578,9 @@ class SettingsPage
 
             $message = sprintf(
                 'Database backup completed successfully. '
-                . 'Backend: %s. '
-                . 'S3 object: s3://%s/%s '
-                . '(%d bytes).',
+                    . 'Backend: %s. '
+                    . 'S3 object: s3://%s/%s '
+                    . '(%d bytes).',
                 $result->getBackend(),
                 $result->getBucket(),
                 $result->getKey(),
@@ -602,18 +597,12 @@ class SettingsPage
                         'now',
                         wp_timezone()
                     ),
-                    databaseName:
-                        $result->getDatabaseName(),
-                    backend:
-                        $result->getBackend(),
-                    bucket:
-                        $result->getBucket(),
-                    key:
-                        $result->getKey(),
-                    sizeBytes:
-                        $result->getSizeBytes(),
-                    message:
-                        'Backup completed successfully.'
+                    databaseName: $result->getDatabaseName(),
+                    backend: $result->getBackend(),
+                    bucket: $result->getBucket(),
+                    key: $result->getKey(),
+                    sizeBytes: $result->getSizeBytes(),
+                    message: 'Backup completed successfully.'
                 )
             );
 
@@ -706,8 +695,8 @@ class SettingsPage
 
         $class =
             $status === 'success'
-                ? 'notice notice-success'
-                : 'notice notice-error';
+            ? 'notice notice-success'
+            : 'notice notice-error';
 
         printf(
             '<div class="%1$s"><p>%2$s</p></div>',
@@ -757,13 +746,13 @@ class SettingsPage
 
         $message =
             isset($notice['message'])
-                ? (string) $notice['message']
-                : '';
+            ? (string) $notice['message']
+            : '';
 
         $class =
             $success
-                ? 'notice notice-success'
-                : 'notice notice-error';
+            ? 'notice notice-success'
+            : 'notice notice-error';
 
         printf(
             '<div class="%1$s"><p>%2$s</p></div>',
@@ -824,13 +813,13 @@ class SettingsPage
 
             $databaseName =
                 isset($entry['databaseName'])
-                    ? (string) $entry['databaseName']
-                    : '-';
+                ? (string) $entry['databaseName']
+                : '-';
 
             $backend =
                 isset($entry['backend'])
-                    ? (string) $entry['backend']
-                    : '-';
+                ? (string) $entry['backend']
+                : '-';
 
             $size = '-';
 
@@ -862,8 +851,8 @@ class SettingsPage
 
             $message =
                 isset($entry['message'])
-                    ? (string) $entry['message']
-                    : '';
+                ? (string) $entry['message']
+                : '';
 
             echo '<tr>';
 
@@ -929,7 +918,7 @@ class SettingsPage
                     wp_timezone()
                 )
                 ->format(
-                    'Y-m-d H:i:s'
+                    'Y-m-d H:i T'
                 );
         } catch (Throwable $e) {
             return $date;
@@ -945,11 +934,11 @@ class SettingsPage
                 [
                     'page' => self::PAGE_SLUG,
                     's3_test_status' =>
-                        $success
-                            ? 'success'
-                            : 'error',
+                    $success
+                        ? 'success'
+                        : 'error',
                     's3_test_message' =>
-                        $message,
+                    $message,
                 ],
                 admin_url(
                     'options-general.php'
@@ -987,5 +976,98 @@ class SettingsPage
         return is_array($options)
             ? $options
             : [];
+    }
+    private function render_next_scheduled_backup(): void
+    {
+        $manager =
+            new BackupScheduleManager();
+
+        $timestamp =
+            $manager->getNextScheduledTimestamp();
+
+        echo '<p>';
+
+        if ($timestamp === null) {
+            echo '<strong>'
+                . esc_html(
+                    'Automatic backup: Disabled'
+                )
+                . '</strong>';
+
+            echo '</p>';
+
+            return;
+        }
+
+        $formatted =
+            wp_date(
+                'Y-m-d H:i T',
+                $timestamp
+            );
+
+        if ($formatted === false) {
+            $formatted = '-';
+        }
+
+        echo '<strong>'
+            . esc_html(
+                'Next scheduled backup:'
+            )
+            . '</strong> '
+            . esc_html($formatted);
+
+        echo '</p>';
+    }
+    private function render_last_successful_backup(): void
+    {
+        $repository =
+            new BackupHistoryRepository();
+
+        $history =
+            $repository->all();
+
+        foreach ($history as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            if (empty($entry['success'])) {
+                continue;
+            }
+
+            $createdAt =
+                isset($entry['createdAt'])
+                ? (string) $entry['createdAt']
+                : '';
+
+            if ($createdAt === '') {
+                continue;
+            }
+
+            $formatted =
+                $this->format_history_date(
+                    $createdAt
+                );
+
+            echo '<p>';
+            echo '<strong>'
+                . esc_html(
+                    'Last successful backup:'
+                )
+                . '</strong> '
+                . esc_html($formatted);
+            echo '</p>';
+
+            return;
+        }
+
+        echo '<p>';
+        echo '<strong>'
+            . esc_html(
+                'Last successful backup:'
+            )
+            . '</strong> '
+            . esc_html('None');
+        echo '</p>';
     }
 }
