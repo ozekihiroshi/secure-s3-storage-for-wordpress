@@ -3,6 +3,7 @@
 namespace SecureS3StorageForWordpress;
 
 use SecureS3StorageForWordpress\Admin\SettingsPage;
+use SecureS3StorageForWordpress\Cli\CommandRegistrar;
 use SecureS3StorageForWordpress\Cron\DatabaseBackupCronHandler;
 
 final class Plugin
@@ -18,5 +19,10 @@ final class Plugin
             new DatabaseBackupCronHandler();
 
         $cronHandler->register();
+
+        $commandRegistrar =
+            new CommandRegistrar();
+
+        $commandRegistrar->register();
     }
 }
