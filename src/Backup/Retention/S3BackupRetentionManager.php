@@ -81,10 +81,6 @@ final class S3BackupRetentionManager
                 )
             );
         } catch (AwsException $e) {
-            /*
-             * Do not expose AWS response details,
-             * request IDs, credentials, or raw SDK errors.
-             */
             throw new RuntimeException(
                 'Unable to inspect S3 backup retention candidates.'
             );
@@ -95,6 +91,46 @@ final class S3BackupRetentionManager
                 'Unable to inspect S3 backup retention candidates.'
             );
         }
+    }
+
+    /**
+     * Delete previously identified retention candidates.
+     *
+     * This method does not calculate retention policy.
+     *
+     * @param list<RetentionCandidate> $candidates
+     */
+    public function deleteCandidates(
+        array $candidates
+    ): RetentionDeleteResult {
+        if ($candidates === []) {
+            return new RetentionDeleteResult(
+                []
+            );
+        }
+
+        $deleted = [];
+
+        foreach ($candidates as $candidate) {
+            if (
+                ! $candidate
+                    instanceof RetentionCandidate
+            ) {
+                throw new RuntimeException(
+                    'Invalid retention deletion candidate.'
+                );
+            }
+
+            $this->deleteCandidate(
+                $candidate
+            );
+
+            $deleted[] = $candidate;
+        }
+
+        return new RetentionDeleteResult(
+            $deleted
+        );
     }
 
     /**
@@ -201,8 +237,9 @@ final class S3BackupRetentionManager
 
         if ($lastModified === null) {
             /*
-             * If S3 metadata is incomplete, do not consider
-             * the object safe for automatic retention.
+             * If S3 metadata is incomplete,
+             * do not consider the object safe
+             * for automatic retention.
              */
             return null;
         }
@@ -213,6 +250,59 @@ final class S3BackupRetentionManager
             sizeBytes: $sizeBytes,
             lastModified: $lastModified
         );
+    }
+
+    private function deleteCandidate(
+        RetentionCandidate $candidate
+    ): void {
+        $bucket =
+            $candidate->getBucket();
+
+        $key =
+            $candidate->getKey();
+
+        if (
+            $bucket === ''
+            || $key === ''
+        ) {
+            throw new RuntimeException(
+                'Invalid retention deletion candidate.'
+            );
+        }
+
+        /*
+         * Defense in depth:
+         *
+         * Even though candidates normally come from
+         * findDeletionCandidates(), validate the object
+         * key again before issuing DeleteObject.
+         */
+        if (
+            ! $this->looksLikeDatabaseBackupKey(
+                $key
+            )
+        ) {
+            throw new RuntimeException(
+                'Unsafe retention deletion candidate.'
+            );
+        }
+
+        try {
+            $this->client->deleteObject(
+                [
+                    'Bucket' => $bucket,
+                    'Key' => $key,
+                ]
+            );
+        } catch (AwsException $e) {
+            throw new RuntimeException(
+                'Unable to delete an S3 backup object.'
+            );
+        } catch (Throwable $e) {
+            throw new RuntimeException(
+                'Unable to delete an S3 backup object.'
+            );
+        }
     }
 
     private function isDatabaseBackupKey(
@@ -247,6 +337,35 @@ final class S3BackupRetentionManager
         );
     }
 
+    private function looksLikeDatabaseBackupKey(
+        string $key
+    ): bool {
+        if (
+            ! str_contains(
+                $key,
+                '/backups/database/'
+            )
+            && ! str_starts_with(
+                $key,
+                self::DATABASE_BACKUP_PATH
+            )
+        ) {
+            return false;
+        }
+
+        $fileName =
+            basename($key);
+
+        return str_starts_with(
+            $fileName,
+            'db-'
+        )
+            && str_ends_with(
+                $fileName,
+                '.sql.gz'
+            );
+    }
+
     private function buildDatabaseBackupPrefix(
         string $prefix
     ): string {
@@ -278,7 +397,10 @@ final class S3BackupRetentionManager
             );
         }
 
-        if (is_string($value) && $value !== '') {
+        if (
+            is_string($value)
+            && $value !== ''
+        ) {
             try {
                 return new DateTimeImmutable(
                     $value
