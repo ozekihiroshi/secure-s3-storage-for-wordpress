@@ -153,11 +153,11 @@ composer install \
     --optimize-autoloader
 
 #
-# composer.json and composer.lock are build inputs and are not required
-# by the plugin at runtime, so omit them from the distributed package.
+# composer.lock is used only to build the release reproducibly.
+# Keep composer.json in the distributed package so dependency
+# metadata remains available for inspection.
 #
 rm -f \
-    "${STAGE_DIR}/composer.json" \
     "${STAGE_DIR}/composer.lock"
 
 #
