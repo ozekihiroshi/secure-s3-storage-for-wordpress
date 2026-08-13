@@ -2,12 +2,15 @@
 
 namespace SecureS3StorageForWordpress\Admin;
 
+use DateTimeImmutable;
 use SecureS3StorageForWordpress\Aws\ConnectionTester;
 use SecureS3StorageForWordpress\Aws\S3ClientFactory;
 use SecureS3StorageForWordpress\Aws\S3Storage;
 use SecureS3StorageForWordpress\Backup\BackupService;
 use SecureS3StorageForWordpress\Backup\Compression\GzipCompressor;
 use SecureS3StorageForWordpress\Backup\DatabaseBackupService;
+use SecureS3StorageForWordpress\Backup\History\BackupHistoryEntry;
+use SecureS3StorageForWordpress\Backup\History\BackupHistoryRepository;
 use SecureS3StorageForWordpress\WordPress\WordPressDatabaseConnectionFactory;
 use Throwable;
 
@@ -202,6 +205,8 @@ class SettingsPage
                 );
                 ?>
             </form>
+
+            <?php $this->render_backup_history(); ?>
         </div>
         <?php
     }
@@ -355,13 +360,26 @@ class SettingsPage
         $prefix = $options['prefix'] ?? '';
 
         if ($region === '' || $bucket === '') {
+            $message =
+                'AWS region and S3 bucket are required.';
+
+            $this->record_failed_backup(
+                $message
+            );
+
             $this->store_backup_notice(
                 false,
-                'AWS region and S3 bucket are required.'
+                $message
             );
 
             $this->redirect_to_settings_page();
         }
+
+        $databaseName = defined('DB_NAME')
+            ? (string) DB_NAME
+            : 'unknown';
+
+        $backend = 'unknown';
 
         try {
             $connectionFactory =
@@ -369,6 +387,9 @@ class SettingsPage
 
             $databaseConnection =
                 $connectionFactory->create();
+
+            $databaseName =
+                $databaseConnection->getDatabaseName();
 
             $clientFactory =
                 new S3ClientFactory();
@@ -381,6 +402,9 @@ class SettingsPage
 
             $backupService =
                 new BackupService();
+
+            $backend =
+                $backupService->getSelectedBackendName();
 
             $compressor =
                 new GzipCompressor();
@@ -410,22 +434,90 @@ class SettingsPage
                 $result->getSizeBytes()
             );
 
+            $history =
+                new BackupHistoryRepository();
+
+            $history->add(
+                new BackupHistoryEntry(
+                    success: true,
+                    createdAt: new DateTimeImmutable(
+                        'now',
+                        wp_timezone()
+                    ),
+                    databaseName:
+                        $result->getDatabaseName(),
+                    backend:
+                        $result->getBackend(),
+                    bucket:
+                        $result->getBucket(),
+                    key:
+                        $result->getKey(),
+                    sizeBytes:
+                        $result->getSizeBytes(),
+                    message:
+                        'Backup completed successfully.'
+                )
+            );
+
             $this->store_backup_notice(
                 true,
                 $message
             );
         } catch (Throwable $e) {
             /*
-             * Do not expose database credentials, AWS credentials,
-             * raw SQL, commands, or SDK exception details here.
+             * Never expose database credentials,
+             * AWS credentials, raw SQL, shell commands,
+             * temporary filenames, or SDK exceptions
+             * in the administrator-facing message.
              */
+
+            $message = 'Database backup failed.';
+
+            $history =
+                new BackupHistoryRepository();
+
+            $history->add(
+                new BackupHistoryEntry(
+                    success: false,
+                    createdAt: new DateTimeImmutable(
+                        'now',
+                        wp_timezone()
+                    ),
+                    databaseName: $databaseName,
+                    backend: $backend,
+                    message: $message
+                )
+            );
+
             $this->store_backup_notice(
                 false,
-                'Database backup failed.'
+                $message
             );
         }
 
         $this->redirect_to_settings_page();
+    }
+
+    private function record_failed_backup(
+        string $message
+    ): void {
+        $history =
+            new BackupHistoryRepository();
+
+        $history->add(
+            new BackupHistoryEntry(
+                success: false,
+                createdAt: new DateTimeImmutable(
+                    'now',
+                    wp_timezone()
+                ),
+                databaseName: defined('DB_NAME')
+                    ? (string) DB_NAME
+                    : 'unknown',
+                backend: 'unknown',
+                message: $message
+            )
+        );
     }
 
     private function render_test_notice(): void
@@ -510,6 +602,162 @@ class SettingsPage
             esc_attr($class),
             esc_html($message)
         );
+    }
+
+    private function render_backup_history(): void
+    {
+        $repository =
+            new BackupHistoryRepository();
+
+        $history =
+            $repository->all();
+
+        echo '<hr>';
+        echo '<h2>Recent Backups</h2>';
+
+        if ($history === []) {
+            echo '<p>'
+                . esc_html(
+                    'No backup history yet.'
+                )
+                . '</p>';
+
+            return;
+        }
+
+        echo '<table class="widefat striped">';
+        echo '<thead>';
+        echo '<tr>';
+        echo '<th>Date</th>';
+        echo '<th>Status</th>';
+        echo '<th>Database</th>';
+        echo '<th>Backend</th>';
+        echo '<th>Size</th>';
+        echo '<th>S3 Object</th>';
+        echo '<th>Message</th>';
+        echo '</tr>';
+        echo '</thead>';
+        echo '<tbody>';
+
+        foreach ($history as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $success =
+                ! empty($entry['success']);
+
+            $date =
+                $this->format_history_date(
+                    isset($entry['createdAt'])
+                        ? (string) $entry['createdAt']
+                        : ''
+                );
+
+            $databaseName =
+                isset($entry['databaseName'])
+                    ? (string) $entry['databaseName']
+                    : '-';
+
+            $backend =
+                isset($entry['backend'])
+                    ? (string) $entry['backend']
+                    : '-';
+
+            $size = '-';
+
+            if (
+                isset($entry['sizeBytes'])
+                && is_numeric($entry['sizeBytes'])
+            ) {
+                $size = size_format(
+                    (int) $entry['sizeBytes']
+                );
+            }
+
+            $s3Object = '-';
+
+            if (
+                ! empty($entry['bucket'])
+                && ! empty($entry['key'])
+            ) {
+                $s3Object = sprintf(
+                    's3://%s/%s',
+                    (string) $entry['bucket'],
+                    (string) $entry['key']
+                );
+            }
+
+            $message =
+                isset($entry['message'])
+                    ? (string) $entry['message']
+                    : '';
+
+            echo '<tr>';
+
+            printf(
+                '<td>%s</td>',
+                esc_html($date)
+            );
+
+            printf(
+                '<td><strong>%s</strong></td>',
+                esc_html(
+                    $success
+                        ? 'Success'
+                        : 'Failed'
+                )
+            );
+
+            printf(
+                '<td>%s</td>',
+                esc_html($databaseName)
+            );
+
+            printf(
+                '<td>%s</td>',
+                esc_html($backend)
+            );
+
+            printf(
+                '<td>%s</td>',
+                esc_html($size)
+            );
+
+            printf(
+                '<td><code>%s</code></td>',
+                esc_html($s3Object)
+            );
+
+            printf(
+                '<td>%s</td>',
+                esc_html($message)
+            );
+
+            echo '</tr>';
+        }
+
+        echo '</tbody>';
+        echo '</table>';
+    }
+
+    private function format_history_date(
+        string $date
+    ): string {
+        if ($date === '') {
+            return '-';
+        }
+
+        try {
+            $dateTime =
+                new DateTimeImmutable($date);
+
+            return $dateTime
+                ->setTimezone(wp_timezone())
+                ->format('Y-m-d H:i:s');
+        } catch (Throwable $e) {
+            return $date;
+        }
     }
 
     private function redirect_with_test_result(
