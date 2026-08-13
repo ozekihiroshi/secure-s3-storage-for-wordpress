@@ -49,24 +49,53 @@ final class StatusCommand
             $this->getBackendLabel();
 
         WP_CLI::log(
-            'Schedule: ' . $schedule
+            sprintf(
+                __(
+                    'Schedule: %s',
+                    'secure-s3-storage'
+                ),
+                $schedule
+            )
         );
 
         WP_CLI::log(
-            'Next backup: ' . $nextBackup
+            sprintf(
+                __(
+                    'Next backup: %s',
+                    'secure-s3-storage'
+                ),
+                $nextBackup
+            )
         );
 
         WP_CLI::log(
-            'Retention: ' . $retention
+            sprintf(
+                __(
+                    'Retention: %s',
+                    'secure-s3-storage'
+                ),
+                $retention
+            )
         );
 
         WP_CLI::log(
-            'Last successful backup: '
-            . $lastSuccessfulBackup
+            sprintf(
+                __(
+                    'Last successful backup: %s',
+                    'secure-s3-storage'
+                ),
+                $lastSuccessfulBackup
+            )
         );
 
         WP_CLI::log(
-            'Backend: ' . $backend
+            sprintf(
+                __(
+                    'Backend: %s',
+                    'secure-s3-storage'
+                ),
+                $backend
+            )
         );
     }
 
@@ -78,8 +107,14 @@ final class StatusCommand
             ?? 'disabled';
 
         return $schedule === 'daily'
-            ? 'Daily'
-            : 'Disabled';
+            ? __(
+                'Daily',
+                'secure-s3-storage'
+            )
+            : __(
+                'Disabled',
+                'secure-s3-storage'
+            );
     }
 
     private function getNextBackupLabel(): string
@@ -91,7 +126,10 @@ final class StatusCommand
             $manager->getNextScheduledTimestamp();
 
         if ($timestamp === null) {
-            return 'None';
+            return __(
+                'None',
+                'secure-s3-storage'
+            );
         }
 
         $formatted =
@@ -101,7 +139,10 @@ final class StatusCommand
             );
 
         return $formatted === false
-            ? 'Unknown'
+            ? __(
+                'Unknown',
+                'secure-s3-storage'
+            )
             : $formatted;
     }
 
@@ -113,7 +154,10 @@ final class StatusCommand
             ?? 0;
 
         if (! is_numeric($value)) {
-            return 'Disabled';
+            return __(
+                'Disabled',
+                'secure-s3-storage'
+            );
         }
 
         $keepCount =
@@ -126,11 +170,17 @@ final class StatusCommand
                 true
             )
         ) {
-            return 'Disabled';
+            return __(
+                'Disabled',
+                'secure-s3-storage'
+            );
         }
 
         return sprintf(
-            'Keep last %d',
+            __(
+                'Keep last %d',
+                'secure-s3-storage'
+            ),
             $keepCount
         );
     }
@@ -175,11 +225,17 @@ final class StatusCommand
                         'Y-m-d H:i T'
                     );
             } catch (Throwable $e) {
-                return 'Unknown';
+                return __(
+                    'Unknown',
+                    'secure-s3-storage'
+                );
             }
         }
 
-        return 'None';
+        return __(
+            'None',
+            'secure-s3-storage'
+        );
     }
 
     private function getBackendLabel(): string
@@ -191,7 +247,10 @@ final class StatusCommand
             return $backupService
                 ->getSelectedBackendName();
         } catch (Throwable $e) {
-            return 'Unknown';
+            return __(
+                'Unknown',
+                'secure-s3-storage'
+            );
         }
     }
 
