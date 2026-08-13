@@ -94,6 +94,7 @@ final class BackupCommand
 
             WP_CLI::log(
                 sprintf(
+                    /* translators: %s: database backup backend name. */
                     __(
                         'Backend: %s',
                         'secure-s3-storage'
@@ -178,6 +179,7 @@ final class BackupCommand
 
             WP_CLI::success(
                 sprintf(
+                    /* translators: 1: S3 bucket, 2: S3 object key, 3: backup size in bytes. */
                     __(
                         'Backup completed: s3://%1$s/%2$s (%3$d bytes)',
                         'secure-s3-storage'
@@ -248,6 +250,7 @@ final class BackupCommand
 
             if ($candidates === []) {
                 return sprintf(
+                    /* translators: %d: number of backups to keep. */
                     __(
                         'Retention: keeping the latest %d backups; no old backups required deletion.',
                         'secure-s3-storage'
@@ -262,6 +265,7 @@ final class BackupCommand
                 );
 
             return sprintf(
+                /* translators: 1: number of deleted backups, 2: number of backups to keep. */
                 __(
                     'Retention: deleted %1$d old backup(s), keeping the latest %2$d.',
                     'secure-s3-storage'

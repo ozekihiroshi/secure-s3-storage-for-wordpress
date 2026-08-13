@@ -823,6 +823,7 @@ class SettingsPage
                 );
 
             $message = sprintf(
+                /* translators: 1: backup backend, 2: S3 bucket, 3: S3 object key, 4: backup size in bytes. */
                 __(
                     'Database backup completed successfully. Backend: %1$s. S3 object: s3://%2$s/%3$s (%4$d bytes).',
                     'secure-s3-storage'

@@ -241,6 +241,7 @@ final class DatabaseBackupCronHandler
 
             if ($candidates === []) {
                 return sprintf(
+                    /* translators: %d: number of backups to keep. */
                     __(
                         'Retention: keeping the latest %d backups; no old backups required deletion.',
                         'secure-s3-storage'
@@ -255,6 +256,7 @@ final class DatabaseBackupCronHandler
                 );
 
             return sprintf(
+                /* translators: 1: number of deleted backups, 2: number of backups to keep. */
                 __(
                     'Retention: deleted %1$d old backup(s), keeping the latest %2$d.',
                     'secure-s3-storage'
