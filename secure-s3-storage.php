@@ -6,6 +6,7 @@
  * Author: Hiroshi Ozeki
  * License: GPL-2.0-or-later
  * Requires PHP: 8.1
+ * text Domain: secure-s3-storage
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -74,8 +74,14 @@ class SettingsPage
     public function add_settings_page(): void
     {
         add_options_page(
-            'Secure S3 Storage',
-            'Secure S3 Storage',
+            __(
+                'Secure S3 Storage',
+                'secure-s3-storage'
+            ),
+            __(
+                'Secure S3 Storage',
+                'secure-s3-storage'
+            ),
             'manage_options',
             self::PAGE_SLUG,
             [$this, 'render_page']
@@ -96,14 +102,20 @@ class SettingsPage
 
         add_settings_section(
             'secure_s3_storage_aws',
-            'AWS Configuration',
+            __(
+                'AWS Configuration',
+                'secure-s3-storage'
+            ),
             [$this, 'render_section_description'],
             self::PAGE_SLUG
         );
 
         add_settings_field(
             'region',
-            'AWS Region',
+            __(
+                'AWS Region',
+                'secure-s3-storage'
+            ),
             [$this, 'render_region_field'],
             self::PAGE_SLUG,
             'secure_s3_storage_aws'
@@ -111,7 +123,10 @@ class SettingsPage
 
         add_settings_field(
             'bucket',
-            'S3 Bucket',
+            __(
+                'S3 Bucket',
+                'secure-s3-storage'
+            ),
             [$this, 'render_bucket_field'],
             self::PAGE_SLUG,
             'secure_s3_storage_aws'
@@ -119,7 +134,10 @@ class SettingsPage
 
         add_settings_field(
             'prefix',
-            'S3 Prefix',
+            __(
+                'S3 Prefix',
+                'secure-s3-storage'
+            ),
             [$this, 'render_prefix_field'],
             self::PAGE_SLUG,
             'secure_s3_storage_aws'
@@ -127,14 +145,20 @@ class SettingsPage
 
         add_settings_section(
             'secure_s3_storage_backup_schedule',
-            'Automatic Backup',
+            __(
+                'Automatic Backup',
+                'secure-s3-storage'
+            ),
             [$this, 'render_backup_schedule_description'],
             self::PAGE_SLUG
         );
 
         add_settings_field(
             'backup_schedule',
-            'Schedule',
+            __(
+                'Schedule',
+                'secure-s3-storage'
+            ),
             [$this, 'render_backup_schedule_field'],
             self::PAGE_SLUG,
             'secure_s3_storage_backup_schedule'
@@ -142,7 +166,10 @@ class SettingsPage
 
         add_settings_field(
             'retention_keep_count',
-            'Retention',
+            __(
+                'Retention',
+                'secure-s3-storage'
+            ),
             [$this, 'render_retention_field'],
             self::PAGE_SLUG,
             'secure_s3_storage_backup_schedule'
@@ -157,7 +184,14 @@ class SettingsPage
 
         ?>
         <div class="wrap">
-            <h1>Secure S3 Storage</h1>
+            <h1>
+                <?php
+                echo esc_html__(
+                    'Secure S3 Storage',
+                    'secure-s3-storage'
+                );
+                ?>
+            </h1>
 
             <?php $this->render_test_notice(); ?>
             <?php $this->render_backup_notice(); ?>
@@ -172,16 +206,40 @@ class SettingsPage
 
             <hr>
 
-            <h2>Authentication</h2>
+            <h2>
+                <?php
+                echo esc_html__(
+                    'Authentication',
+                    'secure-s3-storage'
+                );
+                ?>
+            </h2>
 
             <p>
-                AWS Default Credential Provider
+                <?php
+                echo esc_html__(
+                    'AWS Default Credential Provider',
+                    'secure-s3-storage'
+                );
+                ?>
             </p>
 
-            <h2>Connection</h2>
+            <h2>
+                <?php
+                echo esc_html__(
+                    'Connection',
+                    'secure-s3-storage'
+                );
+                ?>
+            </h2>
 
             <p>
-                Verify access to the configured S3 bucket and prefix.
+                <?php
+                echo esc_html__(
+                    'Verify access to the configured S3 bucket and prefix.',
+                    'secure-s3-storage'
+                );
+                ?>
             </p>
 
             <form
@@ -205,7 +263,10 @@ class SettingsPage
                 );
 
                 submit_button(
-                    'Test Connection',
+                    __(
+                        'Test Connection',
+                        'secure-s3-storage'
+                    ),
                     'secondary',
                     'submit',
                     false
@@ -215,11 +276,22 @@ class SettingsPage
 
             <hr>
 
-            <h2>Database Backup</h2>
+            <h2>
+                <?php
+                echo esc_html__(
+                    'Database Backup',
+                    'secure-s3-storage'
+                );
+                ?>
+            </h2>
 
             <p>
-                Create a compressed database backup and upload it
-                to the configured Amazon S3 destination.
+                <?php
+                echo esc_html__(
+                    'Create a compressed database backup and upload it to the configured Amazon S3 destination.',
+                    'secure-s3-storage'
+                );
+                ?>
             </p>
 
             <form
@@ -243,7 +315,10 @@ class SettingsPage
                 );
 
                 submit_button(
-                    'Backup Now',
+                    __(
+                        'Backup Now',
+                        'secure-s3-storage'
+                    ),
                     'primary',
                     'submit',
                     false
@@ -259,8 +334,9 @@ class SettingsPage
     public function render_section_description(): void
     {
         echo '<p>'
-            . esc_html(
-                'Configure the Amazon S3 destination used by this plugin.'
+            . esc_html__(
+                'Configure the Amazon S3 destination used by this plugin.',
+                'secure-s3-storage'
             )
             . '</p>';
     }
@@ -316,8 +392,9 @@ class SettingsPage
     public function render_backup_schedule_description(): void
     {
         echo '<p>'
-            . esc_html(
-                'Configure automatic database backups using WordPress Cron.'
+            . esc_html__(
+                'Configure automatic database backups using WordPress Cron.',
+                'secure-s3-storage'
             )
             . '</p>';
     }
@@ -347,7 +424,12 @@ class SettingsPage
                 );
                 ?>
             >
-                Disabled
+                <?php
+                echo esc_html__(
+                    'Disabled',
+                    'secure-s3-storage'
+                );
+                ?>
             </option>
 
             <option
@@ -361,15 +443,20 @@ class SettingsPage
                 );
                 ?>
             >
-                Daily
+                <?php
+                echo esc_html__(
+                    'Daily',
+                    'secure-s3-storage'
+                );
+                ?>
             </option>
         </select>
 
         <p class="description">
             <?php
-            echo esc_html(
-                'Daily backups are executed by WordPress Cron. '
-                . 'Actual execution time may depend on site activity.'
+            echo esc_html__(
+                'Daily backups are executed by WordPress Cron. Actual execution time may depend on site activity.',
+                'secure-s3-storage'
             );
             ?>
         </p>
@@ -406,7 +493,12 @@ class SettingsPage
                 );
                 ?>
             >
-                Disabled
+                <?php
+                echo esc_html__(
+                    'Disabled',
+                    'secure-s3-storage'
+                );
+                ?>
             </option>
 
             <option
@@ -420,7 +512,12 @@ class SettingsPage
                 );
                 ?>
             >
-                Keep last 7 backups
+                <?php
+                echo esc_html__(
+                    'Keep last 7 backups',
+                    'secure-s3-storage'
+                );
+                ?>
             </option>
 
             <option
@@ -434,7 +531,12 @@ class SettingsPage
                 );
                 ?>
             >
-                Keep last 14 backups
+                <?php
+                echo esc_html__(
+                    'Keep last 14 backups',
+                    'secure-s3-storage'
+                );
+                ?>
             </option>
 
             <option
@@ -448,16 +550,20 @@ class SettingsPage
                 );
                 ?>
             >
-                Keep last 30 backups
+                <?php
+                echo esc_html__(
+                    'Keep last 30 backups',
+                    'secure-s3-storage'
+                );
+                ?>
             </option>
         </select>
 
         <p class="description">
             <?php
-            echo esc_html(
-                'After a successful automatic backup, older database '
-                . 'backups beyond the selected count are deleted from S3. '
-                . 'Manual backups do not trigger retention cleanup.'
+            echo esc_html__(
+                'After a successful automatic backup, older database backups beyond the selected count are deleted from S3. Manual backups do not trigger retention cleanup.',
+                'secure-s3-storage'
             );
             ?>
         </p>
@@ -560,8 +666,9 @@ class SettingsPage
     {
         if (! current_user_can('manage_options')) {
             wp_die(
-                esc_html(
-                    'You are not allowed to perform this action.'
+                esc_html__(
+                    'You are not allowed to perform this action.',
+                    'secure-s3-storage'
                 )
             );
         }
@@ -580,7 +687,10 @@ class SettingsPage
         if ($region === '' || $bucket === '') {
             $this->redirect_with_test_result(
                 false,
-                'Region and bucket are required.'
+                __(
+                    'Region and bucket are required.',
+                    'secure-s3-storage'
+                )
             );
         }
 
@@ -610,7 +720,10 @@ class SettingsPage
         } catch (Throwable $e) {
             $this->redirect_with_test_result(
                 false,
-                'Unable to complete the S3 connection test.'
+                __(
+                    'Unable to complete the S3 connection test.',
+                    'secure-s3-storage'
+                )
             );
         }
     }
@@ -619,8 +732,9 @@ class SettingsPage
     {
         if (! current_user_can('manage_options')) {
             wp_die(
-                esc_html(
-                    'You are not allowed to perform this action.'
+                esc_html__(
+                    'You are not allowed to perform this action.',
+                    'secure-s3-storage'
                 )
             );
         }
@@ -638,7 +752,10 @@ class SettingsPage
 
         if ($region === '' || $bucket === '') {
             $message =
-                'AWS region and S3 bucket are required.';
+                __(
+                    'AWS region and S3 bucket are required.',
+                    'secure-s3-storage'
+                );
 
             $this->record_failed_backup(
                 $message
@@ -706,10 +823,10 @@ class SettingsPage
                 );
 
             $message = sprintf(
-                'Database backup completed successfully. '
-                . 'Backend: %s. '
-                . 'S3 object: s3://%s/%s '
-                . '(%d bytes).',
+                __(
+                    'Database backup completed successfully. Backend: %1$s. S3 object: s3://%2$s/%3$s (%4$d bytes).',
+                    'secure-s3-storage'
+                ),
                 $result->getBackend(),
                 $result->getBucket(),
                 $result->getKey(),
@@ -737,7 +854,10 @@ class SettingsPage
                     sizeBytes:
                         $result->getSizeBytes(),
                     message:
-                        'Backup completed successfully.'
+                        __(
+                            'Backup completed successfully.',
+                            'secure-s3-storage'
+                        )
                 )
             );
 
@@ -754,7 +874,10 @@ class SettingsPage
              */
 
             $message =
-                'Database backup failed.';
+                __(
+                    'Database backup failed.',
+                    'secure-s3-storage'
+                );
 
             $history =
                 new BackupHistoryRepository();
@@ -836,8 +959,9 @@ class SettingsPage
 
             echo '<p>';
             echo '<strong>'
-                . esc_html(
-                    'Last successful backup:'
+                . esc_html__(
+                    'Last successful backup:',
+                    'secure-s3-storage'
                 )
                 . '</strong> '
                 . esc_html($formatted);
@@ -848,11 +972,15 @@ class SettingsPage
 
         echo '<p>';
         echo '<strong>'
-            . esc_html(
-                'Last successful backup:'
+            . esc_html__(
+                'Last successful backup:',
+                'secure-s3-storage'
             )
             . '</strong> '
-            . esc_html('None');
+            . esc_html__(
+                'None',
+                'secure-s3-storage'
+            );
         echo '</p>';
     }
 
@@ -868,8 +996,9 @@ class SettingsPage
 
         if ($timestamp === null) {
             echo '<strong>'
-                . esc_html(
-                    'Automatic backup: Disabled'
+                . esc_html__(
+                    'Automatic backup: Disabled',
+                    'secure-s3-storage'
                 )
                 . '</strong>';
 
@@ -889,8 +1018,9 @@ class SettingsPage
         }
 
         echo '<strong>'
-            . esc_html(
-                'Next scheduled backup:'
+            . esc_html__(
+                'Next scheduled backup:',
+                'secure-s3-storage'
             )
             . '</strong> '
             . esc_html($formatted);
@@ -1000,12 +1130,19 @@ class SettingsPage
             $repository->all();
 
         echo '<hr>';
-        echo '<h2>Recent Backups</h2>';
+
+        echo '<h2>'
+            . esc_html__(
+                'Recent Backups',
+                'secure-s3-storage'
+            )
+            . '</h2>';
 
         if ($history === []) {
             echo '<p>'
-                . esc_html(
-                    'No backup history yet.'
+                . esc_html__(
+                    'No backup history yet.',
+                    'secure-s3-storage'
                 )
                 . '</p>';
 
@@ -1015,13 +1152,56 @@ class SettingsPage
         echo '<table class="widefat striped">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th>Date</th>';
-        echo '<th>Status</th>';
-        echo '<th>Database</th>';
-        echo '<th>Backend</th>';
-        echo '<th>Size</th>';
-        echo '<th>S3 Object</th>';
-        echo '<th>Message</th>';
+
+        echo '<th>'
+            . esc_html__(
+                'Date',
+                'secure-s3-storage'
+            )
+            . '</th>';
+
+        echo '<th>'
+            . esc_html__(
+                'Status',
+                'secure-s3-storage'
+            )
+            . '</th>';
+
+        echo '<th>'
+            . esc_html__(
+                'Database',
+                'secure-s3-storage'
+            )
+            . '</th>';
+
+        echo '<th>'
+            . esc_html__(
+                'Backend',
+                'secure-s3-storage'
+            )
+            . '</th>';
+
+        echo '<th>'
+            . esc_html__(
+                'Size',
+                'secure-s3-storage'
+            )
+            . '</th>';
+
+        echo '<th>'
+            . esc_html__(
+                'S3 Object',
+                'secure-s3-storage'
+            )
+            . '</th>';
+
+        echo '<th>'
+            . esc_html__(
+                'Message',
+                'secure-s3-storage'
+            )
+            . '</th>';
+
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -1095,8 +1275,14 @@ class SettingsPage
                 '<td><strong>%s</strong></td>',
                 esc_html(
                     $success
-                        ? 'Success'
-                        : 'Failed'
+                        ? __(
+                            'Success',
+                            'secure-s3-storage'
+                        )
+                        : __(
+                            'Failed',
+                            'secure-s3-storage'
+                        )
                 )
             );
 
