@@ -19,5 +19,10 @@ final class CommandRegistrar
             'secure-s3-storage backup',
             BackupCommand::class
         );
+
+        WP_CLI::add_command(
+            'secure-s3-storage status',
+            StatusCommand::class
+        );
     }
 }
