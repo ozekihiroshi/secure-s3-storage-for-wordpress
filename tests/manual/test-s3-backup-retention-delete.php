@@ -29,13 +29,13 @@ if (! is_array($options)) {
 
 $region =
     isset($options['region'])
-        ? (string) $options['region']
-        : '';
+    ? (string) $options['region']
+    : '';
 
 $bucket =
     isset($options['bucket'])
-        ? (string) $options['bucket']
-        : '';
+    ? (string) $options['bucket']
+    : '';
 
 if ($region === '' || $bucket === '') {
     fwrite(
@@ -52,9 +52,24 @@ if ($region === '' || $bucket === '') {
  * This deliberately does not use the configured production
  * backup prefix such as wordpress-test/.
  */
-$testPrefix =
-    'retention-delete-test-' . time();
+$configuredPrefix =
+    isset($options['prefix'])
+    ? trim((string) $options['prefix'], '/')
+    : '';
 
+if ($configuredPrefix === '') {
+    fwrite(
+        STDERR,
+        "Configured S3 prefix is required for this test.\n"
+    );
+
+    exit(1);
+}
+
+$testPrefix =
+    $configuredPrefix
+    . '/retention-delete-test-'
+    . time();
 $backupPrefix =
     $testPrefix . '/backups/database/';
 
@@ -292,9 +307,9 @@ try {
     fwrite(
         STDERR,
         PHP_EOL
-        . "Retention delete test failed: "
-        . $e->getMessage()
-        . PHP_EOL
+            . "Retention delete test failed: "
+            . $e->getMessage()
+            . PHP_EOL
     );
 
     exit(1);
@@ -325,8 +340,8 @@ try {
             fwrite(
                 STDERR,
                 "Cleanup failed for test object: "
-                . $key
-                . PHP_EOL
+                    . $key
+                    . PHP_EOL
             );
         }
     }
