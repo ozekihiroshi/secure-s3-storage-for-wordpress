@@ -136,6 +136,8 @@ final class PhpMySqlDumper implements DatabaseDumper
                 && $dumpFile !== null
                 && is_file($dumpFile)
             ) {
+                // Temporary database dump is managed directly by the backup engine.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                 @unlink($dumpFile);
             }
         }
@@ -204,6 +206,8 @@ final class PhpMySqlDumper implements DatabaseDumper
     private function createConnection(
         DatabaseConnection $connection
     ): mysqli {
+        // Match WordPress database error handling instead of mysqli strict reporting.
+        // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_report
         mysqli_report(MYSQLI_REPORT_OFF);
 
         $mysqli = @new mysqli(

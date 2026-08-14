@@ -13,6 +13,8 @@ final class SqlWriter
 
     public function __construct(string $path)
     {
+        // SQL dumps are streamed directly to a temporary backup file.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
         $handle = fopen($path, 'wb');
 
         if ($handle === false) {
@@ -129,6 +131,8 @@ final class SqlWriter
     public function close(): void
     {
         if (is_resource($this->handle)) {
+            // Direct stream handling is required by the SQL dump writer.
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             fclose($this->handle);
         }
     }
@@ -140,6 +144,8 @@ final class SqlWriter
 
     private function write(string $content): void
     {
+        // SQL content is written incrementally to avoid buffering the full dump.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
         $written = fwrite(
             $this->handle,
             $content

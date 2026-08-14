@@ -90,17 +90,17 @@ final class NativeMySqlDumper implements DatabaseDumper
             return new DumpResult(
                 path: $dumpFile,
                 sizeBytes: $size,
-                databaseName:
-                    $connection->getDatabaseName(),
+                databaseName: $connection->getDatabaseName(),
                 engine: 'mysql',
-                createdAt:
-                    new DateTimeImmutable()
+                createdAt: new DateTimeImmutable()
             );
         } finally {
             if (
                 $optionFile !== null
                 && is_file($optionFile)
             ) {
+                // Temporary credential file must be removed directly after use.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                 @unlink($optionFile);
             }
 
@@ -109,6 +109,8 @@ final class NativeMySqlDumper implements DatabaseDumper
                 && $dumpFile !== null
                 && is_file($dumpFile)
             ) {
+                // Temporary database dump is managed directly by the backup engine.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                 @unlink($dumpFile);
             }
         }
@@ -183,6 +185,8 @@ final class NativeMySqlDumper implements DatabaseDumper
                 $content
             ) === false
         ) {
+            // Temporary credential file must be removed directly on failure.
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
             @unlink($path);
 
             throw new RuntimeException(
@@ -190,7 +194,11 @@ final class NativeMySqlDumper implements DatabaseDumper
             );
         }
 
+        // Credential file permissions must be restricted directly before use.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod
         if (! chmod($path, 0600)) {
+            // Temporary credential file must be removed directly on failure.
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
             @unlink($path);
 
             throw new RuntimeException(
@@ -268,6 +276,8 @@ final class NativeMySqlDumper implements DatabaseDumper
 
         try {
             $process =
+                // Native database backup requires direct process execution.
+                // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found
                 proc_open(
                     $command,
                     $descriptors,
@@ -292,6 +302,8 @@ final class NativeMySqlDumper implements DatabaseDumper
             isset($pipes[0])
             && is_resource($pipes[0])
         ) {
+            // Process pipe must be closed directly before waiting for the child process.
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             fclose($pipes[0]);
         }
 
@@ -303,6 +315,8 @@ final class NativeMySqlDumper implements DatabaseDumper
                 $pipes[2]
             );
 
+            // Process stderr pipe must be closed directly before proc_close().
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             fclose($pipes[2]);
         }
 

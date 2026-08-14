@@ -24,6 +24,8 @@ final class GzipCompressor implements Compressor
         $success = false;
 
         try {
+            // Source backup data is streamed directly during compression.
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
             $input = fopen($sourcePath, 'rb');
 
             if ($input === false) {
@@ -41,6 +43,8 @@ final class GzipCompressor implements Compressor
             }
 
             while (! feof($input)) {
+                // Backup data is read incrementally to avoid loading the full dump into memory.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
                 $chunk = fread(
                     $input,
                     self::BUFFER_SIZE
@@ -68,6 +72,8 @@ final class GzipCompressor implements Compressor
                 }
             }
 
+            // Direct stream handling is required by the compressor.
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             fclose($input);
             $input = null;
 
@@ -95,7 +101,6 @@ final class GzipCompressor implements Compressor
                 sizeBytes: $size,
                 algorithm: 'gzip'
             );
-
         } catch (Throwable $e) {
             throw new RuntimeException(
                 'File compression failed.',
@@ -103,9 +108,10 @@ final class GzipCompressor implements Compressor
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained, not output.
                 $e
             );
-
         } finally {
             if (is_resource($input)) {
+                // Direct stream handling is required during cleanup.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
                 fclose($input);
             }
 
@@ -117,6 +123,8 @@ final class GzipCompressor implements Compressor
                 ! $success
                 && is_file($destinationPath)
             ) {
+                // Temporary compressed artifact is managed directly by the backup engine.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                 @unlink($destinationPath);
             }
         }

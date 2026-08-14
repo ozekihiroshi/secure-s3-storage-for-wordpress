@@ -14,8 +14,7 @@ final class DatabaseBackupService
         private BackupService $backupService,
         private Compressor $compressor,
         private S3Storage $storage,
-    ) {
-    }
+    ) {}
 
     public function backup(
         DatabaseConnection $connection,
@@ -58,7 +57,6 @@ final class DatabaseBackupService
                 createdAt: $dumpResult->getCreatedAt(),
                 etag: $uploadResult->getEtag(),
             );
-
         } catch (Throwable $e) {
             throw new RuntimeException(
                 'Database backup failed.',
@@ -66,12 +64,13 @@ final class DatabaseBackupService
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained, not output.
                 $e
             );
-
         } finally {
             if (
                 $compressedPath !== null
                 && is_file($compressedPath)
             ) {
+                // Temporary backup artifact is managed directly by the backup engine.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                 @unlink($compressedPath);
             }
 
@@ -79,6 +78,8 @@ final class DatabaseBackupService
                 $dumpPath !== null
                 && is_file($dumpPath)
             ) {
+                // Temporary backup artifact is managed directly by the backup engine.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                 @unlink($dumpPath);
             }
         }
