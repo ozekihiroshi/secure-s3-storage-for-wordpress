@@ -3,6 +3,8 @@
 namespace SecureS3StorageForWordpress\Backup\Database\Php;
 
 use RuntimeException;
+use SecureS3StorageForWordpress\Backup\CompleteStreamWriter;
+use SecureS3StorageForWordpress\Backup\SecureTemporaryFile;
 
 final class SqlWriter
 {
@@ -13,15 +15,7 @@ final class SqlWriter
 
     public function __construct(string $path)
     {
-        // SQL dumps are streamed directly to a temporary backup file.
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-        $handle = fopen($path, 'wb');
-
-        if ($handle === false) {
-            throw new RuntimeException(
-                'Unable to open SQL dump file for writing.'
-            );
-        }
+        $handle = SecureTemporaryFile::openForWriting($path);
 
         $this->handle = $handle;
     }
@@ -144,18 +138,18 @@ final class SqlWriter
 
     private function write(string $content): void
     {
-        // SQL content is written incrementally to avoid buffering the full dump.
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
-        $written = fwrite(
-            $this->handle,
-            $content
+        CompleteStreamWriter::writeAll(
+            $content,
+            function (string $remaining): int|false {
+                // SQL data is streamed directly to the secured dump file.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+                return fwrite(
+                    $this->handle,
+                    $remaining
+                );
+            },
+            'Unable to write SQL dump file.'
         );
-
-        if ($written === false) {
-            throw new RuntimeException(
-                'Unable to write SQL dump file.'
-            );
-        }
     }
 
     private function quoteIdentifier(

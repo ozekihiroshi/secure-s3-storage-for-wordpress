@@ -5,6 +5,7 @@
  * Version: 0.1.0
  * Author: Hiroshi Ozeki
  * License: GPL-2.0-or-later
+ * Requires at least: 5.9
  * Requires PHP: 8.1
  * Text Domain: secure-s3-storage
  */

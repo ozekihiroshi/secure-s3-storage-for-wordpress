@@ -84,6 +84,8 @@ final class PhpMySqlDumper implements DatabaseDumper
 
             $transactionStarted = false;
 
+            clearstatcache(true, $dumpFile);
+
             if (! is_file($dumpFile)) {
                 throw new RuntimeException(
                     'PHP database dump file was not created.'

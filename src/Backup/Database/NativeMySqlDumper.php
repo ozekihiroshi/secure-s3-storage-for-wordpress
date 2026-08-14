@@ -4,6 +4,7 @@ namespace SecureS3StorageForWordpress\Backup\Database;
 
 use DateTimeImmutable;
 use RuntimeException;
+use SecureS3StorageForWordpress\Backup\SecureTemporaryFile;
 use Throwable;
 
 final class NativeMySqlDumper implements DatabaseDumper
@@ -66,6 +67,8 @@ final class NativeMySqlDumper implements DatabaseDumper
                 $dumpFile,
                 $connection
             );
+
+            clearstatcache(true, $dumpFile);
 
             if (! is_file($dumpFile)) {
                 throw new RuntimeException(
@@ -233,7 +236,7 @@ final class NativeMySqlDumper implements DatabaseDumper
             );
         }
 
-        return sprintf(
+        $path = sprintf(
             '%s/secure-s3-dump-%s-%s.sql',
             rtrim(
                 $directory,
@@ -243,6 +246,10 @@ final class NativeMySqlDumper implements DatabaseDumper
                 ?: 'database',
             $suffix
         );
+
+        SecureTemporaryFile::create($path);
+
+        return $path;
     }
 
     private function runDump(
@@ -275,14 +282,13 @@ final class NativeMySqlDumper implements DatabaseDumper
         ];
 
         try {
-            $process =
-                // Native database backup requires direct process execution.
-                // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found
-                proc_open(
-                    $command,
-                    $descriptors,
-                    $pipes
-                );
+            // Native database backup requires direct process execution.
+            // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found
+            $process = proc_open(
+                $command,
+                $descriptors,
+                $pipes
+            );
         } catch (Throwable $e) {
             throw new RuntimeException(
                 'Unable to start database dump process.',

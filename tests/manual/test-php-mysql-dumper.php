@@ -68,6 +68,23 @@ try {
         );
     }
 
+    clearstatcache(true, $result->getPath());
+    $permissions = fileperms($result->getPath());
+
+    if (
+        DIRECTORY_SEPARATOR !== '\\'
+        && (
+            $permissions === false
+            || ($permissions & 0777) !== 0600
+        )
+    ) {
+        throw new RuntimeException('Dump file permissions are not 0600.');
+    }
+
+    echo sprintf(
+        "Permissions: %04o\n",
+        $permissions === false ? 0 : ($permissions & 0777)
+    );
     echo "File exists: yes\n";
     echo "Dump retained for restore test.\n";
 

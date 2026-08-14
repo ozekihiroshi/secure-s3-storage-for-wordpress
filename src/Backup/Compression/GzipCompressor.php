@@ -3,6 +3,8 @@
 namespace SecureS3StorageForWordpress\Backup\Compression;
 
 use RuntimeException;
+use SecureS3StorageForWordpress\Backup\CompleteStreamWriter;
+use SecureS3StorageForWordpress\Backup\SecureTemporaryFile;
 use Throwable;
 
 final class GzipCompressor implements Compressor
@@ -24,6 +26,9 @@ final class GzipCompressor implements Compressor
         $success = false;
 
         try {
+            // Create and secure the destination before writing compressed data.
+            SecureTemporaryFile::create($destinationPath);
+
             // Source backup data is streamed directly during compression.
             // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
             $input = fopen($sourcePath, 'rb');
@@ -60,16 +65,18 @@ final class GzipCompressor implements Compressor
                     continue;
                 }
 
-                $written = gzwrite(
-                    $output,
-                    $chunk
+                CompleteStreamWriter::writeAll(
+                    $chunk,
+                    static function (string $remaining) use ($output): int|false {
+                        // Compressed data is streamed directly to the gzip file.
+                        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+                        return gzwrite(
+                            $output,
+                            $remaining
+                        );
+                    },
+                    'Unable to write gzip output file.'
                 );
-
-                if ($written === false) {
-                    throw new RuntimeException(
-                        'Unable to write gzip output file.'
-                    );
-                }
             }
 
             // Direct stream handling is required by the compressor.
@@ -79,6 +86,8 @@ final class GzipCompressor implements Compressor
 
             gzclose($output);
             $output = null;
+
+            clearstatcache(true, $destinationPath);
 
             if (! is_file($destinationPath)) {
                 throw new RuntimeException(
