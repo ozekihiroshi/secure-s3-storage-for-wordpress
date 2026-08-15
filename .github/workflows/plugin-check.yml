@@ -27,7 +27,12 @@ jobs:
       - name: Build release
         run: ./build-release.sh
 
+      - name: Extract release for Plugin Check
+        run: |
+          mkdir -p build/plugin-check
+          unzip -q build/secure-s3-storage-*.zip -d build/plugin-check
+
       - name: Run Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
-          build-dir: ./build/secure-s3-storage
+          build-dir: ./build/plugin-check/secure-s3-storage
