@@ -270,6 +270,10 @@ php -r '
     }
 ' "${STAGE_DIR}/vendor/autoload.php"
 
+php \
+    "${ROOT_DIR}/tests/manual/test-scoped-release.php" \
+    "${STAGE_DIR}/vendor/autoload.php"
+
 if grep -R -F -q \
     'SecureS3StorageForWordpressVendor\WP_CLI' \
     "${STAGE_DIR}/src"; then

@@ -33,4 +33,87 @@ if (! is_a('Aws\\S3\\S3Client', ForeignAwsS3Client::class, true)) {
     exit(1);
 }
 
+$scopedClientClass =
+    'SecureS3StorageForWordpressVendor\\Aws\\S3\\S3Client';
+$scopedExceptionClass =
+    'SecureS3StorageForWordpressVendor\\Aws\\S3\\Exception\\S3Exception';
+$amzDate = '';
+$credentialScope = '';
+
+$client = new $scopedClientClass([
+    'version' => 'latest',
+    'region' => 'us-east-1',
+    'retries' => 0,
+    'credentials' => [
+        'key' => 'scoped-release-test-key',
+        'secret' => 'scoped-release-test-secret',
+    ],
+    'http_handler' => static function ($request) use (
+        &$amzDate,
+        &$credentialScope
+    ) {
+        $amzDate = $request->getHeaderLine('X-Amz-Date');
+        $authorization = $request->getHeaderLine('Authorization');
+
+        if (
+            preg_match(
+                '/Credential=[^\\/]+\\/([^, ]+)/',
+                $authorization,
+                $matches
+            ) === 1
+        ) {
+            $credentialScope = $matches[1];
+        }
+
+        return SecureS3StorageForWordpressVendor\GuzzleHttp\Promise\Create::rejectionFor([
+            'exception' => new RuntimeException(
+                'Simulated scoped release HTTP failure.'
+            ),
+            'connection_error' => true,
+        ]);
+    },
+]);
+
+try {
+    $client->headBucket([
+        'Bucket' => 'scoped-release-test-bucket',
+    ]);
+
+    fwrite(STDERR, "The simulated S3 request unexpectedly succeeded.\n");
+    exit(1);
+} catch (Throwable $e) {
+    if (! $e instanceof $scopedExceptionClass) {
+        fwrite(
+            STDERR,
+            'The simulated S3 request threw an unexpected exception: '
+                . get_class($e)
+                . "\n"
+        );
+        exit(1);
+    }
+}
+
+if (preg_match('/^\\d{8}T\\d{6}Z$/D', $amzDate) !== 1) {
+    fwrite(STDERR, "The scoped AWS SDK generated an invalid request date.\n");
+    exit(1);
+}
+
+if (
+    preg_match(
+        '/^\\d{8}\\/us-east-1\\/s3\\/aws4_request$/D',
+        $credentialScope
+    ) !== 1
+) {
+    fwrite(
+        STDERR,
+        "The scoped AWS SDK generated an invalid credential scope.\n"
+    );
+    exit(1);
+}
+
+if (! class_exists($scopedExceptionClass)) {
+    fwrite(STDERR, "The scoped S3 exception class is not autoloadable.\n");
+    exit(1);
+}
+
 fwrite(STDOUT, "Scoped release collision test passed.\n");
