@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-PLUGIN_SLUG="secure-s3-storage"
+PLUGIN_SLUG="ozeki-database-backup-for-s3"
 
 ROOT_DIR="$(
     cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -11,7 +11,7 @@ ROOT_DIR="$(
 
 BUILD_DIR="${ROOT_DIR}/build"
 
-PLUGIN_FILE="${ROOT_DIR}/secure-s3-storage.php"
+PLUGIN_FILE="${ROOT_DIR}/ozeki-database-backup-for-s3.php"
 COMPOSER_FILE="${ROOT_DIR}/composer.json"
 COMPOSER_LOCK="${ROOT_DIR}/composer.lock"
 SCOPER_CONFIG="${ROOT_DIR}/scoper.inc.php"
@@ -176,7 +176,7 @@ printf '%s  %s\n' \
 # Copy only files required by the distributed plugin.
 #
 cp "${PLUGIN_FILE}" \
-    "${STAGE_DIR}/secure-s3-storage.php"
+    "${STAGE_DIR}/ozeki-database-backup-for-s3.php"
 
 cp "${ROOT_DIR}/uninstall.php" \
     "${STAGE_DIR}/uninstall.php"
@@ -232,8 +232,8 @@ php \
 # Keep WordPress entry points byte-for-byte identical to the reviewed source.
 # They do not reference bundled third-party namespaces and must remain in the
 # global namespace for WordPress and Plugin Check.
-cp "${STAGE_DIR}/secure-s3-storage.php" \
-    "${SCOPED_DIR}/secure-s3-storage.php"
+cp "${STAGE_DIR}/ozeki-database-backup-for-s3.php" \
+    "${SCOPED_DIR}/ozeki-database-backup-for-s3.php"
 
 cp "${STAGE_DIR}/uninstall.php" \
     "${SCOPED_DIR}/uninstall.php"
@@ -283,7 +283,7 @@ fi
 
 if grep -F -q \
     'namespace SecureS3StorageForWordpressVendor' \
-    "${STAGE_DIR}/secure-s3-storage.php"; then
+    "${STAGE_DIR}/ozeki-database-backup-for-s3.php"; then
     echo "The WordPress plugin entry point was incorrectly scoped." >&2
     exit 1
 fi
@@ -310,14 +310,14 @@ done < <(
         -print0
 )
 
-php -l "${STAGE_DIR}/secure-s3-storage.php" >/dev/null
+php -l "${STAGE_DIR}/ozeki-database-backup-for-s3.php" >/dev/null
 php -l "${STAGE_DIR}/uninstall.php" >/dev/null
 
 #
 # Verify the minimum runtime structure.
 #
 runtime_files=(
-    "${STAGE_DIR}/secure-s3-storage.php"
+    "${STAGE_DIR}/ozeki-database-backup-for-s3.php"
     "${STAGE_DIR}/uninstall.php"
     "${STAGE_DIR}/readme.txt"
     "${STAGE_DIR}/LICENSE"

@@ -23,7 +23,7 @@ $options = get_option(
 if (! is_array($options)) {
     fwrite(
         STDERR,
-        "Secure S3 Storage settings are unavailable.\n"
+        "Ozeki Database Backup for S3 settings are unavailable.\n"
     );
 
     exit(1);
@@ -54,7 +54,7 @@ if ($region === '' || $bucket === '') {
 }
 
 echo PHP_EOL;
-echo "Secure S3 Storage Retention Dry Run" . PHP_EOL;
+echo "Ozeki Database Backup for S3 Retention Dry Run" . PHP_EOL;
 echo "===================================" . PHP_EOL;
 echo PHP_EOL;
 

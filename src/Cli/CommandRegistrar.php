@@ -16,12 +16,12 @@ final class CommandRegistrar
         }
 
         WP_CLI::add_command(
-            'secure-s3-storage backup',
+            'ozeki-database-backup-for-s3 backup',
             BackupCommand::class
         );
 
         WP_CLI::add_command(
-            'secure-s3-storage status',
+            'ozeki-database-backup-for-s3 status',
             StatusCommand::class
         );
     }

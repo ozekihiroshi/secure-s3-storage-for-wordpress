@@ -1,10 +1,10 @@
-=== Secure S3 Storage ===
+=== Ozeki Database Backup for S3 ===
 Contributors: ozekihiroshi
 Tags: backup, amazon s3, aws, database backup, security
 Requires at least: 5.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Create WordPress database backups and store them in Amazon S3 without storing lo
 
 == Description ==
 
-Secure S3 Storage is a security-focused WordPress database backup plugin for Amazon S3.
+Ozeki Database Backup for S3 is a security-focused WordPress database backup plugin for Amazon S3.
 
 The plugin is designed for environments where WordPress can obtain AWS credentials through the AWS SDK for PHP default credential provider chain, such as an EC2 instance using an IAM role.
 
@@ -28,14 +28,14 @@ Current features include:
 * Amazon S3 upload using the AWS SDK for PHP.
 * Native `mysqldump` or `mariadb-dump` when available.
 * PHP-based database dump fallback when native database dump utilities or process execution are unavailable.
-* Configurable retention of the latest 7, 14, or 30 database backups.
+* Configurable retention using any positive integer keep count.
 * Backup history stored locally in WordPress.
 * S3 connection testing with temporary test objects.
 * Automatic cleanup of plugin Cron events when the plugin is deactivated.
 
 = AWS authentication =
 
-Secure S3 Storage uses the AWS SDK for PHP default credential provider chain.
+Ozeki Database Backup for S3 uses the AWS SDK for PHP default credential provider chain.
 
 The plugin does not ask you to enter an AWS Access Key ID or Secret Access Key in the WordPress administration interface and does not intentionally store long-lived AWS credentials in the WordPress database.
 
@@ -77,7 +77,7 @@ These are examples only. Paths, users, container configuration, and execution pe
 
 = Retention =
 
-Retention can be disabled or configured to keep the latest 7, 14, or 30 database backups.
+Retention can be disabled or configured with any positive integer as the number of latest database backups to keep.
 
 Retention operates only on database backup objects matching the plugin's expected backup naming structure below the configured S3 prefix.
 
@@ -91,13 +91,13 @@ Deactivating the plugin removes its scheduled WordPress Cron event but keeps plu
 
 Uninstalling the plugin removes its local WordPress settings and backup history.
 
-Uninstalling Secure S3 Storage does NOT delete database backups stored in Amazon S3.
+Uninstalling Ozeki Database Backup for S3 does NOT delete database backups stored in Amazon S3.
 
 This is intentional. Remote backups should not disappear merely because the WordPress plugin is removed.
 
 == External Service ==
 
-Secure S3 Storage connects to Amazon Web Services (AWS), specifically Amazon Simple Storage Service (Amazon S3), in order to store and manage database backup objects.
+Ozeki Database Backup for S3 connects to Amazon Web Services (AWS), specifically Amazon Simple Storage Service (Amazon S3), in order to store and manage database backup objects.
 
 The plugin uses the AWS SDK for PHP to communicate with AWS.
 
@@ -129,14 +129,14 @@ https://aws.amazon.com/privacy/
 AWS Service Terms:
 https://aws.amazon.com/service-terms/
 
-No telemetry, analytics, advertising, or unrelated tracking data is intentionally sent by Secure S3 Storage to the plugin author.
+No telemetry, analytics, advertising, or unrelated tracking data is intentionally sent by Ozeki Database Backup for S3 to the plugin author.
 
 == Installation ==
 
-1. Install and activate Secure S3 Storage.
+1. Install and activate Ozeki Database Backup for S3.
 2. Make sure the WordPress server can obtain AWS credentials through the AWS SDK default credential provider chain.
 3. Grant the AWS identity access to the intended S3 bucket and prefix.
-4. Open Settings > Secure S3 Storage.
+4. Open Settings > Ozeki Database Backup for S3.
 5. Enter the AWS Region, S3 Bucket, and optional S3 Prefix.
 6. Save the settings.
 7. Use "Test Connection" to verify S3 read/write/delete access.
@@ -185,6 +185,8 @@ For more predictable execution, configure a real operating system scheduler to p
 
 The plugin can fall back to a PHP-based database dump implementation when a supported native dump utility or process execution is unavailable.
 
+The PHP fallback opens a separate database connection using the database constants already defined by WordPress. This keeps its consistent-snapshot transaction isolated from WordPress's shared database connection; it does not accept database connection values from an HTTP request or plugin setting.
+
 = What does the S3 connection test do? =
 
 It checks access to the configured S3 bucket, writes a temporary test object, reads it back, verifies the contents, and then deletes it.
@@ -193,13 +195,20 @@ It checks access to the configured S3 bucket, writes a temporary test object, re
 
 Create a database backup:
 
-`wp secure-s3-storage backup`
+`wp ozeki-database-backup-for-s3 backup`
 
 Display backup configuration and status:
 
-`wp secure-s3-storage status`
+`wp ozeki-database-backup-for-s3 status`
 
 == Changelog ==
+
+= 0.1.1 =
+
+* Renamed the plugin to Ozeki Database Backup for S3.
+* Removed the fixed 7, 14, or 30 backup retention choices; any positive integer keep count is now supported.
+* Clarified the separate database connection used by the PHP dump fallback.
+* Fixed Daily Cron registration when settings are saved for the first time.
 
 = 0.1.0 =
 

@@ -30,9 +30,9 @@ jobs:
       - name: Extract release for Plugin Check
         run: |
           mkdir -p build/plugin-check
-          unzip -q build/secure-s3-storage-*.zip -d build/plugin-check
+          unzip -q build/ozeki-database-backup-for-s3-*.zip -d build/plugin-check
 
       - name: Run Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
-          build-dir: ./build/plugin-check/secure-s3-storage
+          build-dir: ./build/plugin-check/ozeki-database-backup-for-s3

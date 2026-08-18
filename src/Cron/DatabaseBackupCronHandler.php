@@ -11,6 +11,7 @@ use SecureS3StorageForWordpress\Backup\DatabaseBackupService;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryEntry;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryRepository;
 use SecureS3StorageForWordpress\Backup\Retention\RetentionPolicy;
+use SecureS3StorageForWordpress\Backup\Retention\RetentionSetting;
 use SecureS3StorageForWordpress\Backup\Retention\S3BackupRetentionManager;
 use SecureS3StorageForWordpress\WordPress\WordPressDatabaseConnectionFactory;
 use Throwable;
@@ -87,7 +88,7 @@ final class DatabaseBackupCronHandler
                 backend: $backend,
                 message: __(
                     'Automatic backup skipped because S3 configuration is incomplete.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
 
@@ -158,7 +159,7 @@ final class DatabaseBackupCronHandler
             $message =
                 __(
                     'Automatic backup completed successfully.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
 
             if ($retentionMessage !== '') {
@@ -201,7 +202,7 @@ final class DatabaseBackupCronHandler
                 backend: $backend,
                 message: __(
                     'Automatic database backup failed.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -244,7 +245,7 @@ final class DatabaseBackupCronHandler
                     /* translators: %d: number of backups to keep. */
                     __(
                         'Retention: keeping the latest %d backups; no old backups required deletion.',
-                        'secure-s3-storage'
+                        'ozeki-database-backup-for-s3'
                     ),
                     $keepCount
                 );
@@ -259,7 +260,7 @@ final class DatabaseBackupCronHandler
                 /* translators: 1: number of deleted backups, 2: number of backups to keep. */
                 __(
                     'Retention: deleted %1$d old backup(s), keeping the latest %2$d.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $deleteResult
                     ->getDeletedCount(),
@@ -272,7 +273,7 @@ final class DatabaseBackupCronHandler
              */
             return __(
                 'Retention cleanup failed; the new backup was preserved.',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         }
     }
@@ -280,28 +281,10 @@ final class DatabaseBackupCronHandler
     private function getRetentionKeepCount(
         array $options
     ): int {
-        $value =
+        return RetentionSetting::normalize(
             $options['retention_keep_count']
-            ?? self::RETENTION_DISABLED;
-
-        if (! is_numeric($value)) {
-            return self::RETENTION_DISABLED;
-        }
-
-        $keepCount =
-            (int) $value;
-
-        if (
-            ! in_array(
-                $keepCount,
-                [7, 14, 30],
-                true
-            )
-        ) {
-            return self::RETENTION_DISABLED;
-        }
-
-        return $keepCount;
+            ?? self::RETENTION_DISABLED
+        );
     }
 
     private function recordFailure(

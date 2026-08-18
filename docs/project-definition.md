@@ -1,4 +1,4 @@
-# Secure S3 Storage for WordPress
+# Ozeki Database Backup for S3
 
 ## Project Definition
 
@@ -436,7 +436,7 @@ GitHubおよびWordPress.orgで公開可能な品質へ仕上げる。
 
 ```text
 secure-s3-storage-for-wordpress/
-├── secure-s3-storage.php
+├── ozeki-database-backup-for-s3.php
 ├── composer.json
 ├── README.md
 ├── readme.txt

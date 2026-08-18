@@ -212,6 +212,14 @@ final class PhpMySqlDumper implements DatabaseDumper
         // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_report
         mysqli_report(MYSQLI_REPORT_OFF);
 
+        /*
+         * Open a separate connection so the dump's consistent snapshot and
+         * transaction do not alter WordPress's shared wpdb connection. These
+         * values come directly from the server-controlled WordPress database
+         * constants through WordPressDatabaseConnectionFactory. This
+         * constructor establishes the connection only; it does not construct
+         * or execute a SQL query from request data.
+         */
         $mysqli = @new mysqli(
             $connection->getHost(),
             $connection->getUsername(),

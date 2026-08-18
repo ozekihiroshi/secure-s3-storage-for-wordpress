@@ -21,7 +21,7 @@ $options = get_option(
 if (! is_array($options)) {
     fwrite(
         STDERR,
-        "Secure S3 Storage settings are unavailable.\n"
+        "Ozeki Database Backup for S3 settings are unavailable.\n"
     );
 
     exit(1);
@@ -88,7 +88,7 @@ $keys = [
 ];
 
 echo PHP_EOL;
-echo "Secure S3 Storage Retention Delete Test"
+echo "Ozeki Database Backup for S3 Retention Delete Test"
     . PHP_EOL;
 echo "======================================="
     . PHP_EOL;
@@ -129,7 +129,7 @@ try {
      */
     foreach ($keys as $index => $key) {
         $content =
-            'Secure S3 Storage retention delete test '
+            'Ozeki Database Backup for S3 retention delete test '
             . ($index + 1)
             . PHP_EOL;
 

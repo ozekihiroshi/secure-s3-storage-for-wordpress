@@ -11,6 +11,7 @@ use SecureS3StorageForWordpress\Backup\Compression\GzipCompressor;
 use SecureS3StorageForWordpress\Backup\DatabaseBackupService;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryEntry;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryRepository;
+use SecureS3StorageForWordpress\Backup\Retention\RetentionSetting;
 use SecureS3StorageForWordpress\Cron\BackupScheduleManager;
 use SecureS3StorageForWordpress\WordPress\WordPressDatabaseConnectionFactory;
 use Throwable;
@@ -19,7 +20,7 @@ class SettingsPage
 {
     private const OPTION_NAME = 'secure_s3_storage_settings';
     private const OPTION_GROUP = 'secure_s3_storage';
-    private const PAGE_SLUG = 'secure-s3-storage';
+    private const PAGE_SLUG = 'ozeki-database-backup-for-s3';
 
     private const TEST_ACTION =
         'secure_s3_storage_test_connection';
@@ -38,11 +39,6 @@ class SettingsPage
 
     private const BACKUP_SCHEDULE_DAILY =
         'daily';
-
-    private const RETENTION_DISABLED = 0;
-    private const RETENTION_KEEP_7 = 7;
-    private const RETENTION_KEEP_14 = 14;
-    private const RETENTION_KEEP_30 = 30;
 
     public function register(): void
     {
@@ -72,18 +68,25 @@ class SettingsPage
             10,
             2
         );
+
+        add_action(
+            'add_option_' . self::OPTION_NAME,
+            [$this, 'handle_settings_updated'],
+            10,
+            2
+        );
     }
 
     public function add_settings_page(): void
     {
         add_options_page(
             __(
-                'Secure S3 Storage',
-                'secure-s3-storage'
+                'Ozeki Database Backup for S3',
+                'ozeki-database-backup-for-s3'
             ),
             __(
-                'Secure S3 Storage',
-                'secure-s3-storage'
+                'Ozeki Database Backup for S3',
+                'ozeki-database-backup-for-s3'
             ),
             'manage_options',
             self::PAGE_SLUG,
@@ -107,7 +110,7 @@ class SettingsPage
             'secure_s3_storage_aws',
             __(
                 'AWS Configuration',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             [$this, 'render_section_description'],
             self::PAGE_SLUG
@@ -117,7 +120,7 @@ class SettingsPage
             'region',
             __(
                 'AWS Region',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             [$this, 'render_region_field'],
             self::PAGE_SLUG,
@@ -128,7 +131,7 @@ class SettingsPage
             'bucket',
             __(
                 'S3 Bucket',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             [$this, 'render_bucket_field'],
             self::PAGE_SLUG,
@@ -139,7 +142,7 @@ class SettingsPage
             'prefix',
             __(
                 'S3 Prefix',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             [$this, 'render_prefix_field'],
             self::PAGE_SLUG,
@@ -150,7 +153,7 @@ class SettingsPage
             'secure_s3_storage_backup_schedule',
             __(
                 'Automatic Backup',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             [$this, 'render_backup_schedule_description'],
             self::PAGE_SLUG
@@ -160,7 +163,7 @@ class SettingsPage
             'backup_schedule',
             __(
                 'Schedule',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             [$this, 'render_backup_schedule_field'],
             self::PAGE_SLUG,
@@ -171,7 +174,7 @@ class SettingsPage
             'retention_keep_count',
             __(
                 'Retention',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             [$this, 'render_retention_field'],
             self::PAGE_SLUG,
@@ -190,8 +193,8 @@ class SettingsPage
             <h1>
                 <?php
                 echo esc_html__(
-                    'Secure S3 Storage',
-                    'secure-s3-storage'
+                    'Ozeki Database Backup for S3',
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </h1>
@@ -213,7 +216,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'Authentication',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </h2>
@@ -222,7 +225,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'AWS Default Credential Provider',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </p>
@@ -231,7 +234,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'Connection',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </h2>
@@ -240,7 +243,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'Verify access to the configured S3 bucket and prefix.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </p>
@@ -268,7 +271,7 @@ class SettingsPage
                 submit_button(
                     __(
                         'Test Connection',
-                        'secure-s3-storage'
+                        'ozeki-database-backup-for-s3'
                     ),
                     'secondary',
                     'submit',
@@ -283,7 +286,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'Database Backup',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </h2>
@@ -292,7 +295,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'Create a compressed database backup and upload it to the configured Amazon S3 destination.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </p>
@@ -320,7 +323,7 @@ class SettingsPage
                 submit_button(
                     __(
                         'Backup Now',
-                        'secure-s3-storage'
+                        'ozeki-database-backup-for-s3'
                     ),
                     'primary',
                     'submit',
@@ -339,7 +342,7 @@ class SettingsPage
         echo '<p>'
             . esc_html__(
                 'Configure the Amazon S3 destination used by this plugin.',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</p>';
     }
@@ -370,7 +373,7 @@ class SettingsPage
             . 'name="%1$s[bucket]" '
             . 'value="%2$s" '
             . 'class="regular-text" '
-            . 'placeholder="ceri-secure-s3-storage-test">',
+            . 'placeholder="example-backup-bucket">',
             esc_attr(self::OPTION_NAME),
             esc_attr($value)
         );
@@ -397,7 +400,7 @@ class SettingsPage
         echo '<p>'
             . esc_html__(
                 'Configure automatic database backups using WordPress Cron.',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</p>';
     }
@@ -430,7 +433,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'Disabled',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </option>
@@ -449,7 +452,7 @@ class SettingsPage
                 <?php
                 echo esc_html__(
                     'Daily',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
                 ?>
             </option>
@@ -459,7 +462,7 @@ class SettingsPage
             <?php
             echo esc_html__(
                 'Daily backups are executed by WordPress Cron. Actual execution time may depend on site activity.',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
             ?>
         </p>
@@ -473,100 +476,27 @@ class SettingsPage
     {
         $options = $this->get_options();
 
-        $value =
-            isset($options['retention_keep_count'])
-            && is_numeric($options['retention_keep_count'])
-                ? (int) $options['retention_keep_count']
-                : self::RETENTION_DISABLED;
+        $value = RetentionSetting::normalize(
+            $options['retention_keep_count']
+            ?? RetentionSetting::DISABLED
+        );
 
         ?>
-        <select
+        <input
+            type="number"
+            min="0"
+            step="1"
             name="<?php echo esc_attr(
                 self::OPTION_NAME
             ); ?>[retention_keep_count]"
+            value="<?php echo esc_attr((string) $value); ?>"
         >
-            <option
-                value="<?php echo esc_attr(
-                    (string) self::RETENTION_DISABLED
-                ); ?>"
-                <?php
-                selected(
-                    $value,
-                    self::RETENTION_DISABLED
-                );
-                ?>
-            >
-                <?php
-                echo esc_html__(
-                    'Disabled',
-                    'secure-s3-storage'
-                );
-                ?>
-            </option>
-
-            <option
-                value="<?php echo esc_attr(
-                    (string) self::RETENTION_KEEP_7
-                ); ?>"
-                <?php
-                selected(
-                    $value,
-                    self::RETENTION_KEEP_7
-                );
-                ?>
-            >
-                <?php
-                echo esc_html__(
-                    'Keep last 7 backups',
-                    'secure-s3-storage'
-                );
-                ?>
-            </option>
-
-            <option
-                value="<?php echo esc_attr(
-                    (string) self::RETENTION_KEEP_14
-                ); ?>"
-                <?php
-                selected(
-                    $value,
-                    self::RETENTION_KEEP_14
-                );
-                ?>
-            >
-                <?php
-                echo esc_html__(
-                    'Keep last 14 backups',
-                    'secure-s3-storage'
-                );
-                ?>
-            </option>
-
-            <option
-                value="<?php echo esc_attr(
-                    (string) self::RETENTION_KEEP_30
-                ); ?>"
-                <?php
-                selected(
-                    $value,
-                    self::RETENTION_KEEP_30
-                );
-                ?>
-            >
-                <?php
-                echo esc_html__(
-                    'Keep last 30 backups',
-                    'secure-s3-storage'
-                );
-                ?>
-            </option>
-        </select>
 
         <p class="description">
             <?php
             echo esc_html__(
-                'After a successful automatic backup, older database backups beyond the selected count are deleted from S3. Manual backups do not trigger retention cleanup.',
-                'secure-s3-storage'
+                'Enter 0 to disable retention, or enter a positive whole number of latest backups to keep. After a successful automatic backup, older database backups beyond this count are deleted from S3. Manual backups do not trigger retention cleanup.',
+                'ozeki-database-backup-for-s3'
             );
             ?>
         </p>
@@ -594,27 +524,10 @@ class SettingsPage
                 self::BACKUP_SCHEDULE_DISABLED;
         }
 
-        $retentionKeepCount =
-            isset($input['retention_keep_count'])
-            && is_numeric($input['retention_keep_count'])
-                ? (int) $input['retention_keep_count']
-                : self::RETENTION_DISABLED;
-
-        if (
-            ! in_array(
-                $retentionKeepCount,
-                [
-                    self::RETENTION_DISABLED,
-                    self::RETENTION_KEEP_7,
-                    self::RETENTION_KEEP_14,
-                    self::RETENTION_KEEP_30,
-                ],
-                true
-            )
-        ) {
-            $retentionKeepCount =
-                self::RETENTION_DISABLED;
-        }
+        $retentionKeepCount = RetentionSetting::normalize(
+            $input['retention_keep_count']
+            ?? RetentionSetting::DISABLED
+        );
 
         return [
             'region' => sanitize_text_field(
@@ -671,7 +584,7 @@ class SettingsPage
             wp_die(
                 esc_html__(
                     'You are not allowed to perform this action.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -692,7 +605,7 @@ class SettingsPage
                 false,
                 __(
                     'Region and bucket are required.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -725,7 +638,7 @@ class SettingsPage
                 false,
                 __(
                     'Unable to complete the S3 connection test.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -737,7 +650,7 @@ class SettingsPage
             wp_die(
                 esc_html__(
                     'You are not allowed to perform this action.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -757,7 +670,7 @@ class SettingsPage
             $message =
                 __(
                     'AWS region and S3 bucket are required.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
 
             $this->record_failed_backup(
@@ -829,7 +742,7 @@ class SettingsPage
                 /* translators: 1: backup backend, 2: S3 bucket, 3: S3 object key, 4: backup size in bytes. */
                 __(
                     'Database backup completed successfully. Backend: %1$s. S3 object: s3://%2$s/%3$s (%4$d bytes).',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $result->getBackend(),
                 $result->getBucket(),
@@ -860,7 +773,7 @@ class SettingsPage
                     message:
                         __(
                             'Backup completed successfully.',
-                            'secure-s3-storage'
+                            'ozeki-database-backup-for-s3'
                         )
                 )
             );
@@ -880,7 +793,7 @@ class SettingsPage
             $message =
                 __(
                     'Database backup failed.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
 
             $history =
@@ -965,7 +878,7 @@ class SettingsPage
             echo '<strong>'
                 . esc_html__(
                     'Last successful backup:',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
                 . '</strong> '
                 . esc_html($formatted);
@@ -978,12 +891,12 @@ class SettingsPage
         echo '<strong>'
             . esc_html__(
                 'Last successful backup:',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</strong> '
             . esc_html__(
                 'None',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         echo '</p>';
     }
@@ -1002,7 +915,7 @@ class SettingsPage
             echo '<strong>'
                 . esc_html__(
                     'Automatic backup: Disabled',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
                 . '</strong>';
 
@@ -1024,7 +937,7 @@ class SettingsPage
         echo '<strong>'
             . esc_html__(
                 'Next scheduled backup:',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</strong> '
             . esc_html($formatted);
@@ -1157,7 +1070,7 @@ class SettingsPage
         echo '<h2>'
             . esc_html__(
                 'Recent Backups',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</h2>';
 
@@ -1165,7 +1078,7 @@ class SettingsPage
             echo '<p>'
                 . esc_html__(
                     'No backup history yet.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
                 . '</p>';
 
@@ -1179,49 +1092,49 @@ class SettingsPage
         echo '<th>'
             . esc_html__(
                 'Date',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</th>';
 
         echo '<th>'
             . esc_html__(
                 'Status',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</th>';
 
         echo '<th>'
             . esc_html__(
                 'Database',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</th>';
 
         echo '<th>'
             . esc_html__(
                 'Backend',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</th>';
 
         echo '<th>'
             . esc_html__(
                 'Size',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</th>';
 
         echo '<th>'
             . esc_html__(
                 'S3 Object',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</th>';
 
         echo '<th>'
             . esc_html__(
                 'Message',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             . '</th>';
 
@@ -1300,11 +1213,11 @@ class SettingsPage
                     $success
                         ? __(
                             'Success',
-                            'secure-s3-storage'
+                            'ozeki-database-backup-for-s3'
                         )
                         : __(
                             'Failed',
-                            'secure-s3-storage'
+                            'ozeki-database-backup-for-s3'
                         )
                 )
             );

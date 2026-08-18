@@ -1,6 +1,6 @@
 {
-    "name": "ozeki/secure-s3-storage-for-wordpress",
-    "description": "Security-focused Amazon S3 storage plugin for WordPress",
+    "name": "ozeki/database-backup-for-s3",
+    "description": "Security-focused WordPress database backups for Amazon S3",
     "type": "project",
     "license": "GPL-2.0-or-later",
     "autoload": {

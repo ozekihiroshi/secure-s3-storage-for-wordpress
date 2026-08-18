@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: Secure S3 Storage
- * Description: Security-focused Amazon S3 storage plugin for WordPress.
- * Version: 0.1.0
+ * Plugin Name: Ozeki Database Backup for S3
+ * Description: Create secure, gzip-compressed WordPress database backups and store them in Amazon S3.
+ * Version: 0.1.1
  * Author: Hiroshi Ozeki
  * License: GPL-2.0-or-later
  * Requires at least: 5.9
  * Requires PHP: 8.1
- * Text Domain: secure-s3-storage
+ * Text Domain: ozeki-database-backup-for-s3
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

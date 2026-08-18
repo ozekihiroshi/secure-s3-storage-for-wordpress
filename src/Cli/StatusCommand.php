@@ -4,6 +4,7 @@ namespace SecureS3StorageForWordpress\Cli;
 
 use SecureS3StorageForWordpress\Backup\BackupService;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryRepository;
+use SecureS3StorageForWordpress\Backup\Retention\RetentionSetting;
 use SecureS3StorageForWordpress\Cron\BackupScheduleManager;
 use Throwable;
 use WP_CLI;
@@ -14,11 +15,11 @@ final class StatusCommand
         'secure_s3_storage_settings';
 
     /**
-     * Show Secure S3 Storage backup status.
+     * Show Ozeki Database Backup for S3 backup status.
      *
      * ## EXAMPLES
      *
-     *     wp secure-s3-storage status
+     *     wp ozeki-database-backup-for-s3 status
      *
      * @when after_wp_load
      */
@@ -53,7 +54,7 @@ final class StatusCommand
                 /* translators: %s: configured backup schedule. */
                 __(
                     'Schedule: %s',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $schedule
             )
@@ -64,7 +65,7 @@ final class StatusCommand
                 /* translators: %s: date and time of the next scheduled backup. */
                 __(
                     'Next backup: %s',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $nextBackup
             )
@@ -75,7 +76,7 @@ final class StatusCommand
                 /* translators: %s: configured backup retention policy. */
                 __(
                     'Retention: %s',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $retention
             )
@@ -86,7 +87,7 @@ final class StatusCommand
                 /* translators: %s: date and time of the last successful backup. */
                 __(
                     'Last successful backup: %s',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $lastSuccessfulBackup
             )
@@ -97,7 +98,7 @@ final class StatusCommand
                 /* translators: %s: database backup backend name. */
                 __(
                     'Backend: %s',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $backend
             )
@@ -114,11 +115,11 @@ final class StatusCommand
         return $schedule === 'daily'
             ? __(
                 'Daily',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             : __(
                 'Disabled',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
     }
 
@@ -133,7 +134,7 @@ final class StatusCommand
         if ($timestamp === null) {
             return __(
                 'None',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         }
 
@@ -146,7 +147,7 @@ final class StatusCommand
         return $formatted === false
             ? __(
                 'Unknown',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             )
             : $formatted;
     }
@@ -154,30 +155,15 @@ final class StatusCommand
     private function getRetentionLabel(
         array $options
     ): string {
-        $value =
+        $keepCount = RetentionSetting::normalize(
             $options['retention_keep_count']
-            ?? 0;
+            ?? RetentionSetting::DISABLED
+        );
 
-        if (! is_numeric($value)) {
+        if ($keepCount === RetentionSetting::DISABLED) {
             return __(
                 'Disabled',
-                'secure-s3-storage'
-            );
-        }
-
-        $keepCount =
-            (int) $value;
-
-        if (
-            ! in_array(
-                $keepCount,
-                [7, 14, 30],
-                true
-            )
-        ) {
-            return __(
-                'Disabled',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         }
 
@@ -185,7 +171,7 @@ final class StatusCommand
             /* translators: %d: number of backups to keep. */
             __(
                 'Keep last %d',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             ),
             $keepCount
         );
@@ -233,14 +219,14 @@ final class StatusCommand
             } catch (Throwable $e) {
                 return __(
                     'Unknown',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
             }
         }
 
         return __(
             'None',
-            'secure-s3-storage'
+            'ozeki-database-backup-for-s3'
         );
     }
 
@@ -255,7 +241,7 @@ final class StatusCommand
         } catch (Throwable $e) {
             return __(
                 'Unknown',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         }
     }

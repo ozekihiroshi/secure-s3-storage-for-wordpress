@@ -25,7 +25,7 @@ class ConnectionTester
             $prefix = $this->normalizePrefix($prefix);
 
             $testKey = $prefix
-                . 'secure-s3-storage-connection-test-'
+                . 'ozeki-database-backup-for-s3-connection-test-'
                 . bin2hex(random_bytes(8))
                 . '.txt';
 
@@ -34,7 +34,7 @@ class ConnectionTester
              * not administrator-facing UI text, so it is intentionally
              * not translated.
              */
-            $testContent = 'Secure S3 Storage connection test: '
+            $testContent = 'Ozeki Database Backup for S3 connection test: '
                 . gmdate('c')
                 . ' '
                 . bin2hex(random_bytes(8));
@@ -59,7 +59,7 @@ class ConnectionTester
                     'success' => false,
                     'message' => __(
                         'S3 test object content verification failed.',
-                        'secure-s3-storage'
+                        'ozeki-database-backup-for-s3'
                     ),
                 ];
             }
@@ -75,7 +75,7 @@ class ConnectionTester
                 'success' => true,
                 'message' => __(
                     'S3 read/write/delete test successful.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
             ];
 
@@ -84,7 +84,7 @@ class ConnectionTester
                 'success' => false,
                 'message' => __(
                     'AWS credentials could not be found.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
             ];
 
@@ -99,7 +99,7 @@ class ConnectionTester
                 'success' => false,
                 'message' => __(
                     'An unexpected error occurred while testing the S3 connection.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
             ];
 
@@ -133,20 +133,20 @@ class ConnectionTester
         if ($statusCode === 403 || $errorCode === 'AccessDenied') {
             return __(
                 'Access denied while testing S3 object operations.',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         }
 
         if ($statusCode === 404 || $errorCode === 'NoSuchBucket') {
             return __(
                 'The configured S3 bucket was not found.',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         }
 
         return __(
             'Unable to complete the S3 connection test.',
-            'secure-s3-storage'
+            'ozeki-database-backup-for-s3'
         );
     }
 }

@@ -12,6 +12,7 @@ use SecureS3StorageForWordpress\Backup\DatabaseBackupService;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryEntry;
 use SecureS3StorageForWordpress\Backup\History\BackupHistoryRepository;
 use SecureS3StorageForWordpress\Backup\Retention\RetentionPolicy;
+use SecureS3StorageForWordpress\Backup\Retention\RetentionSetting;
 use SecureS3StorageForWordpress\Backup\Retention\S3BackupRetentionManager;
 use SecureS3StorageForWordpress\WordPress\WordPressDatabaseConnectionFactory;
 use Throwable;
@@ -27,7 +28,7 @@ final class BackupCommand
      *
      * ## EXAMPLES
      *
-     *     wp secure-s3-storage backup
+     *     wp ozeki-database-backup-for-s3 backup
      *
      * @when after_wp_load
      */
@@ -54,7 +55,7 @@ final class BackupCommand
             WP_CLI::error(
                 __(
                     'AWS region and S3 bucket are required.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -71,7 +72,7 @@ final class BackupCommand
             WP_CLI::log(
                 __(
                     'Starting database backup...',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
 
@@ -97,7 +98,7 @@ final class BackupCommand
                     /* translators: %s: database backup backend name. */
                     __(
                         'Backend: %s',
-                        'secure-s3-storage'
+                        'ozeki-database-backup-for-s3'
                     ),
                     $backend
                 )
@@ -144,7 +145,7 @@ final class BackupCommand
             $historyMessage =
                 __(
                     'WP-CLI backup completed successfully.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 );
 
             if ($retentionMessage !== '') {
@@ -182,7 +183,7 @@ final class BackupCommand
                     /* translators: 1: S3 bucket, 2: S3 object key, 3: backup size in bytes. */
                     __(
                         'Backup completed: s3://%1$s/%2$s (%3$d bytes)',
-                        'secure-s3-storage'
+                        'ozeki-database-backup-for-s3'
                     ),
                     $result->getBucket(),
                     $result->getKey(),
@@ -208,7 +209,7 @@ final class BackupCommand
             WP_CLI::error(
                 __(
                     'Database backup failed.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -253,7 +254,7 @@ final class BackupCommand
                     /* translators: %d: number of backups to keep. */
                     __(
                         'Retention: keeping the latest %d backups; no old backups required deletion.',
-                        'secure-s3-storage'
+                        'ozeki-database-backup-for-s3'
                     ),
                     $keepCount
                 );
@@ -268,7 +269,7 @@ final class BackupCommand
                 /* translators: 1: number of deleted backups, 2: number of backups to keep. */
                 __(
                     'Retention: deleted %1$d old backup(s), keeping the latest %2$d.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 ),
                 $result->getDeletedCount(),
                 $keepCount
@@ -276,7 +277,7 @@ final class BackupCommand
         } catch (Throwable $e) {
             return __(
                 'Retention cleanup failed; the new backup was preserved.',
-                'secure-s3-storage'
+                'ozeki-database-backup-for-s3'
             );
         }
     }
@@ -284,28 +285,10 @@ final class BackupCommand
     private function getRetentionKeepCount(
         array $options
     ): int {
-        $value =
+        return RetentionSetting::normalize(
             $options['retention_keep_count']
-            ?? 0;
-
-        if (! is_numeric($value)) {
-            return 0;
-        }
-
-        $keepCount =
-            (int) $value;
-
-        if (
-            ! in_array(
-                $keepCount,
-                [7, 14, 30],
-                true
-            )
-        ) {
-            return 0;
-        }
-
-        return $keepCount;
+            ?? RetentionSetting::DISABLED
+        );
     }
 
     private function recordFailure(
@@ -328,7 +311,7 @@ final class BackupCommand
                     $backend,
                 message: __(
                     'WP-CLI database backup failed.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             )
         );

@@ -57,7 +57,7 @@ final class BackupScheduleManager
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to schedule automatic database backup.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -67,7 +67,7 @@ final class BackupScheduleManager
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to schedule automatic database backup.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -87,7 +87,7 @@ final class BackupScheduleManager
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to clear automatic database backup schedule.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }
@@ -97,7 +97,7 @@ final class BackupScheduleManager
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is not HTML output.
                 __(
                     'Unable to clear automatic database backup schedule.',
-                    'secure-s3-storage'
+                    'ozeki-database-backup-for-s3'
                 )
             );
         }

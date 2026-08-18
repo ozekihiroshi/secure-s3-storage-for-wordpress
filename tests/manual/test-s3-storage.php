@@ -14,7 +14,7 @@ $tempPath = '/tmp/secure-s3-storage-manual-test.gz';
 file_put_contents(
     $tempPath,
     gzencode(
-        'Secure S3 Storage manual upload test: ' . gmdate('c')
+        'Ozeki Database Backup for S3 manual upload test: ' . gmdate('c')
     )
 );
 

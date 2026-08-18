@@ -23,7 +23,7 @@ final class SqlWriter
     public function writeHeader(): void
     {
         $this->write(
-            "-- Secure S3 Storage database dump\n"
+            "-- Ozeki Database Backup for S3 database dump\n"
             . "-- Generated: " . gmdate('c') . "\n\n"
             . "SET NAMES utf8mb4;\n"
             . "SET FOREIGN_KEY_CHECKS=0;\n\n"
