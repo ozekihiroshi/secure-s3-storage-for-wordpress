@@ -2,7 +2,7 @@
 Contributors: ozekihiroshi
 Tags: backup, amazon s3, aws, database backup, security
 Requires at least: 5.9
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.1
 Stable tag: 0.1.1
 License: GPLv2 or later
