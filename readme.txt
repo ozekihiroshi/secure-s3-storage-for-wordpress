@@ -145,6 +145,11 @@ No telemetry, analytics, advertising, or unrelated tracking data is intentionall
 
 For Amazon EC2, an IAM role attached to the instance is recommended instead of storing long-lived AWS access keys on the WordPress server.
 
+== Screenshots ==
+
+1. Configure the AWS Region, S3 bucket and prefix, automatic backup schedule, and retention count.
+2. Verify S3 object access and create an on-demand compressed database backup from the WordPress administration screen.
+
 == Frequently Asked Questions ==
 
 = Does this plugin store my AWS Access Key ID or Secret Access Key? =
