@@ -10,6 +10,8 @@ return [
     ],
     'exclude-classes' => [
         'WP_CLI',
+        // WordPress supplies the real DB object; never prefix its type hint.
+        'wpdb',
     ],
     'patchers' => [
         static function (

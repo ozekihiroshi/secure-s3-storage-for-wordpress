@@ -18,6 +18,17 @@ if (! class_alias(ForeignAwsS3Client::class, 'Aws\\S3\\S3Client')) {
 
 require $argv[1];
 
+// WordPress owns this type. A scoped constructor would reject the real $wpdb.
+$jobStoreConstructor = new ReflectionMethod(
+    'SecureS3StorageForWordpress\\WordPress\\WordPressJobStore',
+    '__construct'
+);
+$databaseType = $jobStoreConstructor->getParameters()[0]->getType();
+if (! $databaseType instanceof ReflectionNamedType || $databaseType->getName() !== 'wpdb') {
+    fwrite(STDERR, "The WordPress database class was incorrectly scoped.\n");
+    exit(1);
+}
+
 if (! class_exists('SecureS3StorageForWordpress\\Plugin')) {
     fwrite(STDERR, "Plugin class is not autoloadable.\n");
     exit(1);
