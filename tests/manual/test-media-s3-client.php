@@ -17,16 +17,17 @@ $check = static function (bool $condition, string $message) use (&$checks): void
 $httpStatus = 200;
 $responseHeaders = [];
 $observed = null;
+$responseBody = '';
 $sdk = new S3Client([
     'version' => 'latest', 'region' => 'ap-northeast-1', 'retries' => 0,
     'credentials' => ['key' => 'TESTKEY', 'secret' => 'TESTSECRET'],
-    'http_handler' => static function ($request, $options) use (&$httpStatus, &$responseHeaders, &$observed) {
+    'http_handler' => static function ($request, $options) use (&$httpStatus, &$responseHeaders, &$observed, &$responseBody) {
         $observed = ['body' => (string) $request->getBody(), 'headers' => $request->getHeaders(), 'options' => $options];
         if ($httpStatus >= 400) {
             return Create::rejectionFor(['exception' => new RuntimeException('Mock HTTP failure'),
                 'response' => new Response($httpStatus, $responseHeaders)]);
         }
-        return Create::promiseFor(new Response($httpStatus, $responseHeaders));
+        return Create::promiseFor(new Response($httpStatus, $responseHeaders, $responseBody));
     },
 ]);
 $client = new MediaS3Client($sdk);
@@ -57,4 +58,14 @@ try {
 } catch (RuntimeException $e) {
     $check(! $e instanceof RetryableJobException && $e->getMessage() === 'Media S3 operation failed.', '403 safe terminal failure');
 }
+$httpStatus = 200;
+$responseHeaders = ['Content-Type' => 'application/xml'];
+$responseBody = '<ListPartsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">'
+    . '<IsTruncated>false</IsTruncated><Part><PartNumber>1</PartNumber><Size>8388608</Size>'
+    . '<ETag>test-etag</ETag><ChecksumSHA256>' . $hash . '</ChecksumSHA256></Part></ListPartsResult>';
+$result = $client->request('ListParts', ['Bucket' => 'test-bucket', 'Key' => 'part',
+    'UploadId' => 'dummy-upload'], time() + 60);
+$check($result['Parts'][0]['Size'] === '8388608', 'SDK REST-XML long size is a decimal string');
+$check($result['Parts'][0]['PartNumber'] === 1, 'SDK part number remains integer');
+$check($result['Parts'][0]['ChecksumSHA256'] === $hash && $result['IsTruncated'] === false, 'SDK list parsing');
 echo 'PASS media SDK checks=' . $checks . PHP_EOL;

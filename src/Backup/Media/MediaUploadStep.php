@@ -133,7 +133,9 @@ final class MediaUploadStep implements JobStep
                     $length = min($object['part_size'], $object['size'] - ($number - 1) * $object['part_size']);
                     if (($remote['PartNumber'] ?? null) !== $number
                         || ($remote['ChecksumSHA256'] ?? null) !== ($object['parts'][$number - 1] ?? null)
-                        || ($remote['Size'] ?? null) !== $length || ! is_string($remote['ETag'] ?? null)) {
+                        // REST-XML long values may be decimal strings in the PHP SDK.
+                        || ! in_array($remote['Size'] ?? null, [$length, (string) $length], true)
+                        || ! is_string($remote['ETag'] ?? null)) {
                         throw new RuntimeException('Unexpected uploaded media part.');
                     }
                     $parts[] = ['PartNumber' => $number, 'ETag' => $remote['ETag'], 'ChecksumSHA256' => $remote['ChecksumSHA256']];

@@ -78,6 +78,10 @@ final class UploadTestS3 implements MediaObjectClient
                 $parts = array_values(array_filter($parts, static fn ($p) => $p['PartNumber'] > $a['PartNumberMarker']));
                 $more = count($parts) > $this->pageSize;
                 $parts = array_slice($parts, 0, $this->pageSize);
+                foreach ($parts as &$listedPart) {
+                    $listedPart['Size'] = (string) $listedPart['Size'];
+                }
+                unset($listedPart);
                 if ($this->badList && $parts !== []) { $parts[0]['ChecksumSHA256'] = 'wrong'; }
                 $result = ['Parts' => $parts, 'IsTruncated' => $more,
                     'NextPartNumberMarker' => $parts === [] ? 0 : end($parts)['PartNumber']];
