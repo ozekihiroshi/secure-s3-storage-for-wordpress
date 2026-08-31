@@ -37,6 +37,10 @@ jobs:
         run: php -d memory_limit=32M tests/manual/test-media-file-hash-step.php
       - name: Verify resumable preparation, Cron handoff and restored media
         run: php -d memory_limit=32M tests/manual/test-media-preparation.php
+      - name: Verify authenticated media administration and read-only status
+        run: php -d memory_limit=32M tests/manual/test-media-admin.php
+      - name: Verify read-only status polling and stale forms
+        run: node tests/manual/test-media-admin-js.js
       - name: Verify preparation throughput, shared time budget and unchanged-source guard
         run: php -d memory_limit=32M tests/manual/test-media-preparation-batches.php
       - name: Verify synthetic fixture generator and independent inventory

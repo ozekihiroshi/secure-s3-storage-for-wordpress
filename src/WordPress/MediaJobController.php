@@ -13,7 +13,7 @@ use SecureS3StorageForWordpress\Backup\Media\MediaUploadStep;
 use SecureS3StorageForWordpress\Backup\Media\MediaPreparationStep;
 use Throwable;
 
-/** Explicit CLI submission; no media backup starts merely by loading the plugin. */
+/** Explicit submission only; no media backup starts merely by loading the plugin. */
 final class MediaJobController
 {
     public const HOOK = 'secure_s3_storage_media_worker';
@@ -57,18 +57,21 @@ final class MediaJobController
     }
 
     /** Queue preparation without scanning uploads in the submitting request. */
-    public function enqueuePreparation(string $parent): BackupJob
+    public function enqueuePreparation(string $parent, ?string $expectedPreviousId = null): BackupJob
     {
         $old = $this->current();
+        if ($expectedPreviousId !== null && ($old?->id ?? '') !== $expectedPreviousId) {
+            throw new RuntimeException('The media start form is out of date.');
+        }
         if ($old !== null && (! $old->terminal() || $old->type !== 'media')) {
             throw new RuntimeException('A backup job is already active.');
         }
         self::assertOutsideWebRoot($parent);
         $state = MediaPreparationStep::initialize((new WordPressMediaSourceFactory())->create(), $parent, ABSPATH);
-        return $this->submit($state);
+        return $this->submit($state, $expectedPreviousId);
     }
 
-    private function submit(array $initial): BackupJob
+    private function submit(array $initial, ?string $expectedPreviousId = null): BackupJob
     {
         $options = get_option('secure_s3_storage_settings', []);
         $region = $options['region'] ?? '';
@@ -82,6 +85,14 @@ final class MediaJobController
         $prefix = $prefix === '' ? '' : $prefix . '/';
         $store = $this->store();
         $observed = $store->read();
+        // Recheck after preparation initialization, immediately before the CAS.
+        // Even a completed intervening job invalidates an earlier browser form.
+        if ($expectedPreviousId !== null) {
+            $observedId = $observed === null ? '' : BackupJob::decode($observed)->id;
+            if ($observedId !== $expectedPreviousId) {
+                throw new RuntimeException('The media start form is out of date.');
+            }
+        }
         if ($observed !== null) {
             $old = BackupJob::decode($observed);
             if (! $old->terminal() || $old->type !== 'media') {

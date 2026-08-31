@@ -30,7 +30,8 @@ The job/inventory libraries and prepared-plan S3 transfer with Cron/CLI dispatch
 are implemented. Explicit `media enqueue` now runs background preparation and
 hands off to the same Cron uploader; see [preparation worker](media-preparation-worker.md)
 for per-directory time limits and the approved CLI fallback. No job starts
-without explicit submission. Admin UI and media retention remain unimplemented.
+without explicit submission. The [development admin panel](media-admin.md) now
+supports explicit start and current-job status; media retention remains unimplemented.
 See [inventory format and limits](media-inventory-format.md).
 Do not change the public version or declare media support until all required slices pass.
 

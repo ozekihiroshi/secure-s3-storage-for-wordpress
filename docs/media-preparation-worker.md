@@ -1,7 +1,8 @@
 # Background preparation and Cron handoff (development)
 
-Implemented behind explicit CLI submission. Not a published release, admin UI,
-automatic media schedule or media retention policy. Existing database backups
+Implemented behind explicit submission from CLI or the development
+[administration panel](media-admin.md). Not a published release, automatic media
+schedule or media retention policy. Existing database backups
 and the synchronous `media prepare` / prepared-plan `media start` remain intact.
 
 ## Start and observe

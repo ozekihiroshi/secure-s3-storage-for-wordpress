@@ -42,6 +42,8 @@ class SettingsPage
 
     public function register(): void
     {
+        (new MediaBackupPanel())->register();
+
         add_action(
             'admin_menu',
             [$this, 'add_settings_page']
@@ -333,6 +335,7 @@ class SettingsPage
             </form>
 
             <?php $this->render_backup_history(); ?>
+            <?php (new MediaBackupPanel())->render(); ?>
         </div>
         <?php
     }

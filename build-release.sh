@@ -322,6 +322,7 @@ runtime_files=(
     "${STAGE_DIR}/readme.txt"
     "${STAGE_DIR}/LICENSE"
     "${STAGE_DIR}/vendor/autoload.php"
+    "${STAGE_DIR}/src/Admin/media-backup.js"
 )
 
 for file in "${runtime_files[@]}"; do
