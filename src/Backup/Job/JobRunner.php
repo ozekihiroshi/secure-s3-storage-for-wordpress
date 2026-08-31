@@ -76,6 +76,9 @@ final class JobRunner
                 attempts: $claimed->attempts,
             );
             $nextRecord = $next->encode();
+        } catch (PreparationRequiresCliException $e) {
+            $next = $claimed->fail('preparation_requires_cli');
+            $nextRecord = $next->encode();
         } catch (Throwable $e) {
             // Never persist raw exceptions: SDK messages can contain signed requests.
             $next = $claimed->fail('step_failed');

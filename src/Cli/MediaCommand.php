@@ -55,6 +55,27 @@ final class MediaCommand
         }
     }
 
+    /**
+     * Queue media preparation and upload in the background.
+     *
+     * ## OPTIONS
+     *
+     * <work-parent>
+     * : Existing persistent directory outside the web root and uploads.
+     */
+    public function enqueue(array $args): void
+    {
+        try {
+            $parent = realpath($args[0]);
+            if ($parent === false) { throw new RuntimeException('Work directory does not exist.'); }
+            $job = (new MediaJobController())->enqueuePreparation($parent);
+            WP_CLI::line('job_id=' . $job->id);
+            WP_CLI::line('status=' . $job->status);
+        } catch (Throwable $e) {
+            WP_CLI::error(__('Media submission could not complete. Check media status before retrying.', 'ozeki-database-backup-for-s3'));
+        }
+    }
+
     /** Execute one bounded step; useful with system Cron when WP-Cron traffic is absent. */
     public function tick(): void
     {
@@ -75,7 +96,11 @@ final class MediaCommand
             WP_CLI::line(wp_json_encode($job === null ? ['status' => 'missing'] : [
                 'id' => $job->id, 'type' => $job->type, 'status' => $job->status,
                 'files' => $job->processedFiles, 'bytes' => $job->processedBytes, 'error' => $job->errorCode,
+                'phase' => $job->checkpoint['phase'] ?? 'upload',
             ]));
+            if ($job?->errorCode === 'preparation_requires_cli') {
+                WP_CLI::warning(__('A directory exceeded the background scan time budget. Use media prepare followed by media start in CLI; no partial backup was published.', 'ozeki-database-backup-for-s3'));
+            }
         } catch (Throwable $e) {
             WP_CLI::error(__('Unable to read media job status.', 'ozeki-database-backup-for-s3'));
         }

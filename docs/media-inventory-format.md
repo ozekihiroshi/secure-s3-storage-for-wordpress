@@ -1,6 +1,8 @@
 # Media inventory: implementation slice 2
 
-Status: internal implementation for v0.2; not connected to UI, Cron or S3.
+Status: internal implementation for v0.2, now used by prepared-plan uploads and
+the [background preparation/Cron worker](media-preparation-worker.md).
+No admin UI is available yet. The CLI/library details below describe the original scanner.
 No public version, existing DB backup, settings or release ZIP is changed.
 
 ## Scope
@@ -99,12 +101,12 @@ the inventory, failing/retrying the run if they differ. DB and media are not an
 atomic site snapshot merely because both operations finish successfully.
 
 An optional per-chunk callback allows cancellation/heartbeat without coupling
-the scanner to WordPress. This slice is a streaming CLI/library implementation,
-NOT a durable per-file scheduler yet. Full-file PHP hash contexts and directory
-iterators are not persisted across PHP processes. Splitting long inventory/hash
-work into durable jobs (especially one very large file) remains an integration
-gate; it must be solved before enabling browser-independent backup. Do not wire
-this whole scan into one short-lease `JobStep` and call that large-file support.
+this original synchronous scanner to WordPress. The background route now uses
+separate directory, sort and hash steps, including private native SHA-256 state
+checkpoints. Directory handles are not serialized: a folder must finish within
+its time budget or the job explicitly fails with CLI preparation guidance.
+See [background preparation](media-preparation-worker.md) for the lock/CAS
+protocol, source checks and remaining real-AWS integration gate.
 
 ## Local verification
 

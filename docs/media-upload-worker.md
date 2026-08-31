@@ -7,6 +7,13 @@ over the public 0.1.1 artifact.
 
 ## Execution model
 
+The steps below describe the existing prepared-plan route. The new explicit
+`media enqueue <work-parent>` route also prepares the plan through the same Cron
+worker before upload; see [background preparation](media-preparation-worker.md).
+Per-directory enumeration has a 10-second cooperative budget and fails with a
+CLI-preparation instruction if exceeded. No S3 client is created during
+preparation, and no partial readiness/completion marker is published.
+
 1. `media prepare <work-parent>` synchronously creates an inventory and a
    multipart upload plan using the WordPress uploads root. It does not contact
    S3. Files are read in 1 MiB buffers; no complete copy of uploads is made.
@@ -20,10 +27,11 @@ over the public 0.1.1 artifact.
    have verified S3 checksums and byte counts, and the prepared plan hash chain
    and totals match. The job then becomes `succeeded`.
 
-Preparation is deliberately CLI-only and is **not resumable**. Interrupting it
-leaves an unpublished private directory; prepare a new plan. A completed plan
-is needed before submission. Moving all enumeration and hashing into short
-background steps remains a release gate. PHP hash contexts are not serialized.
+The synchronous `media prepare` command is **not resumable**. Interrupting it
+leaves an unpublished private directory; prepare a new plan. It remains the
+fallback for a directory too large for the background enumeration budget.
+Background preparation is resumable through `media enqueue`, but its new
+scoped-ZIP/real-AWS end-to-end verification is still required before publication.
 
 ## Commands (do not run on production before the deployment/test review)
 
@@ -120,10 +128,14 @@ from failed runs remain until an explicit future cleanup policy is approved.
   byte ranges, signatures, checksums, HTTP budgets and safe error translation.
 - `media-upload-tests.yml`: PHP 8.1/8.3 CI; tests do not require AWS credentials.
 
-Still required before publication: actual AWS SDK/scoped-ZIP uploads and
-download/restore of the existing 1 GiB fixture, Linux/real WordPress Cron/DB
-integration, real process-kill/concurrent-process tests, IAM/KMS and lifecycle
-tests, scalable completion on a 10,000-part object, background preparation,
+Actual AWS scoped-ZIP uploads, real WordPress Cron/job storage and independent
+download/restore of the 1 GiB fixture passed; see the
+[2026-08-31 report](aws-media-cron-zip-test-2026-08-31.md) for exact scope.
+This is not a matching DB/media site-restoration test.
+
+Still required before publication: real process-kill/concurrent-process tests,
+IAM/KMS and lifecycle
+tests, scalable completion on a 10,000-part object, real-AWS background preparation,
 admin UI, separate media schedule/retention, release ZIP/Plugin Check and
 final lifecycle regression. Do not describe mock-S3 checks as real AWS tests.
 

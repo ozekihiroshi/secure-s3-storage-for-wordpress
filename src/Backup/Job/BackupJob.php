@@ -30,7 +30,7 @@ final class BackupJob
             || ($leaseToken !== '' && ! preg_match('/^[a-f0-9]{32}$/D', $leaseToken))
             || (($leaseToken === '') !== ($leaseUntil === 0))
             || ($leaseToken !== '' && $status !== 'running')
-            || ! in_array($errorCode, ['', 'step_failed', 'recovery_exhausted'], true)
+            || ! in_array($errorCode, ['', 'step_failed', 'recovery_exhausted', 'preparation_requires_cli'], true)
             || (($status === 'failed') !== ($errorCode !== ''))
         ) {
             throw new RuntimeException('Invalid backup job state.');

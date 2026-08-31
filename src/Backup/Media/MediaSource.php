@@ -81,6 +81,22 @@ final class MediaSource
         return $canonical === '' ? '/' : $canonical;
     }
 
+    /** Internal resumable preparation snapshot; excludes read-induced atime. */
+    public function snapshot(string $relative): array
+    {
+        return array_intersect_key($this->stat($this->resolve($relative)),
+            array_flip(['dev', 'ino', 'mode', 'nlink', 'size', 'mtime', 'ctime']));
+    }
+
+    public function directoryPath(string $relative): string
+    {
+        $path = $this->resolve($relative);
+        if (($this->stat($path)['mode'] & 0170000) !== 0040000 || ! is_readable($path)) {
+            throw new RuntimeException('Media directory is not readable.');
+        }
+        return $path;
+    }
+
     private function walk(string $relative, ?callable $onChunk): Generator
     {
         $path = $this->resolve($relative);

@@ -27,9 +27,11 @@ failure policy, validation and the remaining publication gates.
 5. Separate media schedule/retention, regression tests, release ZIP and Plugin Check.
 
 The job/inventory libraries and prepared-plan S3 transfer with Cron/CLI dispatch
-are implemented. No job is created until explicit CLI submission. Preparation
-is still synchronous CLI work; background scanning, admin UI and media retention
-remain unimplemented. See [inventory format and limits](media-inventory-format.md).
+are implemented. Explicit `media enqueue` now runs background preparation and
+hands off to the same Cron uploader; see [preparation worker](media-preparation-worker.md)
+for per-directory time limits and the approved CLI fallback. No job starts
+without explicit submission. Admin UI and media retention remain unimplemented.
+See [inventory format and limits](media-inventory-format.md).
 Do not change the public version or declare media support until all required slices pass.
 
 ## Job state contract

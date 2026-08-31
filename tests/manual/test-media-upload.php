@@ -171,6 +171,9 @@ function add_action($hook, $callback, $priority = 10, $accepted = 1): void { $GL
 function add_filter($hook, $callback): void { $GLOBALS['test_filters'][$hook] = $callback; }
 function delete_transient($name): void {}
 
+// Reuse the disk-backed S3 model and WordPress stubs in preparation integration tests.
+if (defined('ODBFS3_UPLOAD_HELPERS_ONLY')) { return; }
+
 $base = sys_get_temp_dir() . '/odbfs3-upload-test-' . bin2hex(random_bytes(12));
 mkdir($base, 0700);
 mkdir($base . '/uploads', 0700);

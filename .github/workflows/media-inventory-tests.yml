@@ -31,6 +31,12 @@ jobs:
         run: php -d memory_limit=32M tests/manual/test-media-inventory.php
       - name: Verify WordPress upload-root resolution
         run: php tests/manual/test-wordpress-media-source.php
+      - name: Verify native SHA-256 continuation across PHP processes
+        run: php -d memory_limit=32M tests/manual/test-media-hash-checkpoint.php
+      - name: Verify private file hashing jobs and stale-worker fencing
+        run: php -d memory_limit=32M tests/manual/test-media-file-hash-step.php
+      - name: Verify resumable preparation, Cron handoff and restored media
+        run: php -d memory_limit=32M tests/manual/test-media-preparation.php
       - name: Verify synthetic fixture generator and independent inventory
         run: |
           php -d memory_limit=32M tools/create-media-fixtures.php "$RUNNER_TEMP/odbfs3-media-fixture" --large-mib=8 --small-files=25 --small-bytes=4096

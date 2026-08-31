@@ -10,6 +10,7 @@ use SecureS3StorageForWordpress\Backup\Job\BackupJob;
 use SecureS3StorageForWordpress\Backup\Job\JobRunner;
 use SecureS3StorageForWordpress\Backup\Media\MediaUploadPlan;
 use SecureS3StorageForWordpress\Backup\Media\MediaUploadStep;
+use SecureS3StorageForWordpress\Backup\Media\MediaPreparationStep;
 use Throwable;
 
 /** Explicit CLI submission; no media backup starts merely by loading the plugin. */
@@ -49,6 +50,23 @@ final class MediaJobController
         if ($source->rootPath() !== $metadata['root']) {
             throw new RuntimeException('Media plan belongs to another upload root.');
         }
+        return $this->submit(['directory' => $plan->directory, 'metadata' => $metadata, 'offset' => 0]);
+    }
+
+    /** Queue preparation without scanning uploads in the submitting request. */
+    public function enqueuePreparation(string $parent): BackupJob
+    {
+        $old = $this->current();
+        if ($old !== null && (! $old->terminal() || $old->type !== 'media')) {
+            throw new RuntimeException('A backup job is already active.');
+        }
+        self::assertOutsideWebRoot($parent);
+        $state = MediaPreparationStep::initialize((new WordPressMediaSourceFactory())->create(), $parent, ABSPATH);
+        return $this->submit($state);
+    }
+
+    private function submit(array $initial): BackupJob
+    {
         $options = get_option('secure_s3_storage_settings', []);
         $region = $options['region'] ?? '';
         $bucket = $options['bucket'] ?? '';
@@ -72,9 +90,8 @@ final class MediaJobController
                 throw new RuntimeException('Unable to archive the previous backup result.');
             }
         }
-        $job = new BackupJob(bin2hex(random_bytes(16)), 'media', checkpoint: [
-            'directory' => $plan->directory, 'metadata' => $metadata,
-            'region' => $region, 'bucket' => $bucket, 'prefix' => $prefix, 'offset' => 0,
+        $job = new BackupJob(bin2hex(random_bytes(16)), 'media', checkpoint: $initial + [
+            'region' => $region, 'bucket' => $bucket, 'prefix' => $prefix,
         ]);
         if (! $store->compareAndSwap($observed, $job->encode())) {
             throw new RuntimeException('Another backup submission won the slot.');
@@ -104,13 +121,26 @@ final class MediaJobController
                 wp_clear_scheduled_hook(self::HOOK, [$id]);
                 return 'mismatch';
             }
+            if ($job->terminal()) {
+                wp_clear_scheduled_hook(self::HOOK, [$id]);
+                return $job->status;
+            }
             $runner = new JobRunner($this->store());
-            $step = new MediaUploadStep($this->clientFactory === null
-                ? MediaS3Client::create($job->checkpoint['region'])
-                : ($this->clientFactory)($job->checkpoint['region']));
+            $upload = null;
             $until = microtime(true) + 20;
             for ($count = 0; $count < 100; ++$count) {
-                $status = $runner->tick($id, 'media', $step);
+                $current = $this->current();
+                if ($current === null || $current->id !== $id) { return 'mismatch'; }
+                if (isset($current->checkpoint['phase'])) {
+                    $step = new MediaPreparationStep((new WordPressMediaSourceFactory())->create(),
+                        $current->checkpoint['directory'], ABSPATH);
+                    $status = $step->tick($this->store(), $id);
+                } else {
+                    $upload ??= new MediaUploadStep($this->clientFactory === null
+                        ? MediaS3Client::create($current->checkpoint['region'])
+                        : ($this->clientFactory)($current->checkpoint['region']));
+                    $status = $runner->tick($id, 'media', $upload);
+                }
                 if ($status !== 'running' || microtime(true) >= $until
                     || ($this->current()?->attempts ?? 0) > 0) {
                     break;
