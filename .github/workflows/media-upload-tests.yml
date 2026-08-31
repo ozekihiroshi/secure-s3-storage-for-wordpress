@@ -27,6 +27,7 @@ jobs:
           find src -name '*.php' -print0 | xargs -0 -n1 php -l
           php -l tests/manual/test-media-upload.php
           php -l tests/manual/test-media-s3-client.php
+          php -l tools/test-media-s3-fixtures.php
       - name: Job state regression
         run: php tests/manual/test-backup-job-runner.php
       - name: Upload, interruption, Cron dispatch and independent restore verification

@@ -101,9 +101,12 @@ No failed run triggers retention or deletes earlier backups. The explicit
 `media cleanup` command aborts only a **current failed** job's recorded multipart
 upload. It does not delete completed objects, plans or other backups. A crash
 after multipart initiation but before saving its upload ID can leave an unknown
-orphan. Before real AWS testing, configure/review S3's
-`AbortIncompleteMultipartUpload` lifecycle rule for the test prefix. Neither
-that rule nor any bucket policy is changed automatically. Completed objects
+orphan. S3's `AbortIncompleteMultipartUpload` lifecycle rule for the test prefix
+is a recommended safety net, not a prerequisite for uploading. An isolated test
+can proceed without it when upload identifiers are recorded and failed uploads
+are explicitly aborted and checked. A process loss before recording the ID
+still requires operational orphan discovery/cleanup. Neither the lifecycle rule
+nor any bucket policy is changed automatically. Completed objects
 from failed runs remain until an explicit future cleanup policy is approved.
 
 ## Verification and remaining gates
