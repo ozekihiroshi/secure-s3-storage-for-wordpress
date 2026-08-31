@@ -55,6 +55,7 @@ final class PluginLifecycle
 
     public static function deactivate(): void
     {
+        wp_unschedule_hook(\SecureS3StorageForWordpress\WordPress\MediaJobController::HOOK);
         try {
             $manager =
                 new BackupScheduleManager();
@@ -72,6 +73,9 @@ final class PluginLifecycle
 
     public static function uninstall(): void
     {
+        wp_unschedule_hook(\SecureS3StorageForWordpress\WordPress\MediaJobController::HOOK);
+        delete_option(\SecureS3StorageForWordpress\WordPress\WordPressJobStore::OPTION_NAME);
+        \SecureS3StorageForWordpress\WordPress\MediaJobController::purgeArchivedResults();
         delete_option(
             self::SETTINGS_OPTION
         );

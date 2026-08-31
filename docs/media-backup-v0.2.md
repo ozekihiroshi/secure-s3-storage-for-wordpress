@@ -1,6 +1,9 @@
 # Media backup: v0.2 implementation plan
 
-Status: in development; not a published feature. The v0.1.1 runtime is unchanged.
+Status: in development; not a published feature. Existing database behavior is unchanged.
+Prepared media plans can now be submitted explicitly through CLI and processed by
+WP-Cron. See [prepared media upload worker](media-upload-worker.md) for commands,
+failure policy, validation and the remaining publication gates.
 
 ## Agreed requirements
 
@@ -23,10 +26,10 @@ Status: in development; not a published feature. The v0.1.1 runtime is unchanged
 4. WP-Cron/CLI dispatch, administration actions/status, lifecycle cleanup.
 5. Separate media schedule/retention, regression tests, release ZIP and Plugin Check.
 
-Slice 1 and the local inventory/verification portion of slice 2 are implemented
-as internal libraries. They do not register hooks, create jobs, change options
-or perform S3 operations automatically. Remote storage, durable scanning and
-background dispatch remain unimplemented. See [inventory format and limits](media-inventory-format.md).
+The job/inventory libraries and prepared-plan S3 transfer with Cron/CLI dispatch
+are implemented. No job is created until explicit CLI submission. Preparation
+is still synchronous CLI work; background scanning, admin UI and media retention
+remain unimplemented. See [inventory format and limits](media-inventory-format.md).
 Do not change the public version or declare media support until all required slices pass.
 
 ## Job state contract
@@ -43,7 +46,7 @@ An expired worker cannot commit progress. A lease cannot stop a paused PHP
 process from later sending an external request: every future handler MUST use
 idempotent, run-specific object keys and must not delete earlier backups.
 The runner is cooperative, not a process watchdog. Each handler must bound CPU,
-file reads and HTTP timeouts within its lease. No handler is connected yet.
+file reads and HTTP timeouts within its lease. The prepared-plan handler is connected.
 
 Only the final verified manifest may declare a media backup complete. A failed
 or interrupted run must never trigger retention of earlier completed backups.

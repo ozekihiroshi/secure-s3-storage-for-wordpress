@@ -1,0 +1,35 @@
+name: Media Upload Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.3']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Install locked SDK for offline HTTP handler tests
+        run: composer install --no-interaction --prefer-dist
+      - name: Lint runtime and media tests
+        run: |
+          find src -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l tests/manual/test-media-upload.php
+          php -l tests/manual/test-media-s3-client.php
+      - name: Job state regression
+        run: php tests/manual/test-backup-job-runner.php
+      - name: Upload, interruption, Cron dispatch and independent restore verification
+        run: php -d memory_limit=32M tests/manual/test-media-upload.php
+      - name: Actual SDK request ranges, signing, checksums and errors without network
+        run: php tests/manual/test-media-s3-client.php

@@ -10,6 +10,8 @@ final class Plugin
 {
     public function run(): void
     {
+        (new \SecureS3StorageForWordpress\WordPress\MediaJobController())->register();
+
         $settingsPage =
             new SettingsPage();
 

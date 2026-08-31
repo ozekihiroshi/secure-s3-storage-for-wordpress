@@ -69,6 +69,13 @@ final class JobRunner
             $result = $step->execute($claimed, $claimed->leaseUntil);
             $next = $claimed->advance($result);
             $nextRecord = $next->encode();
+        } catch (RetryableJobException $e) {
+            $next = new BackupJob(
+                $claimed->id, $claimed->type, 'running', $claimed->checkpoint,
+                $claimed->processedFiles, $claimed->processedBytes,
+                attempts: $claimed->attempts,
+            );
+            $nextRecord = $next->encode();
         } catch (Throwable $e) {
             // Never persist raw exceptions: SDK messages can contain signed requests.
             $next = $claimed->fail('step_failed');

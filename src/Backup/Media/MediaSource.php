@@ -31,6 +31,30 @@ final class MediaSource
         $this->rootIdentity = $this->stat($this->root);
     }
 
+    public function rootPath(): string
+    {
+        return $this->root;
+    }
+
+    /** @return resource */
+    public function openFile(string $relative)
+    {
+        $path = $this->resolve($relative);
+        $stat = $this->stat($path);
+        if (($stat['mode'] & 0170000) !== 0100000 || ($stat['mode'] & 0444) === 0) {
+            throw new RuntimeException('Media input must be a readable regular file.');
+        }
+        $stream = MediaInventoryIO::openRead($path);
+        try {
+            $this->assertSame($stat, $this->streamStat($stream));
+            return $stream;
+        } catch (\Throwable $e) {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+            fclose($stream);
+            throw $e;
+        }
+    }
+
     /** @return Generator<int, MediaEntry> */
     public function entries(?callable $onChunk = null): Generator
     {
