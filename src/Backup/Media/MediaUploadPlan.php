@@ -118,7 +118,9 @@ final class MediaUploadPlan
                 || ! is_int($record['part_size'] ?? null) || $record['part_size'] < 8388608
                 || $record['part_size'] > 5368709120
                 || ! preg_match('/^[a-f0-9]{64}$/D', $record['sha256'] ?? '')
-                || ! is_array($record['parts'] ?? null) || ! array_is_list($record['parts'])
+                // Avoid ambiguity with WordPress's later array_is_list() polyfill.
+                || ! is_array($record['parts'] ?? null)
+                || array_values($record['parts']) !== $record['parts']
                 || count($record['parts']) > 10000
                 || count($record['parts']) !== (int) ceil($record['size'] / $record['part_size'])) {
                 throw new RuntimeException('Invalid media object record.');
