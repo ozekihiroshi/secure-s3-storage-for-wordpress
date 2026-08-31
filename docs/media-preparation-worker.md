@@ -57,8 +57,10 @@ the event; source/directory changes meanwhile may correctly fail the run.
    `MediaUploadStep`. Only S3's final verified completion marker marks success.
 
 All limits are cooperative: a blocking filesystem call/fsync is not an OS-level
-watchdog. The existing controller processes at most 100 steps / about 20 seconds
-per invocation, checked between steps; it can overrun that target by one step.
+watchdog. The controller processes at most 1,000 total steps / about 20 seconds
+per invocation, with at most 100 upload steps even across preparation/upload
+handoff. The shared time budget is checked between steps; a blocking final step
+can overrun it. Each preparation step still commits its own durable checkpoint.
 An S3 object descriptor is bounded by S3's 10,000-part limit, not by total media
 count or size. No arbitrary total-file or total-byte limit is introduced.
 
@@ -117,6 +119,22 @@ depends on metadata and sorting passes, not a second full media copy. Cleanup
 needs a separate policy accounting for live/stale workers. Uninstall never deletes
 these files or S3 objects. Missing files after power loss fail closed; file fsync
 alone does not promise directory-entry persistence across a host power failure.
+
+## Source initialization and small-file batches
+
+Initialize a new test site's normal WordPress upload year/month directory before
+enqueueing. The isolated AWS fixture helper calls `wp_upload_dir` with directory
+creation only during setup, after validating the fresh fixture root. Backup
+workers never create source directories or exempt WordPress-generated paths.
+A new empty directory added after the snapshot still fails validation. A month
+rollover or real concurrent uploads may therefore require a new job after writes
+are quiesced; initialization is not permission to ignore later changes.
+
+`test-media-preparation-batches.php` covers 600 small files and independent
+restoration, the 1,000-step preparation cap, the shared 20-second budget, the
+100-step upload cap including handoff, and failure on a late empty year/month
+directory. The larger preparation batch reduces idle Cron intervals without
+combining durable checkpoints or weakening source identity/checksum checks.
 
 ## Verification
 

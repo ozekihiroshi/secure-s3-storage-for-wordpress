@@ -19,6 +19,9 @@ final class MediaJobController
     public const HOOK = 'secure_s3_storage_media_worker';
     public const INTERVAL = 'secure_s3_storage_worker_minute';
 
+    private const MAX_BATCH_STEPS = 1000;
+    private const MAX_UPLOAD_STEPS = 100;
+
     public function __construct(private ?JobStore $jobStore = null, private ?Closure $clientFactory = null)
     {
     }
@@ -128,7 +131,10 @@ final class MediaJobController
             $runner = new JobRunner($this->store());
             $upload = null;
             $until = microtime(true) + 20;
-            for ($count = 0; $count < 100; ++$count) {
+            $uploadSteps = 0;
+            // Preparation has cheap metadata steps; retain the shared time budget
+            // and the smaller network-operation cap, including during handoff.
+            for ($count = 0; $count < self::MAX_BATCH_STEPS; ++$count) {
                 $current = $this->current();
                 if ($current === null || $current->id !== $id) { return 'mismatch'; }
                 if (isset($current->checkpoint['phase'])) {
@@ -136,6 +142,7 @@ final class MediaJobController
                         $current->checkpoint['directory'], ABSPATH);
                     $status = $step->tick($this->store(), $id);
                 } else {
+                    if (++$uploadSteps > self::MAX_UPLOAD_STEPS) { break; }
                     $upload ??= new MediaUploadStep($this->clientFactory === null
                         ? MediaS3Client::create($current->checkpoint['region'])
                         : ($this->clientFactory)($current->checkpoint['region']));
