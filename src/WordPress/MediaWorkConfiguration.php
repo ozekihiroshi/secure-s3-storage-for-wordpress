@@ -28,12 +28,16 @@ final class MediaWorkConfiguration
         if (defined('WP_CONTENT_DIR')) {
             new MediaHashCheckpointStore($directory, $source, WP_CONTENT_DIR);
         }
-        // Server configuration, not a form field; canonicalized by the store.
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        // Server configuration, not a slashed form field; preserve the actual
+        // filesystem path for the store's canonicalization and exclusion checks.
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
         $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
         if (is_string($documentRoot) && $documentRoot !== '') {
             new MediaHashCheckpointStore($directory, $source, $documentRoot);
         }
+        // Check this PHP process's local POSIX access, not remote WP_Filesystem
+        // credentials. Preflight must not prompt for credentials or write files.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
         if (! is_readable($directory) || ! is_writable($directory) || ! is_executable($directory)) {
             throw new RuntimeException('Private media storage is not accessible.');
         }

@@ -39,6 +39,8 @@ final class MediaBackupPanel
         if (! current_user_can('manage_options')) {
             wp_die(esc_html__('You are not allowed to perform this action.', 'ozeki-database-backup-for-s3'), '', ['response' => 403]);
         }
+        // Strict allowlist only: never normalize an invalid method into POST.
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
         if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
             wp_die(esc_html__('A POST request is required.', 'ozeki-database-backup-for-s3'), '', ['response' => 405]);
         }
