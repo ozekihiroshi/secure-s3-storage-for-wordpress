@@ -152,10 +152,12 @@ merge passes, and an independent source/restore rescan. Tests cover:
 - Compatibility with inventory v1 and the existing S3 model uploader, including
   multipart checksum validation and exact restored paths/sizes/full SHA-256.
 
-PHP 8.1.34 and 8.3.33: **416 assertions each**, with a 32 MiB PHP limit and 6 MiB
+Before the batching change, PHP 8.1.34 and 8.3.33: **416 assertions each**, with a 32 MiB PHP limit and 6 MiB
 observed allocated peak. These ran as an unprivileged user in disposable,
 network-disabled containers with read-only source mounts and private tmpfs data.
-The WordPress API and S3 are test doubles: this is **not** a new AWS or HTTP-Cron
-result. The existing real AWS report tested prepared plans only. Next integration
-gate is a newly built scoped ZIP in the isolated AWS environment, from enqueue
-on an unprepared source through real Cron upload and independent restore.
+Those tests use WordPress API and S3 doubles, not real HTTP Cron or AWS.
+The updated preparation test has 415 assertions (fewer loop iterations with
+larger batches); the new batching test adds 3,052 assertions. Both pass in the
+PHP 8.1/8.3 CI matrix. For the new scoped ZIP's real HTTP-Cron preparation,
+S3 upload and independent restoration of 2,006 files including a 1 GiB file,
+see [the AWS batching acceptance report](aws-preparation-batches-test-2026-08-31.md).
