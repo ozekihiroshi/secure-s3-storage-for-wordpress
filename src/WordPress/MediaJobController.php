@@ -17,10 +17,11 @@ use Throwable;
 final class MediaJobController
 {
     public const HOOK = 'secure_s3_storage_media_worker';
-    public const INTERVAL = 'secure_s3_storage_worker_minute';
 
     private const MAX_BATCH_STEPS = 1000;
-    private const MAX_UPLOAD_STEPS = 100;
+    private const MAX_UPLOAD_STEPS = 250;
+    private const NEXT_BATCH_DELAY = 5;
+    private const RECOVERY_DELAY = 60;
 
     public function __construct(private ?JobStore $jobStore = null, private ?Closure $clientFactory = null)
     {
@@ -28,15 +29,8 @@ final class MediaJobController
 
     public function register(): void
     {
-        add_filter('cron_schedules', [$this, 'schedules']);
         add_action(self::HOOK, [$this, 'run'], 10, 1);
         add_action('init', [$this, 'recoverSchedule']);
-    }
-
-    public function schedules(array $schedules): array
-    {
-        $schedules[self::INTERVAL] = ['interval' => 60, 'display' => 'Media backup worker'];
-        return $schedules;
     }
 
     public function current(): ?BackupJob
@@ -139,6 +133,10 @@ final class MediaJobController
                 wp_clear_scheduled_hook(self::HOOK, [$id]);
                 return $job->status;
             }
+            // WP-Cron removes a single event before invoking its callback. Keep
+            // a slower recovery event present while this process owns the batch;
+            // an unexpected process exit must not strand the durable job.
+            $this->schedule($id, self::RECOVERY_DELAY);
             $runner = new JobRunner($this->store());
             $upload = null;
             $until = microtime(true) + 20;
@@ -166,6 +164,12 @@ final class MediaJobController
             }
             if (in_array($status, ['succeeded', 'failed'], true)) {
                 wp_clear_scheduled_hook(self::HOOK, [$id]);
+            } else {
+                // Replace the recovery event only after a bounded batch returned.
+                // This also migrates an unfinished job from the former recurring
+                // event to completion-paced single events.
+                wp_clear_scheduled_hook(self::HOOK, [$id]);
+                $this->schedule($id, self::NEXT_BATCH_DELAY);
             }
             return $status;
         } catch (Throwable $e) {
@@ -195,10 +199,10 @@ final class MediaJobController
         ], time() + 30);
     }
 
-    private function schedule(string $id): void
+    private function schedule(string $id, int $delay = self::NEXT_BATCH_DELAY): void
     {
         if (wp_next_scheduled(self::HOOK, [$id]) === false) {
-            $result = wp_schedule_event(time() + 5, self::INTERVAL, self::HOOK, [$id], true);
+            $result = wp_schedule_single_event(time() + $delay, self::HOOK, [$id], true);
             if (is_wp_error($result) || $result === false) {
                 throw new RuntimeException('Media job is saved but scheduling failed.');
             }

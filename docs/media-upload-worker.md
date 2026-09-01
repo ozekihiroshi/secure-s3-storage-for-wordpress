@@ -19,8 +19,9 @@ preparation, and no partial readiness/completion marker is published.
    S3. Files are read in 1 MiB buffers; no complete copy of uploads is made.
 2. `media start <plan-directory>` saves a job with a snapshot of the region,
    bucket, prefix, source root and plan summary, then schedules the worker.
-3. WP-Cron processes up to 100 checkpointed steps per invocation, stopping
-   between steps after 20 seconds. A step has a 60-second lease. Network
+3. WP-Cron processes up to 250 upload steps per invocation, stopping between
+   steps after 20 seconds. Preparation retains its separate 1,000-step cap.
+   A step has a 60-second lease. Network
    requests have a 5-second connect and 20-second total timeout, reduced to
    the remaining lease budget. These are cooperative bounds, not an OS watchdog.
 4. A complete marker is published only after every file and the inventory
@@ -49,11 +50,15 @@ wp ozeki-database-backup-for-s3 media status
 wp ozeki-database-backup-for-s3 media tick
 ```
 
-`tick` processes one worker batch, not an infinite daemon. Use system Cron / the
-existing WordPress Cron runner on sites with no traffic. A durable queued job
-survives a scheduling failure; `status` shows it and the next init/CLI tick can
-recover it. Deactivation clears worker events, not job state. Reactivation/init
-restores an unfinished job. An old event is bound to its original job ID.
+`tick` processes one worker batch, not an infinite daemon. After a returned
+nonterminal batch, the worker chains a single event for five seconds later rather
+than waiting for a fixed recurring minute. While a batch is running, a slower
+60-second recovery event remains scheduled so an unexpected PHP process exit
+does not strand the durable job. Actual dispatch still depends on WordPress
+requests or a system Cron runner. A durable queued job survives a scheduling
+failure; `status` shows it and the next init/CLI tick can recover it. Deactivation
+clears worker events, not job state. Reactivation/init restores an unfinished
+job. An old event is bound to its original job ID.
 
 The prior terminal result is archived before replacing the single job slot;
 an active job cannot be replaced. Status reports completed-file bytes, not
@@ -142,4 +147,4 @@ final lifecycle regression. Do not describe mock-S3 checks as real AWS tests.
 References:
 - https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html
 - https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity-upload.html
-- https://developer.wordpress.org/reference/functions/wp_schedule_event/
+- https://developer.wordpress.org/reference/functions/wp_schedule_single_event/

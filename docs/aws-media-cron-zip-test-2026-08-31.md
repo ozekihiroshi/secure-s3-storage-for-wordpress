@@ -1,6 +1,10 @@
 # Scoped distribution ZIP / real WordPress Cron — 2026-08-31
 
 Result: **passed after correcting the WordPress-owned `wpdb` type during scoping**.
+Scope note: this report records the tested build's former 60-second recurring
+worker. It is not evidence for the later completion-paced single-event
+scheduling change, which requires its own scoped-ZIP real-AWS regression.
+
 
 ## Artifact and defect
 

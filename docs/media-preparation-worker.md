@@ -59,7 +59,7 @@ the event; source/directory changes meanwhile may correctly fail the run.
 
 All limits are cooperative: a blocking filesystem call/fsync is not an OS-level
 watchdog. The controller processes at most 1,000 total steps / about 20 seconds
-per invocation, with at most 100 upload steps even across preparation/upload
+per invocation, with at most 250 upload steps even across preparation/upload
 handoff. The shared time budget is checked between steps; a blocking final step
 can overrun it. Each preparation step still commits its own durable checkpoint.
 An S3 object descriptor is bounded by S3's 10,000-part limit, not by total media
@@ -133,7 +133,7 @@ are quiesced; initialization is not permission to ignore later changes.
 
 `test-media-preparation-batches.php` covers 600 small files and independent
 restoration, the 1,000-step preparation cap, the shared 20-second budget, the
-100-step upload cap including handoff, and failure on a late empty year/month
+250-step upload cap including handoff, and failure on a late empty year/month
 directory. The larger preparation batch reduces idle Cron intervals without
 combining durable checkpoints or weakening source identity/checksum checks.
 

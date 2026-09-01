@@ -153,11 +153,20 @@ function add_option($name, $value, $deprecated = '', $autoload = false): bool {
     return true;
 }
 function wp_next_scheduled($hook, $args) {
-    return isset($GLOBALS['test_events'][$hook . json_encode($args)]) ? 1000 : false;
+    return $GLOBALS['test_events'][$hook . json_encode($args)]['timestamp'] ?? false;
 }
 function wp_schedule_event($timestamp, $interval, $hook, $args, $error): bool {
     if ($GLOBALS['test_schedule_failure'] ?? false) { return false; }
-    $GLOBALS['test_events'][$hook . json_encode($args)] = true;
+    $GLOBALS['test_events'][$hook . json_encode($args)] = [
+        'timestamp' => $timestamp, 'recurrence' => $interval,
+    ];
+    return true;
+}
+function wp_schedule_single_event($timestamp, $hook, $args, $error): bool {
+    if ($GLOBALS['test_schedule_failure'] ?? false) { return false; }
+    $GLOBALS['test_events'][$hook . json_encode($args)] = [
+        'timestamp' => $timestamp, 'recurrence' => false,
+    ];
     return true;
 }
 function wp_clear_scheduled_hook($hook, $args = []): void { unset($GLOBALS['test_events'][$hook . json_encode($args)]); }
@@ -293,9 +302,14 @@ try {
     $controller = new \SecureS3StorageForWordpress\WordPress\MediaJobController($store, static fn ($region) => $s3);
     $controller->register();
     $check(isset($GLOBALS['test_actions'][\SecureS3StorageForWordpress\WordPress\MediaJobController::HOOK]), 'Cron handler registered');
-    $check($controller->schedules([])[\SecureS3StorageForWordpress\WordPress\MediaJobController::INTERVAL]['interval'] === 60, 'Worker interval');
+    $check(! isset($GLOBALS['test_filters']['cron_schedules']), 'No recurring worker interval registered');
     $queued = $controller->start($plan);
     $check(count($GLOBALS['test_events']) === 1 && $queued->status === 'queued', 'Submission schedules durable job');
+    $eventKey = \SecureS3StorageForWordpress\WordPress\MediaJobController::HOOK . json_encode([$queued->id]);
+    $check($GLOBALS['test_events'][$eventKey]['recurrence'] === false
+        && $GLOBALS['test_events'][$eventKey]['timestamp'] >= time() + 4
+        && $GLOBALS['test_events'][$eventKey]['timestamp'] <= time() + 6,
+        'Submission uses a near-term single event');
     $controller->recoverSchedule();
     $check(count($GLOBALS['test_events']) === 1, 'No duplicate event on init');
     $GLOBALS['test_options']['secure_s3_storage_settings']['bucket'] = 'changed-bucket';
@@ -308,6 +322,29 @@ try {
     $check(count($GLOBALS['test_events']) === 1, 'Reactivation/init restores dispatch');
     $calls = count($s3->calls);
     $check($controller->run(str_repeat('f', 32)) === 'mismatch' && count($s3->calls) === $calls, 'Stale Cron event does not send');
+    // Model the former recurring event already having scheduled its next run.
+    // A returned batch must migrate it to a completion-paced single event.
+    $GLOBALS['test_events'][$eventKey] = [
+        'timestamp' => time() + 60, 'recurrence' => 'former-worker-minute',
+    ];
+    $store->record = $queued->claim(time(), 60)->encode();
+    $check($controller->run($queued->id) === 'busy', 'A contended batch remains nonterminal');
+    $check(($GLOBALS['test_events'][$eventKey]['recurrence'] ?? null) === false
+        && $GLOBALS['test_events'][$eventKey]['timestamp'] >= time() + 4
+        && $GLOBALS['test_events'][$eventKey]['timestamp'] <= time() + 6,
+        'A returned nonterminal batch chains a near-term single event');
+    $store->record = $queued->encode();
+    wp_clear_scheduled_hook(\SecureS3StorageForWordpress\WordPress\MediaJobController::HOOK, [$queued->id]);
+    $unavailable = new \SecureS3StorageForWordpress\WordPress\MediaJobController(
+        $store,
+        static function (): never { throw new RuntimeException('test-only worker failure'); },
+    );
+    $check($unavailable->run($queued->id) === 'worker_unavailable', 'Unexpected worker failure stays generic');
+    $check(($GLOBALS['test_events'][$eventKey]['recurrence'] ?? null) === false
+        && $GLOBALS['test_events'][$eventKey]['timestamp'] >= time() + 59
+        && $GLOBALS['test_events'][$eventKey]['timestamp'] <= time() + 61,
+        'Unexpected process failure leaves a delayed recovery event');
+    wp_clear_scheduled_hook(\SecureS3StorageForWordpress\WordPress\MediaJobController::HOOK, [$queued->id]);
     $check($controller->run($queued->id) === 'succeeded', 'Cron processes bounded batch end to end');
     $check($GLOBALS['test_events'] === [], 'Terminal job unscheduled');
     $GLOBALS['test_schedule_failure'] = true;

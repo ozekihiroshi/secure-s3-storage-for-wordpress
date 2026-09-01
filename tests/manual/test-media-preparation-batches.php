@@ -57,10 +57,10 @@ namespace {
         for ($i = 0; $i < 20 && !$controller->current()->terminal(); ++$i) {
             $prior = $controller->current();
             $controller->run($job->id); $current = $controller->current();
-            $check($current->processedFiles - $prior->processedFiles <= 100, 'Upload keeps its 100-step cap.');
+            $check($current->processedFiles - $prior->processedFiles <= 250, 'Upload keeps its 250-step cap.');
             if (isset($prior->checkpoint['phase']) && !isset($current->checkpoint['phase'])) {
                 $handoff = true;
-                $check($current->processedFiles <= 100, 'Handoff shares the upload cap instead of inheriting 1000.');
+                $check($current->processedFiles <= 250, 'Handoff shares the upload cap instead of inheriting 1000.');
             }
         }
         $check($handoff && $controller->current()->status === 'succeeded', 'Preparation including preexisting year/month completes.');
