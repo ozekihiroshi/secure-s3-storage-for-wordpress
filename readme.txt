@@ -1,18 +1,18 @@
 === Ozeki Database Backup for S3 ===
 Contributors: ozekihiroshi
-Tags: backup, amazon s3, aws, database backup, security
+Tags: backup, amazon s3, aws, database backup, media backup
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.1
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Create WordPress database backups and store them in Amazon S3 without storing long-lived AWS access keys in WordPress.
+Back up WordPress databases and uploads to Amazon S3 without storing long-lived AWS access keys in WordPress.
 
 == Description ==
 
-Ozeki Database Backup for S3 is a security-focused WordPress database backup plugin for Amazon S3.
+Ozeki Database Backup for S3 is a security-focused WordPress database and uploaded-media backup plugin for Amazon S3.
 
 The plugin is designed for environments where WordPress can obtain AWS credentials through the AWS SDK for PHP default credential provider chain, such as an EC2 instance using an IAM role.
 
@@ -32,6 +32,10 @@ Current features include:
 * Backup history stored locally in WordPress.
 * S3 connection testing with temporary test objects.
 * Automatic cleanup of plugin Cron events when the plugin is deactivated.
+* On-demand uploads-directory backups started from WordPress administration.
+* Background media inventory, checksum preparation, multipart upload, and verification using WordPress Cron.
+* Per-file SHA-256 inventory and a final S3 completion marker.
+* WP-CLI media status, worker, preparation, submission, and explicit failed-job cleanup commands.
 
 = AWS authentication =
 
@@ -57,7 +61,27 @@ The plugin prefers a native MySQL-compatible dump utility such as `mysqldump` or
 
 When a suitable native dump utility or PHP process execution is unavailable, the plugin can use its PHP database dump backend instead.
 
-= Automatic backups and WP-Cron =
+= Media backup =
+
+Media backup covers regular files below the current single-site WordPress uploads directory. It is separate from database backup and must be started explicitly.
+
+Media jobs prepare a sorted file inventory and SHA-256 checksums in bounded background steps, upload files as individual S3 objects, and publish a completion marker only after the inventory and uploaded objects have been verified. Large files use S3 multipart upload.
+
+Media objects are stored below:
+
+`<configured-prefix>/backups/media/<random-job-id>/`
+
+Before media backup can be started from WordPress administration, the server administrator must define `ODBFS3_MEDIA_WORK_DIR` in `wp-config.php`. Its value must be an existing persistent POSIX directory owned by the WordPress PHP user, with mode 0700, outside the web root, `wp-content`, and uploads. Do not use a publicly served path or a temporary directory that may be cleared while a job is running.
+
+For example:
+
+`define('ODBFS3_MEDIA_WORK_DIR', '/private/persistent/wordpress-media-work');`
+
+Keep the uploads tree unchanged while a media backup runs. New, removed, renamed, or changed files or directories can stop the job safely. Media backup has no automatic schedule or retention in this release. A failed job must be inspected and its exact Job ID explicitly cleaned with WP-CLI before another media job is submitted.
+
+This release does not provide a production media restore command. The S3 completion marker and inventory are intended to support independent restoration and full SHA-256 verification. A complete WordPress recovery requires both an appropriate database backup and the corresponding media backup.
+
+= Automatic database backups and WP-Cron =
 
 Automatic backups use WordPress WP-Cron.
 
@@ -87,17 +111,17 @@ Automatic backups and backups executed through the plugin's WP-CLI backup comman
 
 = Uninstall behavior =
 
-Deactivating the plugin removes its scheduled WordPress Cron event but keeps plugin settings and backup history.
+Deactivating the plugin removes its scheduled database and media WordPress Cron events but keeps plugin settings, backup history, and media job state.
 
-Uninstalling the plugin removes its local WordPress settings and backup history.
+Uninstalling the plugin removes its local WordPress settings, backup history, current media job state, and archived media job metadata.
 
-Uninstalling Ozeki Database Backup for S3 does NOT delete database backups stored in Amazon S3.
+Uninstalling Ozeki Database Backup for S3 does NOT delete database or media backups stored in Amazon S3. It also does not automatically remove private media work directories or discover unknown incomplete multipart uploads.
 
 This is intentional. Remote backups should not disappear merely because the WordPress plugin is removed.
 
 == External Service ==
 
-Ozeki Database Backup for S3 connects to Amazon Web Services (AWS), specifically Amazon Simple Storage Service (Amazon S3), in order to store and manage database backup objects.
+Ozeki Database Backup for S3 connects to Amazon Web Services (AWS), specifically Amazon Simple Storage Service (Amazon S3), in order to store and manage database and media backup objects.
 
 The plugin uses the AWS SDK for PHP to communicate with AWS.
 
@@ -106,6 +130,18 @@ When the plugin performs a database backup, it sends the following to Amazon S3:
 * The configured S3 bucket name.
 * The configured S3 object prefix and generated backup object key.
 * The gzip-compressed SQL database backup file.
+
+When the plugin performs a media backup, it sends the following to Amazon S3:
+
+* The configured S3 bucket name.
+* The configured S3 object prefix and generated media backup keys.
+* Files from the WordPress uploads directory.
+* A generated inventory containing relative paths, sizes, SHA-256 checksums, and object mappings.
+* A generated completion marker after all media objects and the inventory have been verified.
+
+Media upload and verification may create, list, inspect, complete, or abort multipart uploads and may inspect uploaded objects. Explicit cleanup of an exact failed media job may abort only its recorded incomplete multipart upload. The plugin does not automatically delete completed media backup objects.
+
+Files in the WordPress uploads directory may contain personal, private, copyrighted, or otherwise sensitive content. Administrators are responsible for selecting an appropriate S3 destination, access policy, encryption configuration, retention policy, and legal basis for storing that content.
 
 A database backup may contain any information stored in the WordPress database. Depending on the site, this may include personal or sensitive data such as user accounts, email addresses, post content, comments, plugin settings, and other database records.
 
@@ -141,7 +177,10 @@ No telemetry, analytics, advertising, or unrelated tracking data is intentionall
 6. Save the settings.
 7. Use "Test Connection" to verify S3 read/write/delete access.
 8. Use "Backup Now" to create the first database backup.
-9. Optionally enable the daily automatic backup schedule and configure retention.
+9. Optionally enable the daily automatic database backup schedule and configure retention.
+10. To use media backup, create a persistent private POSIX directory outside all web-accessible directories, owned by the WordPress PHP user with mode 0700.
+11. Define `ODBFS3_MEDIA_WORK_DIR` in `wp-config.php` with that directory's absolute path.
+12. Return to the settings page and use "Start Media Backup". Keep uploads unchanged until the job succeeds or fails.
 
 For Amazon EC2, an IAM role attached to the instance is recommended instead of storing long-lived AWS access keys on the WordPress server.
 
@@ -196,6 +235,18 @@ The PHP fallback opens a separate database connection using the database constan
 
 It checks access to the configured S3 bucket, writes a temporary test object, reads it back, verifies the contents, and then deletes it.
 
+= What does media backup include? =
+
+It includes regular files under the current single-site WordPress uploads directory. It does not include the WordPress database, themes, plugins, `wp-config.php`, or other site files. Run a separate database backup for the corresponding database state.
+
+= Can this plugin restore a media backup? =
+
+Not in this release. A completed media backup contains a verified inventory, individual file objects, and a completion marker intended for an independently verified restore process. Test restoration procedures before relying on any backup system.
+
+= Can media backup run automatically or apply retention? =
+
+Not in this release. Media backup is started explicitly and is separate from the daily database schedule and database retention setting.
+
 == WP-CLI ==
 
 Create a database backup:
@@ -206,7 +257,40 @@ Display backup configuration and status:
 
 `wp ozeki-database-backup-for-s3 status`
 
+Queue media preparation and upload using an existing private work directory:
+
+`wp ozeki-database-backup-for-s3 media enqueue /private/persistent/wordpress-media-work`
+
+Display safe media job status:
+
+`wp ozeki-database-backup-for-s3 media status`
+
+Run one bounded media worker callback, for example from a server scheduler:
+
+`wp ozeki-database-backup-for-s3 media tick`
+
+For a directory that exceeds the background enumeration budget, prepare and submit from WP-CLI:
+
+`wp ozeki-database-backup-for-s3 media prepare /private/persistent/wordpress-media-work`
+
+`wp ozeki-database-backup-for-s3 media start /private/persistent/wordpress-media-work/odbfs3-preparation-...`
+
+After inspecting an exact failed media job, explicitly clean only its recorded incomplete multipart upload and private workspace:
+
+`wp ozeki-database-backup-for-s3 media cleanup <job-id> --yes`
+
 == Changelog ==
+
+= 0.2.0 =
+
+* Added on-demand backups of the WordPress uploads directory from the settings page.
+* Added bounded background file enumeration, sorting, SHA-256 preparation, upload, and verification through WordPress Cron.
+* Added individual S3 media objects, multipart support for large files, a verified inventory, and a final completion marker.
+* Added authenticated media start and status controls with safe progress reporting.
+* Added WP-CLI media enqueue, prepare, start, tick, status, and explicit failed-job cleanup commands.
+* Added persistent leases, workspace locking, crash recovery, and stale-worker fencing for media jobs.
+* Added exact, idempotent cleanup for a failed job's recorded incomplete multipart upload and private workspace without deleting completed backups.
+* Added strict private-work storage validation and source-change detection.
 
 = 0.1.1 =
 

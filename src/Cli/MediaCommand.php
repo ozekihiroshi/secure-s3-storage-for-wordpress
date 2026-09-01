@@ -9,7 +9,7 @@ use SecureS3StorageForWordpress\WordPress\WordPressMediaSourceFactory;
 use Throwable;
 use WP_CLI;
 
-/** Experimental media worker commands; the database backup command is unchanged. */
+/** Media worker commands; the database backup command is unchanged. */
 final class MediaCommand
 {
     /**

@@ -157,11 +157,21 @@ span from 1,858 to 536 seconds and independently restored all files; see the
 [2026-09-01 report](aws-media-cron-single-event-test-2026-09-01.md).
 This is not a matching DB/media site-restoration test.
 
-Still required before publication: real process-kill/concurrent-process tests,
-IAM/KMS and lifecycle
-tests, scalable completion on a 10,000-part object, real-AWS background preparation,
-admin UI, separate media schedule/retention, release ZIP/Plugin Check and
-final lifecycle regression. Do not describe mock-S3 checks as real AWS tests.
+Real process-kill and concurrent-worker acceptance also passed in the isolated
+AWS environment. A stopped PHP holder kept the production job lease and real
+workspace lock; a competing production controller was fenced both before and
+immediately after `SIGKILL`, the checkpoint remained unchanged, and a production
+replacement resumed after natural lease expiry. The exact failed-job cleanup was
+then repeated idempotently. See the environment report at
+https://github.com/ozekihiroshi/wp-rescue/blob/main/aws-media-ziptest/PROCESS-KILL-ACCEPTANCE-TEST.md.
+
+Remaining 0.2.0 publication gates are a clean committed release ZIP, Plugin
+Check, fresh ZIP installation and lifecycle checks on 8082, and a final isolated
+AWS database/media/cleanup regression using that exact artifact. A separate
+media schedule, media retention, a production restore command, broader KMS/IAM
+configurations and an extreme 10,000-part object remain future features or
+hardening work; they must not be claimed by this release. Do not describe mock-S3
+checks as real AWS tests.
 
 References:
 - https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html

@@ -31,7 +31,7 @@ final class MediaBackupPanel
             return;
         }
         wp_enqueue_script('odbfs3-media-admin', plugins_url('src/Admin/media-backup.js',
-            dirname(__DIR__, 2) . '/ozeki-database-backup-for-s3.php'), [], '0.2.0-dev-1', true);
+            dirname(__DIR__, 2) . '/ozeki-database-backup-for-s3.php'), [], '0.2.0', true);
     }
 
     private function authorize(): void
@@ -164,7 +164,7 @@ final class MediaBackupPanel
                 }); ?></p>
             <?php endif; ?>
             <p><?php esc_html_e('Back up files under the WordPress uploads directory using the saved AWS settings. WordPress Cron performs preparation and upload after this request; closing the browser does not cancel the job. Cron requires site traffic or a server scheduler.', 'ozeki-database-backup-for-s3'); ?></p>
-            <p><?php esc_html_e('Keep uploads unchanged during a backup. New or changed files or directories can stop it. Media backups are separate from database backups; there is no automatic media schedule, retention or private-work cleanup yet.', 'ozeki-database-backup-for-s3'); ?></p>
+            <p><?php esc_html_e('Keep uploads unchanged during a backup. New or changed files or directories can stop it. Media backups are separate from database backups; there is no automatic media schedule or retention. Failed private work is cleaned only by an explicit WP-CLI command after server-side inspection.', 'ozeki-database-backup-for-s3'); ?></p>
             <details>
                 <summary><?php esc_html_e('Private storage requirements', 'ozeki-database-backup-for-s3'); ?></summary>
                 <p><?php esc_html_e('Ask the server administrator to define ODBFS3_MEDIA_WORK_DIR in wp-config.php as an existing persistent directory owned by the WordPress PHP user, with mode 0700, outside all public web directories and uploads. Symbolic links and Windows ACL-only storage are not supported. Do not use a publicly served path or a temporary directory that may be cleared.', 'ozeki-database-backup-for-s3'); ?></p>

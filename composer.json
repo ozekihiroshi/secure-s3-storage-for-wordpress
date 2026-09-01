@@ -1,6 +1,6 @@
 {
     "name": "ozeki/database-backup-for-s3",
-    "description": "Security-focused WordPress database backups for Amazon S3",
+    "description": "Security-focused WordPress database and uploaded-media backups for Amazon S3",
     "type": "project",
     "license": "GPL-2.0-or-later",
     "autoload": {
