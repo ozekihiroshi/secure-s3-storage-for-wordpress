@@ -136,6 +136,9 @@ from failed runs remain until an explicit future cleanup policy is approved.
 Actual AWS scoped-ZIP uploads, real WordPress Cron/job storage and independent
 download/restore of the 1 GiB fixture passed; see the
 [2026-08-31 report](aws-media-cron-zip-test-2026-08-31.md) for exact scope.
+The completion-paced single-event regression reduced the comparable callback
+span from 1,858 to 536 seconds and independently restored all files; see the
+[2026-09-01 report](aws-media-cron-single-event-test-2026-09-01.md).
 This is not a matching DB/media site-restoration test.
 
 Still required before publication: real process-kill/concurrent-process tests,
