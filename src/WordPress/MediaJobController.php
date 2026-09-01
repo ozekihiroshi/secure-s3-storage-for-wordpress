@@ -8,6 +8,7 @@ use RuntimeException;
 use SecureS3StorageForWordpress\Aws\MediaS3Client;
 use SecureS3StorageForWordpress\Backup\Job\BackupJob;
 use SecureS3StorageForWordpress\Backup\Job\JobRunner;
+use SecureS3StorageForWordpress\Backup\Media\MediaFailedJobCleanup;
 use SecureS3StorageForWordpress\Backup\Media\MediaUploadPlan;
 use SecureS3StorageForWordpress\Backup\Media\MediaUploadStep;
 use SecureS3StorageForWordpress\Backup\Media\MediaPreparationStep;
@@ -47,7 +48,12 @@ final class MediaJobController
         if ($source->rootPath() !== $metadata['root']) {
             throw new RuntimeException('Media plan belongs to another upload root.');
         }
-        return $this->submit(['directory' => $plan->directory, 'metadata' => $metadata, 'offset' => 0]);
+        $identity = MediaFailedJobCleanup::captureIdentity(
+            $plan->directory,
+            [ABSPATH, $source->rootPath()],
+        );
+        return $this->submit(['directory' => $plan->directory, 'metadata' => $metadata,
+            'offset' => 0, 'work_identity' => $identity]);
     }
 
     /** Queue preparation without scanning uploads in the submitting request. */
@@ -60,8 +66,16 @@ final class MediaJobController
         if ($old !== null && (! $old->terminal() || $old->type !== 'media')) {
             throw new RuntimeException('A backup job is already active.');
         }
+        if (($old?->checkpoint['cleanup']['state'] ?? null) === 'pending') {
+            throw new RuntimeException('Failed media cleanup must finish before a new job starts.');
+        }
         self::assertOutsideWebRoot($parent);
-        $state = MediaPreparationStep::initialize((new WordPressMediaSourceFactory())->create(), $parent, ABSPATH);
+        $source = (new WordPressMediaSourceFactory())->create();
+        $state = MediaPreparationStep::initialize($source, $parent, ABSPATH);
+        $state['work_identity'] = MediaFailedJobCleanup::captureIdentity(
+            $state['directory'],
+            [ABSPATH, $source->rootPath()],
+        );
         return $this->submit($state, $expectedPreviousId);
     }
 
@@ -91,6 +105,9 @@ final class MediaJobController
             $old = BackupJob::decode($observed);
             if (! $old->terminal() || $old->type !== 'media') {
                 throw new RuntimeException('A backup job is already active.');
+            }
+            if (($old->checkpoint['cleanup']['state'] ?? null) === 'pending') {
+                throw new RuntimeException('Failed media cleanup must finish before a new job starts.');
             }
             // Archive before replacing the slot. Concurrent starters write identical history.
             $name = 'secure_s3_storage_media_result_' . $old->id;
@@ -177,26 +194,180 @@ final class MediaJobController
         }
     }
 
-    /** Explicit CLI cleanup only; no object deletion or cleanup on uninstall. */
-    public function abortFailedUpload(): void
+    /**
+     * Explicit failed-job cleanup only. Completed S3 objects are never deleted.
+     *
+     * @return array<string, mixed> Sanitized durable cleanup result.
+     */
+    public function cleanupFailedJob(string $expectedId): array
     {
-        $job = $this->current();
-        if ($job === null || $job->type !== 'media' || $job->status !== 'failed') {
-            throw new RuntimeException('Only a failed media job can be cleaned up.');
+        if (preg_match('/^[a-f0-9]{32}$/D', $expectedId) !== 1) {
+            throw new RuntimeException('A valid failed media job ID is required.');
         }
+        $store = $this->store();
+        $pendingRecord = null;
+        $pending = null;
+        for ($attempt = 0; $attempt < 4; ++$attempt) {
+            $observed = $store->read();
+            $job = $observed === null ? null : BackupJob::decode($observed);
+            if ($job === null || $job->id !== $expectedId || $job->type !== 'media'
+                || $job->status !== 'failed') {
+                throw new RuntimeException('Only the exact current failed media job can be cleaned up.');
+            }
+            $cleanup = $job->checkpoint['cleanup'] ?? null;
+            if (is_array($cleanup) && ($cleanup['state'] ?? null) === 'completed') {
+                return $this->validateCompletedCleanup($cleanup);
+            }
+            if (is_array($cleanup) && ($cleanup['state'] ?? null) === 'pending') {
+                $pending = $this->validatePendingCleanup($cleanup, $job->id);
+                $pendingRecord = $observed;
+                break;
+            }
+            if ($cleanup !== null) {
+                throw new RuntimeException('Invalid failed media cleanup state.');
+            }
+            $pending = $this->preparePendingCleanup($job);
+            $replacement = $this->failedWithCleanup($job, $pending)->encode();
+            if ($store->compareAndSwap($observed, $replacement)) {
+                $pendingRecord = $replacement;
+                break;
+            }
+        }
+        if ($pendingRecord === null || $pending === null) {
+            throw new RuntimeException('Failed media cleanup state changed concurrently.');
+        }
+
+        wp_clear_scheduled_hook(self::HOOK, [$expectedId]);
+        if ($pending['multipart']) {
+            $client = $this->clientFactory === null
+                ? MediaS3Client::create($pending['region'])
+                : ($this->clientFactory)($pending['region']);
+            $client->request('AbortMultipartUpload', [
+                'Bucket' => $pending['bucket'], 'Key' => $pending['key'],
+                'UploadId' => $pending['upload_id'],
+            ], time() + 30);
+        }
+        MediaFailedJobCleanup::remove($pending['directory'], $pending['work_identity']);
+
+        $completed = ['version' => 1, 'state' => 'completed',
+            'multipart_recorded' => $pending['multipart'],
+            'multipart_aborted_or_missing' => true,
+            'private_work_removed_or_missing' => true,
+            'completed_objects_retained' => true,
+            'bucket' => $pending['bucket'] ?? '', 'run_prefix' => $pending['run_prefix']];
+        $pendingJob = BackupJob::decode($pendingRecord);
+        $replacement = $this->failedWithCleanup($pendingJob, $completed)->encode();
+        if (! $store->compareAndSwap($pendingRecord, $replacement)) {
+            $current = $store->read();
+            $job = $current === null ? null : BackupJob::decode($current);
+            $result = $job?->checkpoint['cleanup'] ?? null;
+            if ($job === null || $job->id !== $expectedId || ! is_array($result)
+                || ($result['state'] ?? null) !== 'completed') {
+                throw new RuntimeException('Failed media cleanup result changed concurrently.');
+            }
+            return $this->validateCompletedCleanup($result);
+        }
+        return $completed;
+    }
+
+    /** @return array<string, mixed> */
+    private function preparePendingCleanup(BackupJob $job): array
+    {
         $state = $job->checkpoint;
-        if (! isset($state['upload_id'])) {
-            return;
+        $directory = $state['directory'] ?? null;
+        $identity = $state['work_identity'] ?? null;
+        $root = $state['metadata']['root'] ?? $state['root'] ?? null;
+        if (! is_string($directory) || ! is_array($identity) || ! is_string($root)
+            || MediaFailedJobCleanup::captureIdentity($directory, [ABSPATH, $root]) !== $identity) {
+            throw new RuntimeException('Failed media workspace cannot be proven.');
         }
-        [$object] = (new MediaUploadPlan($state['directory']))->record($state['offset']);
-        if ($object === null) {
-            throw new RuntimeException('Missing failed upload descriptor.');
+        $prefix = $state['prefix'] ?? null;
+        if (! is_string($prefix) || strlen($prefix) + 128 > 1024 || str_contains($prefix, "\0")
+            || ($prefix !== '' && (! str_ends_with($prefix, '/') || str_starts_with($prefix, '/')))) {
+            throw new RuntimeException('Invalid failed media destination.');
         }
-        $key = $state['prefix'] . 'backups/media/' . $job->id . '/'
-            . ($object['path'] === null ? 'inventory.jsonl' : 'files/' . hash('sha256', $object['path']));
-        MediaS3Client::create($state['region'])->request('AbortMultipartUpload', [
-            'Bucket' => $state['bucket'], 'Key' => $key, 'UploadId' => $state['upload_id'],
-        ], time() + 30);
+        $runPrefix = $prefix . 'backups/media/' . $job->id . '/';
+        $pending = ['version' => 1, 'state' => 'pending', 'directory' => $directory,
+            'work_identity' => $identity, 'run_prefix' => $runPrefix,
+            'multipart' => isset($state['upload_id'])];
+        if ($pending['multipart']) {
+            $region = $state['region'] ?? null;
+            $bucket = $state['bucket'] ?? null;
+            $key = $state['upload_key'] ?? null;
+            $uploadId = $state['upload_id'];
+            if (! is_string($region) || $region === '' || ! is_string($bucket) || $bucket === ''
+                || ! is_string($key) || ! is_string($uploadId) || $uploadId === ''
+                || ! $this->validCleanupKey($key, $runPrefix)) {
+                throw new RuntimeException('Failed multipart target cannot be proven.');
+            }
+            $pending += ['region' => $region, 'bucket' => $bucket, 'key' => $key,
+                'upload_id' => $uploadId];
+        }
+        return $pending;
+    }
+
+    /** @return array<string, mixed> */
+    private function validatePendingCleanup(array $cleanup, string $id): array
+    {
+        $keys = ['version', 'state', 'directory', 'work_identity', 'run_prefix', 'multipart'];
+        $multipart = $cleanup['multipart'] ?? null;
+        if ($multipart === true) { array_push($keys, 'region', 'bucket', 'key', 'upload_id'); }
+        sort($keys);
+        $actual = array_keys($cleanup);
+        sort($actual);
+        if ($actual !== $keys || ($cleanup['version'] ?? null) !== 1
+            || ($cleanup['state'] ?? null) !== 'pending' || ! is_string($cleanup['directory'] ?? null)
+            || ! is_array($cleanup['work_identity'] ?? null) || ! is_string($cleanup['run_prefix'] ?? null)
+            || ! is_bool($multipart) || ! $this->validRunPrefix($cleanup['run_prefix'], $id)) {
+            throw new RuntimeException('Invalid pending media cleanup state.');
+        }
+        if ($multipart && (! is_string($cleanup['region']) || $cleanup['region'] === ''
+            || ! is_string($cleanup['bucket']) || $cleanup['bucket'] === ''
+            || ! is_string($cleanup['key']) || ! is_string($cleanup['upload_id'])
+            || $cleanup['upload_id'] === ''
+            || ! $this->validCleanupKey($cleanup['key'], $cleanup['run_prefix']))) {
+            throw new RuntimeException('Invalid pending multipart cleanup target.');
+        }
+        return $cleanup;
+    }
+
+    /** @return array<string, mixed> */
+    private function validateCompletedCleanup(array $cleanup): array
+    {
+        $keys = ['version', 'state', 'multipart_recorded', 'multipart_aborted_or_missing',
+            'private_work_removed_or_missing', 'completed_objects_retained', 'bucket', 'run_prefix'];
+        $actual = array_keys($cleanup);
+        sort($keys);
+        sort($actual);
+        if ($actual !== $keys || ($cleanup['version'] ?? null) !== 1
+            || ($cleanup['state'] ?? null) !== 'completed'
+            || ! is_bool($cleanup['multipart_recorded'] ?? null)
+            || ($cleanup['multipart_aborted_or_missing'] ?? null) !== true
+            || ($cleanup['private_work_removed_or_missing'] ?? null) !== true
+            || ($cleanup['completed_objects_retained'] ?? null) !== true
+            || ! is_string($cleanup['bucket'] ?? null) || ! is_string($cleanup['run_prefix'] ?? null)) {
+            throw new RuntimeException('Invalid completed media cleanup state.');
+        }
+        return $cleanup;
+    }
+
+    private function validRunPrefix(string $runPrefix, string $id): bool
+    {
+        $suffix = 'backups/media/' . $id . '/';
+        return $runPrefix === $suffix || str_ends_with($runPrefix, '/' . $suffix);
+    }
+
+    private function validCleanupKey(string $key, string $runPrefix): bool
+    {
+        return $key === $runPrefix . 'inventory.jsonl'
+            || preg_match('/^' . preg_quote($runPrefix, '/') . 'files\/[a-f0-9]{64}$/D', $key) === 1;
+    }
+
+    private function failedWithCleanup(BackupJob $job, array $cleanup): BackupJob
+    {
+        return new BackupJob($job->id, 'media', 'failed', ['cleanup' => $cleanup],
+            $job->processedFiles, $job->processedBytes, attempts: $job->attempts,
+            errorCode: $job->errorCode);
     }
 
     private function schedule(string $id, int $delay = self::NEXT_BATCH_DELAY): void

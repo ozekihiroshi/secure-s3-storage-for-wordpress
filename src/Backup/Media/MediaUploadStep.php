@@ -86,6 +86,8 @@ final class MediaUploadStep implements JobStep
                 throw new RuntimeException('Missing multipart upload identifier.');
             }
             $state['upload_id'] = $result['UploadId'];
+            // Bind cleanup to the exact key selected when this multipart began.
+            $state['upload_key'] = $key['Key'];
             $state['part'] = 1;
             return new StepResult($state, $job->processedFiles, $job->processedBytes);
         }
@@ -174,7 +176,7 @@ final class MediaUploadStep implements JobStep
     {
         $state['offset'] = $next;
         $state['plan_chain'] = hash('sha256', ($state['plan_chain'] ?? str_repeat('0', 64)) . $object['record_hash']);
-        unset($state['upload_id'], $state['part']);
+        unset($state['upload_id'], $state['upload_key'], $state['part']);
         $inventory = $object['path'] === null;
         if ($inventory) {
             $state['inventory_done'] = true;

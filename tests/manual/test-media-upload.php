@@ -46,6 +46,20 @@ final class UploadTestS3 implements MediaObjectClient
         $key = $a['Bucket'] . '/' . $a['Key'];
         $result = [];
         switch ($operation) {
+            case 'AbortMultipartUpload':
+                $upload = $this->uploads[$a['UploadId']] ?? null;
+                if ($upload === null) {
+                    $result = ['missing' => true];
+                    break;
+                }
+                if ($upload['key'] !== $key) {
+                    throw new RuntimeException('Wrong multipart cleanup target');
+                }
+                foreach ($upload['parts'] as $part) {
+                    if (isset($part['path']) && is_file($part['path'])) { unlink($part['path']); }
+                }
+                unset($this->uploads[$a['UploadId']]);
+                break;
             case 'CreateMultipartUpload':
                 $id = bin2hex(random_bytes(8));
                 $this->uploads[$id] = ['key' => $key, 'parts' => []];

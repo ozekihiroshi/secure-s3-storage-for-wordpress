@@ -56,6 +56,8 @@ final class MediaPreparationStep implements JobStep
             }
             return ['phase' => 'enumerate', 'directory' => $directory, 'root' => $source->rootPath(),
                 'workspace_identity' => $work->identity(), 'queue_cursor' => 0, 'queue_size' => $size,
+                'work_identity' => MediaFailedJobCleanup::captureIdentity(
+                    $directory, [$documentRoot, $source->rootPath()]),
                 'paths_size' => 0, 'expected_files' => 0, 'expected_bytes' => 0];
         } finally { $work->release(); }
     }
@@ -310,7 +312,8 @@ final class MediaPreparationStep implements JobStep
         $this->append('ready.json', 0, MediaPreparationWorkspace::encode($metadata));
         // File completion is NOT remote backup success. Only now may upload start.
         return ['directory' => $s['directory'], 'metadata' => $metadata, 'region' => $s['region'],
-            'bucket' => $s['bucket'], 'prefix' => $s['prefix'], 'offset' => 0];
+            'bucket' => $s['bucket'], 'prefix' => $s['prefix'], 'offset' => 0,
+            'work_identity' => $s['work_identity']];
     }
 
     private function assertSource(array $s): void

@@ -66,14 +66,22 @@ uploads can still fail a run. Quiesce writes for consistent DB/media recovery.
 The initial UI **does not restart a failed job**. This protects an incomplete
 multipart upload from being hidden by repeated button clicks before explicit
 server-side inspection. The authenticated handler also rejects a forged start
-with the failed job's current generation, not just the disabled button.
+with the failed job's current generation, not just the disabled button. A job
+whose explicit cleanup is pending also cannot be archived or replaced.
 
 An operator can inspect `wp ozeki-database-backup-for-s3 media status`, address
-the cause, and use the existing explicit CLI `media cleanup` if an unfinished
-multipart upload needs aborting. A new CLI `media enqueue /private/work` is an
+the cause, then run
+`wp ozeki-database-backup-for-s3 media cleanup <exact-job-id>` and confirm the
+prompt (or deliberately pass `--yes`). Cleanup is restricted to that failed
+job's recorded incomplete multipart and exact private workspace. It is resumable
+and idempotent; completed backup objects, other runs, fixtures and restore
+evidence are retained. There is no automatic cleanup or admin-page cleanup
+button.
+
+A new CLI `media enqueue /private/work` is an
 explicit operator action that archives the terminal result; do not manually
 erase job records to unlock the UI. Cleanup/retry buttons, pause/cancel, media
-schedule/retention, archived-history browsing and automatic private-file cleanup
+schedule/retention and archived-history browsing
 remain separate implementation steps. No filesystem/S3 cleanup runs on rendering,
 polling or uninstall.
 

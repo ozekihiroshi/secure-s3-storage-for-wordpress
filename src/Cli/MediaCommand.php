@@ -106,12 +106,26 @@ final class MediaCommand
         }
     }
 
-    /** Abort only the current failed job's recorded multipart upload; retain backup objects. */
-    public function cleanup(): void
+    /**
+     * Remove only one failed job's recorded multipart and private work.
+     *
+     * ## OPTIONS
+     *
+     * <job-id>
+     * : Exact current failed media job ID shown by `media status`.
+     *
+     * [--yes]
+     * : Confirm the explicit cleanup operation.
+     */
+    public function cleanup(array $args, array $assocArgs): void
     {
         try {
-            (new MediaJobController())->abortFailedUpload();
-            WP_CLI::success(__('Failed upload cleanup completed. Existing backup objects were retained.', 'ozeki-database-backup-for-s3'));
+            if (count($args) !== 1 || preg_match('/^[a-f0-9]{32}$/D', $args[0]) !== 1) {
+                throw new RuntimeException('Exact failed media job ID required.');
+            }
+            WP_CLI::confirm(__('Abort this job\'s recorded incomplete multipart upload and remove only its private work directory? Completed backup objects are retained.', 'ozeki-database-backup-for-s3'), $assocArgs);
+            (new MediaJobController())->cleanupFailedJob($args[0]);
+            WP_CLI::success(__('Failed media job cleanup completed. Existing completed backup objects were retained.', 'ozeki-database-backup-for-s3'));
         } catch (Throwable $e) {
             WP_CLI::error(__('Failed upload cleanup could not complete.', 'ozeki-database-backup-for-s3'));
         }

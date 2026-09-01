@@ -110,15 +110,28 @@ Transient HTTP/network failures retry from the checkpoint up to three attempts;
 access denied and integrity failures are terminal. Raw exceptions and credentials
 are never stored in job options or printed by the CLI.
 
-No failed run triggers retention or deletes earlier backups. The explicit
-`media cleanup` command aborts only a **current failed** job's recorded multipart
-upload. It does not delete completed objects, plans or other backups. A crash
-after multipart initiation but before saving its upload ID can leave an unknown
-orphan. S3's `AbortIncompleteMultipartUpload` lifecycle rule for the test prefix
-is a recommended safety net, not a prerequisite for uploading. An isolated test
-can proceed without it when upload identifiers are recorded and failed uploads
-are explicitly aborted and checked. A process loss before recording the ID
-still requires operational orphan discovery/cleanup. Neither the lifecycle rule
+No failed run triggers retention or deletes earlier backups. Cleanup is never
+automatic, including on page load, Cron recovery, deactivation or uninstall.
+An operator must supply the exact current failed Job ID and confirm the explicit
+`media cleanup <job-id> --yes` CLI operation. The operation first binds its exact
+multipart key/upload ID and private workspace inode identity into the durable
+failed-job record. It then aborts only that recorded incomplete multipart and
+removes only allowlisted 0600 generated files from that exact 0700 workspace.
+It never calls DeleteObject, follows links, recursively removes a path, or touches
+completed objects, other backup runs, fixtures or restore evidence.
+
+A pending cleanup blocks replacement of the job record. Interrupted cleanup is
+resumed from that pending record; an already-missing multipart or workspace is
+success, and repeating a completed cleanup performs no external I/O. Unexpected
+entries, a held worker lock, changed inode/owner/mode, malformed state or an
+unprovable destination fail closed without deleting the unexpected data. The
+completed record is sanitized and no longer retains local paths, object keys or
+upload IDs.
+
+A crash after multipart initiation but before saving its upload ID can still
+leave an unknown orphan. S3's `AbortIncompleteMultipartUpload` lifecycle rule is
+a recommended safety net. A process loss before recording the ID requires
+operational orphan discovery/cleanup. Neither the lifecycle rule
 nor any bucket policy is changed automatically. Completed objects
 from failed runs remain until an explicit future cleanup policy is approved.
 
@@ -131,6 +144,9 @@ from failed runs remain until an explicit future cleanup policy is approved.
   schedule recovery and terminal result archive.
 - `tests/manual/test-media-s3-client.php`: real SDK with a local HTTP handler;
   byte ranges, signatures, checksums, HTTP budgets and safe error translation.
+- `tests/manual/test-media-cleanup.php`: exact Job ID, durable pending/resume,
+  multipart 404 idempotency, completed-object retention, allowlisted local
+  deletion, lock/link/inode failures and I/O-free completed retry.
 - `media-upload-tests.yml`: PHP 8.1/8.3 CI; tests do not require AWS credentials.
 
 Actual AWS scoped-ZIP uploads, real WordPress Cron/job storage and independent
