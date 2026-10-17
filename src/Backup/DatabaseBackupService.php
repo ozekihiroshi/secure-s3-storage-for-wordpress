@@ -5,6 +5,7 @@ namespace SecureS3StorageForWordpress\Backup;
 use RuntimeException;
 use SecureS3StorageForWordpress\Aws\S3Storage;
 use SecureS3StorageForWordpress\Backup\Compression\Compressor;
+use SecureS3StorageForWordpress\Backup\Compression\GzipVerifier;
 use SecureS3StorageForWordpress\Backup\Database\DatabaseConnection;
 use Throwable;
 
@@ -30,12 +31,21 @@ final class DatabaseBackupService
             );
 
             $dumpPath = $dumpResult->getPath();
+            $sqlSize = filesize($dumpPath);
+            $sqlHash = hash_file('sha256', $dumpPath);
+            if ($sqlSize === false || $sqlSize <= 0 || $sqlHash === false) {
+                throw new RuntimeException('Unable to fingerprint SQL dump.');
+            }
 
             $compressedResult = $this->compressor->compress(
                 $dumpPath
             );
 
             $compressedPath = $compressedResult->getPath();
+            $verified = (new GzipVerifier())->verify($compressedPath, $sqlSize);
+            if ($verified['sizeBytes'] !== $sqlSize || ! hash_equals($sqlHash, $verified['sha256'])) {
+                throw new RuntimeException('Compressed backup does not match SQL dump.');
+            }
 
             $key = $this->buildBackupKey(
                 $prefix,
@@ -56,6 +66,7 @@ final class DatabaseBackupService
                 backend: $this->backupService->getSelectedBackendName(),
                 createdAt: $dumpResult->getCreatedAt(),
                 etag: $uploadResult->getEtag(),
+                sha256: $uploadResult->getSha256(),
             );
         } catch (Throwable $e) {
             throw new RuntimeException(
@@ -105,9 +116,10 @@ final class DatabaseBackupService
         $timestamp = gmdate('Ymd-His');
 
         $filename = sprintf(
-            'db-%s-%s.sql.gz',
+            'db-%s-%s-%s.sql.gz',
             $safeDatabaseName,
-            $timestamp
+            $timestamp,
+            bin2hex(random_bytes(16))
         );
 
         $parts = array_filter([

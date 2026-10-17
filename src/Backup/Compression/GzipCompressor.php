@@ -24,10 +24,12 @@ final class GzipCompressor implements Compressor
         $input = null;
         $output = null;
         $success = false;
+        $created = false;
 
         try {
             // Create and secure the destination before writing compressed data.
             SecureTemporaryFile::create($destinationPath);
+            $created = true;
 
             // Source backup data is streamed directly during compression.
             // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
@@ -84,8 +86,11 @@ final class GzipCompressor implements Compressor
             fclose($input);
             $input = null;
 
-            gzclose($output);
+            $closed = gzclose($output);
             $output = null;
+            if (! $closed) {
+                throw new RuntimeException('Unable to finalize gzip output.');
+            }
 
             clearstatcache(true, $destinationPath);
 
@@ -130,6 +135,7 @@ final class GzipCompressor implements Compressor
 
             if (
                 ! $success
+                && $created
                 && is_file($destinationPath)
             ) {
                 // Temporary compressed artifact is managed directly by the backup engine.

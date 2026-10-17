@@ -4,7 +4,7 @@ Tags: backup, amazon s3, aws, database backup, media backup
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,6 +52,10 @@ The AWS identity used by WordPress must have appropriate permissions for the con
 = Database backup =
 
 Database backups are created as SQL dumps, compressed with gzip, and uploaded to the configured S3 bucket.
+
+Database backups verify that gzip expansion matches the original SQL, send a SHA-256 checksum, and check the stored S3 object's size and checksum before reporting success. New history entries include the compressed file's SHA-256 and an S3 integrity verification state. Older backups are not automatically marked verified. S3 integrity verification does not mean that a database restore has been tested.
+
+This verification requires permission to read object metadata and checksums, in addition to upload permission. Check the applicable encryption permissions when using KMS. A verification failure prevents success-dependent retention; an object already uploaded before the failure may remain in S3 for inspection. Database backups remain single-object uploads, not multipart jobs.
 
 Backup objects are stored below:
 
@@ -280,6 +284,13 @@ After inspecting an exact failed media job, explicitly clean only its recorded i
 `wp ozeki-database-backup-for-s3 media cleanup <job-id> --yes`
 
 == Changelog ==
+
+= 0.2.1 =
+
+* Verify compressed SQL against the original and verify S3 object size and SHA-256 before reporting success.
+* Use unique database backup keys and conditional writes to prevent overwrites.
+* Record database integrity evidence without treating it as a completed restore test.
+* Add bounded, verified download and gzip expansion helpers and isolated recovery regression tests.
 
 = 0.2.0 =
 

@@ -773,6 +773,8 @@ class SettingsPage
                         $result->getKey(),
                     sizeBytes:
                         $result->getSizeBytes(),
+                    sha256: $result->getSha256(),
+                    verification: 'remote_integrity',
                     message:
                         __(
                             'Backup completed successfully.',
@@ -1141,6 +1143,8 @@ class SettingsPage
             )
             . '</th>';
 
+        echo '<th>' . esc_html__('Verification', 'ozeki-database-backup-for-s3') . '</th>';
+
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -1249,6 +1253,17 @@ class SettingsPage
                 '<td>%s</td>',
                 esc_html($message)
             );
+
+            $checksum = is_string($entry['sha256'] ?? null) ? $entry['sha256'] : '';
+            $verified = $success && ($entry['verification'] ?? '') === 'remote_integrity'
+                && preg_match('/^[a-f0-9]{64}$/D', $checksum) === 1;
+            echo '<td>' . esc_html($verified
+                ? __('S3 integrity verified; restore not tested.', 'ozeki-database-backup-for-s3')
+                : __('Not verified.', 'ozeki-database-backup-for-s3'));
+            if ($verified) {
+                echo '<br><code style="overflow-wrap:anywhere">SHA-256: ' . esc_html($checksum) . '</code>';
+            }
+            echo '</td>';
 
             echo '</tr>';
         }

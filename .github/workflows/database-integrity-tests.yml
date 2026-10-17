@@ -1,0 +1,42 @@
+name: Database Integrity Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.3']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli, zlib
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - name: Lint
+        run: |
+          find src -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l tests/manual/test-database-integrity.php
+          php -l tests/manual/test-database-restore.php
+          php -l tests/manual/database-s3-test-transport.php
+          php -l tests/manual/test-database-history.php
+      - name: Corruption and independent download verification without AWS
+        run: |
+          php -d memory_limit=32M tests/manual/test-database-integrity.php
+          php tests/manual/test-database-history.php
+      - name: Install isolated recovery prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
+          docker pull mariadb:11.8
+      - name: Restore both dump backends into disposable databases
+        run: bash tools/test-database-recovery-local.sh

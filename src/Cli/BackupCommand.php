@@ -173,6 +173,8 @@ final class BackupCommand
                         $result->getKey(),
                     sizeBytes:
                         $result->getSizeBytes(),
+                    sha256: $result->getSha256(),
+                    verification: 'remote_integrity',
                     message:
                         $historyMessage
                 )
@@ -190,6 +192,12 @@ final class BackupCommand
                     $result->getSizeBytes()
                 )
             );
+
+            WP_CLI::log(sprintf(
+                /* translators: %s: SHA-256 of the compressed database backup. */
+                __('S3 integrity verified; restore not tested. SHA-256: %s', 'ozeki-database-backup-for-s3'),
+                $result->getSha256()
+            ));
 
             if ($retentionMessage !== '') {
                 WP_CLI::log(

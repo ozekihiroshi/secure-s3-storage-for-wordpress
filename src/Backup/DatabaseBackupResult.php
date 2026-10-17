@@ -14,12 +14,18 @@ final class DatabaseBackupResult
         private string $backend,
         private DateTimeImmutable $createdAt,
         private ?string $etag = null,
+        private ?string $sha256 = null,
     ) {
     }
 
     public function getBucket(): string
     {
         return $this->bucket;
+    }
+
+    public function getSha256(): ?string
+    {
+        return $this->sha256;
     }
 
     public function getKey(): string

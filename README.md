@@ -18,6 +18,13 @@ This is the development repository. Its historical name,
 `secure-s3-storage-for-wordpress`, differs from the published plugin name.
 Use the directory package for installation; it includes the runtime dependencies.
 
+The development version is 0.2.1. It adds SQL/gzip and S3 SHA-256 integrity
+verification, unique conditional-write backup keys, and verification evidence
+in backup history. It has been applied to the operator's existing WordPress
+site; WordPress.org publication is a separate step.
+See [integrity verification](docs/database-integrity-verification.md) and
+[deployment record](docs/production-update-2026-10-17.md).
+
 ## Who it is for
 
 Keep backup storage under your control. The plugin suits administrators who

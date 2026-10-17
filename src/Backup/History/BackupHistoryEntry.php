@@ -15,6 +15,8 @@ final class BackupHistoryEntry
         private ?string $key = null,
         private ?int $sizeBytes = null,
         private ?string $message = null,
+        private ?string $sha256 = null,
+        private string $verification = 'unverified',
     ) {
     }
 
@@ -29,6 +31,8 @@ final class BackupHistoryEntry
             'key' => $this->key,
             'sizeBytes' => $this->sizeBytes,
             'message' => $this->message,
+            'sha256' => $this->sha256,
+            'verification' => $this->verification,
         ];
     }
 }

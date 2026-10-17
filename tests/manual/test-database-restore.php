@@ -8,6 +8,9 @@ use SecureS3StorageForWordpress\Backup\SecureTemporaryFile;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+// Reuse fixture/import/comparison helpers in the explicitly isolated real-S3 test.
+if (defined('ODBFS3_RESTORE_HELPERS_ONLY') && ODBFS3_RESTORE_HELPERS_ONLY) { return; }
+
 $dbHost = getenv('WORDPRESS_DB_HOST') ?: '';
 $sourceDatabase = getenv('WORDPRESS_DB_NAME') ?: '';
 $dbUser = getenv('WORDPRESS_DB_USER') ?: '';
@@ -15,6 +18,10 @@ $dbPassword = getenv('WORDPRESS_DB_PASSWORD') ?: '';
 $restoreDatabase = getenv('RESTORE_TEST_DB_NAME') ?: '';
 $backend = getenv('RESTORE_TEST_BACKEND') ?: '';
 $useFixture = getenv('RESTORE_TEST_FIXTURE') === '1';
+$transportMode = getenv('RESTORE_TEST_TRANSPORT') ?: 'local';
+if (! in_array($transportMode, ['local', 'offline-s3'], true)) {
+    fail('RESTORE_TEST_TRANSPORT must be local or offline-s3.');
+}
 
 if (
     $dbHost === ''
@@ -58,6 +65,8 @@ $source = new DatabaseConnection(
 
 $dumpPath = null;
 $optionPath = null;
+$downloadPath = null;
+$exitCode = 0;
 
 try {
     if ($useFixture) {
@@ -76,8 +85,60 @@ try {
         ? new NativeMySqlDumper()
         : new PhpMySqlDumper(chunkSize: 2);
 
-    $result = $dumper->dump($source);
-    $dumpPath = $result->getPath();
+    if ($transportMode === 'offline-s3') {
+        require __DIR__ . '/database-s3-test-transport.php';
+        $transport = new DatabaseS3TestTransport();
+        $storage = new \SecureS3StorageForWordpress\Aws\S3Storage($transport->client());
+        $backup = new \SecureS3StorageForWordpress\Backup\DatabaseBackupService(
+            new \SecureS3StorageForWordpress\Backup\BackupService(
+                new \SecureS3StorageForWordpress\Backup\Database\DumpBackendSelector($backend === 'php' ? [] : ['mariadb-dump', 'mysqldump'])
+            ),
+            new \SecureS3StorageForWordpress\Backup\Compression\GzipCompressor(),
+            $storage,
+        );
+        $result = $backup->backup($source, 'fixture-bucket', 'restore-fixture');
+        if ($result->getBackend() !== $backend) { throw new RuntimeException('Requested dump backend not used.'); }
+        $transport->fault = 'hash';
+        $rejected = false;
+        try { $backup->backup($source, 'fixture-bucket', 'failed-fixture'); }
+        catch (RuntimeException $e) { $rejected = true; }
+        if (! $rejected) { throw new RuntimeException('Service accepted a remote checksum mismatch.'); }
+        $transport->fault = '';
+
+        // A valid gzip containing the wrong SQL must fail BEFORE any S3 request.
+        $wrongCompressor = new class implements \SecureS3StorageForWordpress\Backup\Compression\Compressor {
+            public array $paths = [];
+            public function compress(string $sourcePath): \SecureS3StorageForWordpress\Backup\Compression\CompressedResult
+            {
+                $path = $sourcePath . '.gz';
+                $this->paths = [$sourcePath, $path];
+                $stream = SecureTemporaryFile::openForWriting($path);
+                fwrite($stream, gzencode('SELECT 123;'));
+                fclose($stream);
+                return new \SecureS3StorageForWordpress\Backup\Compression\CompressedResult($path, filesize($path), 'gzip');
+            }
+        };
+        $badBackup = new \SecureS3StorageForWordpress\Backup\DatabaseBackupService(
+            new \SecureS3StorageForWordpress\Backup\BackupService(
+                new \SecureS3StorageForWordpress\Backup\Database\DumpBackendSelector($backend === 'php' ? [] : ['mariadb-dump', 'mysqldump'])
+            ), $wrongCompressor, $storage,
+        );
+        $callsBefore = count($transport->calls);
+        $rejected = false;
+        try { $badBackup->backup($source, 'fixture-bucket', 'wrong-sql'); }
+        catch (RuntimeException $e) { $rejected = true; }
+        if (! $rejected || count($transport->calls) !== $callsBefore) { throw new RuntimeException('Wrong SQL reached S3.'); }
+        foreach ($wrongCompressor->paths as $path) {
+            if (file_exists($path)) { throw new RuntimeException('Failed backup left temporary SQL/gzip.'); }
+        }
+        $downloadPath = sys_get_temp_dir() . '/odbfs3-db-download-' . bin2hex(random_bytes(12)) . '.gz';
+        $dumpPath = $downloadPath . '.sql';
+        $storage->downloadVerified($result->getBucket(), $result->getKey(), $downloadPath, $result->getSizeBytes(), $result->getSha256());
+        (new \SecureS3StorageForWordpress\Backup\Compression\GzipVerifier())->verify($downloadPath, 64 * 1024 * 1024, $dumpPath);
+    } else {
+        $result = $dumper->dump($source);
+        $dumpPath = $result->getPath();
+    }
 
     importDump(
         $host,
@@ -113,17 +174,16 @@ try {
         "Restore verification (%s): OK\n",
         $backend
     );
-    echo 'Dump size: ' . $result->getSizeBytes() . " bytes\n";
+    echo 'Backup artifact size: ' . $result->getSizeBytes() . " bytes\n";
 } catch (Throwable $e) {
-    fail(
-        'Restore verification failed: ' . $e->getMessage(),
-        $dumpPath,
-        $optionPath
-    );
+    fwrite(STDERR, 'Restore verification failed: ' . $e->getMessage() . PHP_EOL);
+    $exitCode = 1;
 } finally {
     removeFile($optionPath);
     removeFile($dumpPath);
+    removeFile($downloadPath);
 }
+exit($exitCode);
 
 /**
  * @return array{0: string, 1: int}
@@ -331,6 +391,11 @@ function createFixture(mysqli $connection): void
             serialize(false),
         ],
     ];
+
+    // Exceed the PHP backend's default row chunk and retain varied Unicode/binary values.
+    for ($index = 0; $index < 1005; ++$index) {
+        $rows[] = ['境界テスト ' . $index, null, pack('N', $index), serialize(['index' => $index])];
+    }
 
     foreach ($rows as $row) {
         [$utf8Text, $nullableText, $binaryData, $serializedData] = $row;

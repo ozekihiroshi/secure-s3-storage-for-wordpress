@@ -19,7 +19,7 @@ final class SecureTemporaryFile
     /**
      * @return resource
      */
-    public static function openForWriting(string $path)
+    public static function openForWriting(string $path, bool $readable = false)
     {
         if ($path === '') {
             throw new RuntimeException(
@@ -29,7 +29,7 @@ final class SecureTemporaryFile
 
         // Exclusive creation prevents an existing file from being overwritten.
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-        $handle = @fopen($path, 'xb');
+        $handle = @fopen($path, $readable ? 'x+b' : 'xb');
 
         if ($handle === false) {
             throw new RuntimeException(

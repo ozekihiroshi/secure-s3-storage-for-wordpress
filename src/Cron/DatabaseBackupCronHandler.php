@@ -187,6 +187,8 @@ final class DatabaseBackupCronHandler
                         $result->getKey(),
                     sizeBytes:
                         $result->getSizeBytes(),
+                    sha256: $result->getSha256(),
+                    verification: 'remote_integrity',
                     message:
                         $message
                 )
