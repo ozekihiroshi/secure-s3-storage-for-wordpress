@@ -37,10 +37,12 @@ This is the development repository. Its historical name,
 `secure-s3-storage-for-wordpress`, differs from the published plugin name.
 Use the directory package for installation; it includes the runtime dependencies.
 
-The development version is 0.2.1. It adds SQL/gzip and S3 SHA-256 integrity
+Version 0.2.1 is available from [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.2.1).
+It adds SQL/gzip and S3 SHA-256 integrity
 verification, unique conditional-write backup keys, and verification evidence
 in backup history. It has been applied to the operator's existing WordPress
-site; WordPress.org publication is a separate step.
+site. WordPress.org publication is pending SVN authentication; its directory
+release documented above remains 0.2.0.
 See [integrity verification](docs/database-integrity-verification.md) and
 [deployment record](docs/production-update-2026-10-17.md).
 

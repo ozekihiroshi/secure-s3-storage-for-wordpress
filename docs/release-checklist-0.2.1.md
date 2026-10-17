@@ -1,7 +1,9 @@
 # 0.2.1 公開準備
 
-2026-10-17時点で公開候補ZIPのローカル検査は完了。公開は未実施。
-README改訂・検査注記・リリース文書をcommitしてpushし、そのcommitのCI成功を確認してから公開する。
+2026-10-17、ソースcommit `2211a7d9b636a6236075f6e12686bbe0d0db3997` の全5系統CIが成功し、GitHub Release v0.2.1を公開した。WordPress.org SVN送信は認証エラーで未完了。
+
+GitHub公開先: https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.2.1
+添付ZIPは下記ハッシュの検査済み資材。公開タグは上記ソースcommitを指す。
 
 ## 公開候補
 
@@ -31,7 +33,7 @@ Backup Job、Media Upload、Media Inventory、Database Integrityの4系統で成
 [Plugin Check](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/39003897663)
 のみ、内部例外の引き継ぎを出力とみなす指摘で失敗していた。
 画面出力ではない箇所に限定して理由付きのPHPCS注記を追加し、今回のZIPでローカル再検査を通した。
-修正後commitのリモートCI結果は別途必要。
+修正後の [Plugin Check](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/39006776163) を含む全5系統は成功した。
 
 ## 公開時の手順
 
@@ -44,9 +46,27 @@ Backup Job、Media Upload、Media Inventory、Database Integrityの4系統で成
 5. 同じソースcommitにGitタグとGitHub Releaseを作り、検査済みZIPと英語リリース説明を添付する。
 6. WordPress.org配布版のバージョン・内容を確認し、READMEの公開版記載を0.2.1へ更新する。
 
-ここではタグ作成・GitHub Release公開・WordPress.org SVN送信は行っていない。
+上記手順のGitHubタグ・Release公開は完了。WordPress.org SVN送信は認証待ち。
 READMEはGitHub向けであり、WordPress.orgの説明ページにはreadme.txtが使われる。
 readme.txtには0.2.1の変更履歴、必要権限、検証失敗時の扱い、復元との区別を記載済み。
+
+## SVN認証から再開する
+
+公開専用の新しい作業コピーはWSL Ubuntu-24.04の
+`/tmp/odbfs3-publish-021.4C3Y9LhX/svn`。
+trunkと新規tags/0.2.1は検査済みZIPと一致する。既存のWindows側SVN作業コピーと既存タグは変更していない。
+非対話commitはE215004で認証に失敗し、新しいrevisionは作成されていない。
+
+ユーザーのWSLターミナルで、送信前に `svn status` とリモートのタグ一覧を確認する。
+0.2.1が他の操作ですでに公開されていれば再送せず内容を照合する。未公開なら次を実行する。
+
+```bash
+svn commit --username ozekihiroshi /tmp/odbfs3-publish-021.4C3Y9LhX/svn/trunk /tmp/odbfs3-publish-021.4C3Y9LhX/svn/tags/0.2.1 -m "Release 0.2.1: verified database backup integrity and isolated recovery tests"
+```
+
+認証プロンプトにはWordPress.orgのSVN用パスワードを入力し、チャットや文書へ保存しない。
+この一時パスが失われた場合は検査済みZIPから新規SVN作業コピーを作り直す。
+送信後はrevision・公開バージョン・配布ZIP内容を確認し、READMEとGitHub Releaseの認証待ち記載を更新する。
 
 ## 検証範囲
 
