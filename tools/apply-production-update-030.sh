@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # One explicitly authorized wp.ceri.link deployment; execute on community only.
 set -euo pipefail
-backup=/home/ubuntu/docker/wp-rescue/backups/odbfs3-030-17c030a4b815
-work=/tmp/odbfs3-update-17c030a4b815
+[[ $# == 2 && "$1" =~ ^[a-f0-9]{12}$ && "$2" =~ ^[a-f0-9]{64}$ ]]
+backup="/home/ubuntu/docker/wp-rescue/backups/odbfs3-030-$1"
+work="/tmp/odbfs3-update-$1"
 test "$(realpath "$backup")" = "$backup"
 test -s "$backup/before.sql"
 test -s "$backup/options.serialized"
 test -s "$backup/old-plugin.tar.gz"
-echo 'da920874b17217c430efe02d671c2d22550715b9991d08b3d38a152b2e94a7e2  candidate.zip' | (cd "$backup" && sha256sum -c -)
+printf '%s  candidate.zip\n' "$2" | (cd "$backup" && sha256sum -c -)
 mkdir "$backup/candidate"
 unzip -q "$backup/candidate.zip" -d "$backup/candidate"
 docker cp "$backup/candidate/ozeki-database-backup-for-s3" "wp-rescue:$work/candidate"
