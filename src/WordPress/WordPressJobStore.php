@@ -11,8 +11,11 @@ final class WordPressJobStore implements JobStore
 {
     public const OPTION_NAME = 'secure_s3_storage_background_job';
 
-    public function __construct(private wpdb $database)
+    public function __construct(private wpdb $database, private string $optionName = self::OPTION_NAME)
     {
+        if ($optionName !== self::OPTION_NAME && preg_match('/^odbfs3_recovery_[a-f0-9]{32}$/D', $optionName) !== 1) {
+            throw new RuntimeException('Invalid backup state slot.');
+        }
     }
 
     public function read(): ?string
@@ -21,13 +24,22 @@ final class WordPressJobStore implements JobStore
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $value = $this->database->get_var($this->database->prepare(
             "SELECT option_value FROM {$this->database->options} WHERE option_name = %s",
-            self::OPTION_NAME,
+            $this->optionName,
         ));
         if ($this->database->last_error !== '') {
             throw new RuntimeException('Unable to read backup job state.');
         }
 
         return $value === null ? null : (string) $value;
+    }
+
+    /** Dedicated non-autoloaded slot; never overwrites the standalone media job. */
+    public static function forRecovery(wpdb $database, string $setId): self
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $setId) !== 1) {
+            throw new RuntimeException('Invalid recovery state identity.');
+        }
+        return new self($database, 'odbfs3_recovery_' . $setId);
     }
 
     public function compareAndSwap(?string $expected, string $replacement): bool
@@ -37,7 +49,7 @@ final class WordPressJobStore implements JobStore
             $query = $this->database->prepare(
                 "INSERT IGNORE INTO {$this->database->options} (option_name, option_value, autoload)
                  VALUES (%s, %s, 'no')",
-                self::OPTION_NAME,
+                $this->optionName,
                 $replacement,
             );
         } else {
@@ -46,7 +58,7 @@ final class WordPressJobStore implements JobStore
                 "UPDATE {$this->database->options} SET option_value = %s
                  WHERE option_name = %s AND BINARY option_value = BINARY %s",
                 $replacement,
-                self::OPTION_NAME,
+                $this->optionName,
                 $expected,
             );
         }
@@ -60,7 +72,7 @@ final class WordPressJobStore implements JobStore
             return false;
         }
 
-        wp_cache_delete(self::OPTION_NAME, 'options');
+        wp_cache_delete($this->optionName, 'options');
         wp_cache_delete('notoptions', 'options');
 
         return true;

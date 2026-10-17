@@ -79,6 +79,10 @@ try {
     $keyMatch = new ReflectionMethod($retention, 'isDatabaseBackupKey');
     $check($keyMatch->invoke($retention, $keyOne, 'site/backups/database/') === true, 'new key recognized by retention');
     $check($keyMatch->invoke($retention, 'site/backups/database/2026/10/17/db-fixture-20261017-010203.sql.gz', 'site/backups/database/') === true, 'legacy key recognized by retention');
+    $set = \SecureS3StorageForWordpress\Backup\Recovery\RecoverySet::create(str_repeat('a', 32), 'database', 'fixture-bucket', 'us-east-1', 'site', '2026-10-17T00:00:00Z');
+    $check($keyMatch->invoke($retention, $set->databaseKey(), 'site/backups/database/') === false, 'Recovery DB excluded from retention discovery');
+    $deleteGuard = new ReflectionMethod($retention, 'looksLikeDatabaseBackupKey');
+    $check($deleteGuard->invoke($retention, $set->databaseKey()) === false, 'Recovery DB excluded from deletion guard');
     echo "PASS database integrity checks=$checks\n";
 } finally {
     // Remove only direct files in the newly created test-owned directory.

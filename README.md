@@ -45,6 +45,10 @@ site and is also published on WordPress.org.
 See [integrity verification](docs/database-integrity-verification.md) and
 [deployment record](docs/production-update-2026-10-17.md).
 
+The current source version is 0.3.0. Its internal recovery-set implementation
+and operator deployment are separate from the published 0.2.1 directory release;
+updating this repository does not publish an update to WordPress.org.
+
 ## Who it is for
 
 Keep backup storage under your control. The plugin suits administrators who
@@ -135,7 +139,9 @@ scheduled tasks, and certificates. Preserve or document those separately.
 
 Database and media jobs are independent: the plugin does not guarantee an atomic
 snapshot or a shared point in time between them. A recovery set linking the two
-and a unified recovery manifest are not implemented. Coordinate writes when
+and a unified recovery manifest are implemented internally in the 0.3.0 source,
+but are not connected to the admin, CLI or Cron entry points. Existing standalone
+backups do not automatically become linked recovery sets. Coordinate writes when
 preparing a consistent recovery point, then test database and attachment
 references together in an isolated environment.
 
@@ -152,13 +158,19 @@ media jobs require inspection and explicit WP-CLI cleanup by their exact job ID.
 
 ## Development direction
 
-The next recovery work is to identify related database and media backups,
-describe required and missing materials in a recovery manifest, and document
-and test an end-to-end isolated WordPress restore. Clearer operational failure
+The 0.3.0 source includes persistent recovery-set state, resumable DB/media
+collection, conditional manifest publication and independent S3 verification.
+Synthetic WordPress restoration from real-S3 artifacts passed with both dump
+backends. See [the verification record](docs/aws-recovery-set-verification-2026-10-17.md).
+This is an internal foundation, not a new operator-facing backup or restore command.
+Private workspace retention and disk capacity remain the caller's responsibility;
+do not enable cloned workers or remove their workspaces without an explicit policy.
+
+Next steps are operator-facing orchestration and cleanup guidance. Clearer operational failure
 states, scheduling health checks, and stable machine-readable outputs should
 support integrations without making the core customer-specific.
 
-These are planned capabilities, not current guarantees or a finalized external
+Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)
 for the completed work and remaining verification boundaries.
 

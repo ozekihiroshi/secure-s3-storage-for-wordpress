@@ -1,0 +1,39 @@
+name: Isolated WordPress Recovery
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - name: Lint fixture and runner
+        run: |
+          php -l tests/manual/test-wordpress-recovery.php
+          php -l tests/manual/wordpress-recovery-guard.php
+          php -l tests/manual/wordpress-recovery-remote.php
+          php -l tests/manual/wordpress-recovery-package.php
+          php -l tools/test-recovery-s3-roundtrip.php
+          bash -n tools/test-wordpress-recovery-local.sh
+          bash -n tools/test-wordpress-recovery-s3-bridge.sh
+          bash -n tools/test-wordpress-recovery-zip.sh
+      - name: Prepare software supplied separately from the recovery set
+        run: |
+          docker pull wordpress:php8.3-apache
+          docker pull mariadb:11.8
+      - name: Verify caller owned S3 streams without network access
+        run: php tests/manual/test-media-s3-stream.php
+      - name: Restore both backends with source unavailable and outbound access blocked
+        run: bash tools/test-wordpress-recovery-local.sh

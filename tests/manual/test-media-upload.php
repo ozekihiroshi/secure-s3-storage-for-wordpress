@@ -215,10 +215,10 @@ $newJob = static function (MediaUploadPlan $plan): array {
     $store->record = $job->encode();
     return [$store, $job];
 };
-$finish = static function ($store, $job, $s3, ?Closure $clock = null): string {
+$finish = static function ($store, $job, $s3, ?Closure $clock = null, ?\SecureS3StorageForWordpress\Backup\Recovery\RecoverySet $recoverySet = null): string {
     for ($i = 0; $i < 100; ++$i) {
         // New runner/step per tick: no in-memory cursor or SDK state survives.
-        $status = (new JobRunner($store, $clock))->tick($job->id, 'media', new MediaUploadStep($s3));
+        $status = (new JobRunner($store, $clock))->tick($job->id, 'media', new MediaUploadStep($s3, $recoverySet));
         if (in_array($status, ['succeeded', 'failed'], true)) { return $status; }
     }
     throw new RuntimeException('Worker did not terminate');
@@ -250,6 +250,23 @@ try {
         copy($s3->objects[$prefix . 'files/' . hash('sha256', $entry->path)]['path'], $base . '/restored/' . $entry->path);
     }
     $check((new MediaManifest())->verify(new MediaSource($base . '/restored'), $manifest, $base)->successful(), 'Download/reassemble and full-file restore verification');
+
+    // The same production upload step, but with a frozen recovery-set namespace.
+    [$setStore, $setJob] = $newJob($plan);
+    $recovery = \SecureS3StorageForWordpress\Backup\Recovery\RecoverySet::create(
+        str_repeat('a', 32), 'database_uploads', 'test-bucket', 'ap-northeast-1', 'test', '2026-10-17T00:00:00Z');
+    $setS3 = new UploadTestS3($base . '/remote');
+    $check($finish($setStore, $setJob, $setS3, null, $recovery) === 'succeeded', 'Set-scoped multipart upload');
+    $setPrefix = 'test-bucket/' . $recovery->mediaPrefix($setJob->id);
+    $check(count($setS3->objects) === 6 && isset($setS3->objects[$setPrefix . 'complete.json']), 'Set completion marker');
+    foreach (array_keys($setS3->objects) as $key) {
+        $check(str_starts_with($key, $setPrefix), 'No writes to standalone namespace');
+    }
+    [$setStore, $setJob] = $newJob($plan);
+    $wrongRecovery = \SecureS3StorageForWordpress\Backup\Recovery\RecoverySet::create(
+        str_repeat('a', 32), 'database_uploads', 'other-bucket', 'ap-northeast-1', 'test', '2026-10-17T00:00:00Z');
+    $setS3 = new UploadTestS3($base . '/remote');
+    $check($finish($setStore, $setJob, $setS3, null, $wrongRecovery) === 'failed' && $setS3->calls === [], 'Destination change rejected before S3');
 
     // Simulate worker death after S3 accepted UploadPart, before checkpoint commit.
     [$store, $job] = $newJob($plan);
@@ -388,6 +405,12 @@ try {
         && ! isset($GLOBALS['test_options']['secure_s3_storage_media_result_' . $queued->id]), 'Uninstall removes current and archived local job metadata');
     $check($GLOBALS['test_options']['unrelated_plugin_option'] === 'keep'
         && count($s3->objects) === $remoteCount && is_file($plan->directory . '/inventory.jsonl'), 'Uninstall preserves unrelated options, remote backups and private plans');
+    $advance = new ReflectionMethod(MediaUploadStep::class, 'advance');
+    $parts = [base64_encode(str_repeat('a', 32)), base64_encode(str_repeat('b', 32))];
+    $result = $advance->invoke(new MediaUploadStep($s3), new BackupJob(str_repeat('a', 32), 'media'), [],
+        ['path' => null, 'size' => 9000000, 'sha256' => str_repeat('f', 64), 'parts' => $parts, 'record_hash' => str_repeat('c', 64)], 100);
+    $check($result->checkpoint['inventory_s3_checksum'] === base64_encode(hash('sha256', str_repeat('a', 32) . str_repeat('b', 32), true)) . '-2',
+        'Multipart inventory checksum is composite, not full-file SHA-256');
     echo 'PASS media upload checks=' . $checks . ' peak_bytes=' . memory_get_peak_usage(true) . PHP_EOL;
 } catch (Throwable $e) {
     fwrite(STDERR, get_class($e) . ': ' . $e->getMessage() . ' at ' . $e->getLine() . PHP_EOL);

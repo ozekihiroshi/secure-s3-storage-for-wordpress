@@ -48,5 +48,10 @@ for backend in native php; do
         RESTORE_TEST_DB_NAME="$restore_db" RESTORE_TEST_BACKEND="$backend" \
         RESTORE_TEST_FIXTURE=1 RESTORE_TEST_TRANSPORT=offline-s3 \
         php tests/manual/test-database-restore.php
+    WORDPRESS_DB_HOST="127.0.0.1:${db_port}" WORDPRESS_DB_NAME="$source_db" \
+        WORDPRESS_DB_USER=root WORDPRESS_DB_PASSWORD="$db_password" \
+        RESTORE_TEST_DB_NAME="$restore_db" RESTORE_TEST_BACKEND="$backend" \
+        RESTORE_TEST_FIXTURE=1 \
+        php tests/manual/test-recovery-pipeline.php
 done
 echo 'PASS isolated database recovery (native + php; offline S3 transport)'

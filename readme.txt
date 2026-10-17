@@ -4,7 +4,7 @@ Tags: backup, amazon s3, aws, database backup, media backup
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.2.1
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -284,6 +284,13 @@ After inspecting an exact failed media job, explicitly clean only its recorded i
 `wp ozeki-database-backup-for-s3 media cleanup <job-id> --yes`
 
 == Changelog ==
+
+= 0.3.0 =
+
+* Add an internal recovery-set model, resumable DB/media collection and independently verified S3 manifest publication.
+* Preserve caller-owned upload streams on success and failure in the S3 adapter.
+* Isolate recovery job state and storage destinations from standalone backups.
+* Add synthetic WordPress recovery and real-S3 integration tests. Recovery-set orchestration has no admin, CLI or Cron entry point yet; existing backup controls are unchanged.
 
 = 0.2.1 =
 

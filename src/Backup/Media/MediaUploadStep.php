@@ -6,24 +6,29 @@ use RuntimeException;
 use SecureS3StorageForWordpress\Backup\Job\BackupJob;
 use SecureS3StorageForWordpress\Backup\Job\JobStep;
 use SecureS3StorageForWordpress\Backup\Job\StepResult;
+use SecureS3StorageForWordpress\Backup\Recovery\RecoverySet;
 
 /** One multipart operation per checkpoint, except bounded completion verification. */
 final class MediaUploadStep implements JobStep
 {
-    public function __construct(private MediaObjectClient $client)
+    public function __construct(private MediaObjectClient $client, private ?RecoverySet $recoverySet = null)
     {
     }
 
     public function execute(BackupJob $job, int $deadline): StepResult
     {
         $state = $job->checkpoint;
+        if ($this->recoverySet !== null && ($this->recoverySet->state !== 'collecting' || $state['bucket'] !== $this->recoverySet->bucket
+            || $state['region'] !== $this->recoverySet->region || trim($state['prefix'], '/') !== $this->recoverySet->prefix)) {
+            throw new RuntimeException('Recovery destination does not match frozen intent.');
+        }
         $plan = new MediaUploadPlan($state['directory']);
         if ($plan->metadata() !== $state['metadata']) {
             throw new RuntimeException('Prepared media plan changed.');
         }
         [$object, $next] = $plan->record($state['offset']);
         $base = ['Bucket' => $state['bucket']];
-        $prefix = $state['prefix'] . 'backups/media/' . $job->id . '/';
+        $prefix = $this->recoverySet?->mediaPrefix($job->id) ?? $state['prefix'] . 'backups/media/' . $job->id . '/';
         if ($object === null) {
             if ($state['offset'] !== $state['metadata']['plan_size'] || ! ($state['inventory_done'] ?? false)
                 || ($state['plan_chain'] ?? '') !== $state['metadata']['plan_chain']
@@ -180,6 +185,9 @@ final class MediaUploadStep implements JobStep
         $inventory = $object['path'] === null;
         if ($inventory) {
             $state['inventory_done'] = true;
+            $state['inventory_s3_checksum'] = $object['size'] <= 8388608
+                ? base64_encode(hex2bin($object['sha256']))
+                : base64_encode(hash('sha256', implode('', array_map(static fn ($hash) => base64_decode($hash, true), $object['parts'])), true)) . '-' . count($object['parts']);
         }
         return new StepResult($state, $job->processedFiles + ($inventory ? 0 : 1),
             $job->processedBytes + ($inventory ? 0 : $object['size']));

@@ -61,6 +61,13 @@ namespace {
         $check(! $first->compareAndSwap($claim, $record), 'Old worker cannot overwrite completion.');
         $check((new WordPressJobStore($database))->read() === $failed, 'Reconstructed store persists.');
         $check(count($GLOBALS['odbfs3_jobtest_cache_deletes']) === 6, 'Only successful writes invalidate caches.');
+        $recovery = WordPressJobStore::forRecovery($database, str_repeat('a', 32));
+        $check($recovery->read() === null, 'Recovery has an independent slot.');
+        $check($recovery->compareAndSwap(null, '{"schema":1}'), 'Save recovery fixture.');
+        $check(WordPressJobStore::forRecovery($database, str_repeat('a', 32))->read() === '{"schema":1}', 'Recovery persists across stores.');
+        $check($second->read() === $failed, 'Standalone state preserved.');
+        $check(WordPressJobStore::forRecovery($database, str_repeat('b', 32))->read() === null, 'Sets do not share a slot.');
+        $check(! $recovery->compareAndSwap('{"schema":2}', '{}'), 'Recovery CAS rejects stale values.');
         $check($wpdb->options !== $database->options, 'Site options table unchanged.');
         echo "WordPress job store verification: OK ($checks checks)\n";
     } catch (\Throwable $e) {

@@ -1,0 +1,30 @@
+name: Recovery Contract Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Lint and validate isolated recovery contract
+        run: |
+          find src/Backup/Recovery -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l tests/manual/test-recovery-contract.php
+          php tests/manual/test-recovery-contract.php
+          php -l tests/manual/test-recovery-collector.php
+          php tests/manual/test-recovery-collector.php
+          php -l tests/manual/test-recovery-workspace.php
+          php tests/manual/test-recovery-workspace.php
+          php -l tests/manual/test-recovery-publication.php
+          php tests/manual/test-recovery-publication.php

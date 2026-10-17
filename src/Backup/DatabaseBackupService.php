@@ -8,6 +8,7 @@ use SecureS3StorageForWordpress\Backup\Compression\Compressor;
 use SecureS3StorageForWordpress\Backup\Compression\GzipVerifier;
 use SecureS3StorageForWordpress\Backup\Database\DatabaseConnection;
 use Throwable;
+use SecureS3StorageForWordpress\Backup\Recovery\RecoverySet;
 
 final class DatabaseBackupService
 {
@@ -17,15 +18,24 @@ final class DatabaseBackupService
         private S3Storage $storage,
     ) {}
 
+    /**
+     * One-shot backup. A recovery intent only selects the isolated destination;
+     * this method is NOT a replay-safe RecoveryStep (it deletes local artifacts).
+     */
     public function backup(
         DatabaseConnection $connection,
         string $bucket,
-        string $prefix
+        string $prefix,
+        ?RecoverySet $recoverySet = null,
     ): DatabaseBackupResult {
         $dumpPath = null;
         $compressedPath = null;
 
         try {
+            if ($recoverySet !== null && ($recoverySet->state !== 'collecting'
+                || $bucket !== $recoverySet->bucket || trim($prefix, '/') !== $recoverySet->prefix)) {
+                throw new RuntimeException('Recovery destination does not match frozen intent.');
+            }
             $dumpResult = $this->backupService->backupDatabase(
                 $connection
             );
@@ -47,7 +57,7 @@ final class DatabaseBackupService
                 throw new RuntimeException('Compressed backup does not match SQL dump.');
             }
 
-            $key = $this->buildBackupKey(
+            $key = $recoverySet?->databaseKey() ?? $this->buildBackupKey(
                 $prefix,
                 $connection->getDatabaseName()
             );

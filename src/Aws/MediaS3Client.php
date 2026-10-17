@@ -28,16 +28,22 @@ final class MediaS3Client implements MediaObjectClient
     {
         $remaining = $deadline - time() - 2;
         if ($remaining < 1) {
-            throw new RuntimeException('Media worker deadline reached.');
+            throw new RetryableJobException('S3 worker deadline reached.');
         }
-        if (isset($arguments['RangeOffset'])) {
-            $arguments['Body'] = new LimitStream(
-                Utils::streamFor($arguments['Body']), $arguments['ContentLength'], $arguments['RangeOffset'],
-            );
-            unset($arguments['RangeOffset']);
-        }
-        $arguments['@http'] = ['connect_timeout' => min(5, $remaining), 'timeout' => min(20, $remaining)];
+        $borrowedBody = null;
         try {
+            if (isset($arguments['RangeOffset'])) {
+                // The caller owns raw resources and closes them after this request.
+                // Keep the wrapper alive, then detach it even when the SDK throws.
+                $stream = Utils::streamFor($arguments['Body']);
+                if (is_resource($arguments['Body'])) { $borrowedBody = $stream; }
+                $arguments['Body'] = new LimitStream(
+                    $stream, $arguments['ContentLength'], $arguments['RangeOffset'],
+                );
+                unset($arguments['RangeOffset']);
+            }
+            $arguments['@http'] = ['connect_timeout' => min(5, $remaining), 'timeout' => min(20, $remaining)];
+            if ($operation === 'GetObject') { $arguments['@http']['stream'] = true; }
             return $this->client->execute($this->client->getCommand($operation, $arguments))->toArray();
         } catch (S3Exception $e) {
             // Distinguish only explicitly recoverable responses, never expose signed requests.
@@ -51,10 +57,13 @@ final class MediaS3Client implements MediaObjectClient
                 return ['missing' => true];
             }
             $status = $e->getStatusCode();
-            if ($status === null || $status === 408 || $status === 429 || $status >= 500) {
+            if ($status === null || $status === 408 || $status === 429 || $status >= 500
+                || ($operation === 'PutObject' && $status === 409)) {
                 throw new RetryableJobException('Temporary media S3 failure.');
             }
             throw new RuntimeException('Media S3 operation failed.');
+        } finally {
+            if ($borrowedBody !== null) { $borrowedBody->detach(); }
         }
     }
 }
