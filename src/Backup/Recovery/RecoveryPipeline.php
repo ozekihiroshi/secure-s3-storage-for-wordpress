@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable WordPress.WP.AlternativeFunctions -- Bounded private backup streams require local resources and fsync. Cleanup is limited to the trusted dumper's temporary file; workspace paths are validated by RecoveryWorkspace.
+
 namespace SecureS3StorageForWordpress\Backup\Recovery;
 
 use SecureS3StorageForWordpress\Backup\Database\DatabaseDumper;

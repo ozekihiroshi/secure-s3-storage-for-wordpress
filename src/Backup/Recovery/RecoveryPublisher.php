@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable WordPress.WP.AlternativeFunctions -- Bounded reads and closure of caller-owned S3 response resources are stream operations, not WordPress filesystem transport operations.
+
 namespace SecureS3StorageForWordpress\Backup\Recovery;
 
 use SecureS3StorageForWordpress\Backup\Media\MediaObjectClient;

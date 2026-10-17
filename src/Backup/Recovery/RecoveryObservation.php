@@ -22,7 +22,7 @@ final class RecoveryObservation
         Contract::require(in_array($record['kind'], ['availability', 'restore'], true));
         $states = $record['kind'] === 'availability' ? ['unknown', 'available', 'missing', 'inaccessible'] : ['not_tested', 'passed', 'failed'];
         Contract::require(in_array($record['state'], $states, true));
-        Contract::require(is_array($record['checks']) && array_is_list($record['checks']) && count($record['checks']) <= 32);
+        Contract::require(is_array($record['checks']) && array_values($record['checks']) === $record['checks'] && count($record['checks']) <= 32);
         $allowed = $record['kind'] === 'availability'
             ? ['database_object', 'inventory_object', 'marker_object', 'all_media_objects']
             : ['sql_import', 'wordpress_content', 'media_hashes', 'attachment_references'];

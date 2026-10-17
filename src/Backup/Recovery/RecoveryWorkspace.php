@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable WordPress.WP.AlternativeFunctions -- Private POSIX workspace requires inode/owner checks, flock, fsync and atomic local rename; WP_Filesystem transports cannot preserve these guarantees. Paths are constrained by path() and inspect().
+
 namespace SecureS3StorageForWordpress\Backup\Recovery;
 
 use SecureS3StorageForWordpress\Backup\SecureTemporaryFile;
