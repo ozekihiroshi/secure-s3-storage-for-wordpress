@@ -6,6 +6,11 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 wp_image="${ODBFS3_WP_IMAGE:-wordpress:php8.3-apache}"
 db_image=mariadb:11.8
 docker image inspect "$wp_image" "$db_image" >/dev/null
+docker run --rm --pull=never --network none --entrypoint sh "$wp_image" \
+    -c 'command -v mysqldump >/dev/null || command -v mariadb-dump >/dev/null' || {
+    echo 'The fixture worker needs mariadb-client; build tests/manual/wordpress-recovery.Dockerfile.' >&2
+    exit 1
+}
 run_id="$(php -r 'echo bin2hex(random_bytes(6));')"
 if [[ "${ODBFS3_REAL_S3:-0}" == 1 && "${ODBFS3_ALLOW_SYNTHETIC_S3:-0}" != 1 ]]; then
     echo 'Explicit synthetic S3 transfer authorization is required.' >&2; exit 1

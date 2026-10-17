@@ -41,6 +41,8 @@ The runner does not pull images or touch existing containers. It needs one Maria
 
 The default internal subnet is `10.203.104.0/28`, checked against this host's Docker networks and routes for the local run. On another host, verify that it is unused or set `ODBFS3_FIXTURE_SUBNET` to an unused subnet. Existing networks must not be pruned to make room. `ODBFS3_WP_IMAGE` can select a separately prepared WordPress image; the actual core version is printed by the fixture.
 
+The worker image must contain `mysqldump` or `mariadb-dump` for the native branch. The runner checks this prerequisite before creating fixture state. CI explicitly builds `tests/manual/wordpress-recovery.Dockerfile` with `mariadb-client`; installing the client only on the host is insufficient. To use the same setup locally, build it with `docker build -f tests/manual/wordpress-recovery.Dockerfile -t odbfs3-wordpress-recovery:local .` and set `ODBFS3_WP_IMAGE=odbfs3-wordpress-recovery:local` when running the fixture.
+
 The CI definition is `.github/workflows/wordpress-recovery-tests.yml`. PHP lint, Bash syntax, ShellCheck and actionlint passed locally. Remote CI still requires a commit/push.
 
 ## Boundaries before release

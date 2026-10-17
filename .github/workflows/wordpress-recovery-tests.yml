@@ -12,6 +12,8 @@ jobs:
   recovery:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      ODBFS3_WP_IMAGE: odbfs3-wordpress-recovery:ci
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
@@ -31,7 +33,7 @@ jobs:
           bash -n tools/test-wordpress-recovery-zip.sh
       - name: Prepare software supplied separately from the recovery set
         run: |
-          docker pull wordpress:php8.3-apache
+          docker build -f tests/manual/wordpress-recovery.Dockerfile -t "$ODBFS3_WP_IMAGE" .
           docker pull mariadb:11.8
       - name: Verify caller owned S3 streams without network access
         run: php tests/manual/test-media-s3-stream.php
