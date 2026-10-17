@@ -31,7 +31,7 @@ it is not a complete site recovery or one-click restore system.
 
 Ozeki Database Backup for S3 is published on [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/).
 In WordPress, open **Plugins > Add New**, search for **Ozeki Database Backup for S3**,
-then install and activate it. The directory release documented here is 0.2.0.
+then install and activate it. The directory release documented here is 0.2.1.
 
 This is the development repository. Its historical name,
 `secure-s3-storage-for-wordpress`, differs from the published plugin name.
@@ -41,8 +41,7 @@ Version 0.2.1 is available from [GitHub Releases](https://github.com/ozekihirosh
 It adds SQL/gzip and S3 SHA-256 integrity
 verification, unique conditional-write backup keys, and verification evidence
 in backup history. It has been applied to the operator's existing WordPress
-site. WordPress.org publication is pending SVN authentication; its directory
-release documented above remains 0.2.0.
+site and is also published on WordPress.org.
 See [integrity verification](docs/database-integrity-verification.md) and
 [deployment record](docs/production-update-2026-10-17.md).
 

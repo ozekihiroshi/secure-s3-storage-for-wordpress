@@ -1,6 +1,6 @@
 # Ozeki Database Backup for S3 0.2.1
 
-Release notes prepared for publication. This version strengthens database backup
+Published on GitHub and WordPress.org on 2026-10-17. This version strengthens database backup
 integrity checks; it does not add a one-click restore feature.
 
 ## Changes

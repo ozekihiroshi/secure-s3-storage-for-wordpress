@@ -1,11 +1,11 @@
-# 0.2.1 公開準備
+# 0.2.1 公開記録
 
-2026-10-17、ソースcommit `2211a7d9b636a6236075f6e12686bbe0d0db3997` の全5系統CIが成功し、GitHub Release v0.2.1を公開した。WordPress.org SVN送信は認証エラーで未完了。
+2026-10-17、ソースcommit `2211a7d9b636a6236075f6e12686bbe0d0db3997` の全5系統CIが成功し、GitHub Release v0.2.1とWordPress.org 0.2.1を公開した。WordPress.org SVN revisionは `3751447`。
 
 GitHub公開先: https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.2.1
 添付ZIPは下記ハッシュの検査済み資材。公開タグは上記ソースcommitを指す。
 
-## 公開候補
+## 公開資材
 
 - ファイル: `build/ozeki-database-backup-for-s3-0.2.1.zip`
 - サイズ: 8,207,651 bytes
@@ -46,27 +46,22 @@ Backup Job、Media Upload、Media Inventory、Database Integrityの4系統で成
 5. 同じソースcommitにGitタグとGitHub Releaseを作り、検査済みZIPと英語リリース説明を添付する。
 6. WordPress.org配布版のバージョン・内容を確認し、READMEの公開版記載を0.2.1へ更新する。
 
-上記手順のGitHubタグ・Release公開は完了。WordPress.org SVN送信は認証待ち。
+上記手順のGitHubタグ・Release公開とWordPress.org SVN送信は完了。
 READMEはGitHub向けであり、WordPress.orgの説明ページにはreadme.txtが使われる。
 readme.txtには0.2.1の変更履歴、必要権限、検証失敗時の扱い、復元との区別を記載済み。
 
-## SVN認証から再開する
+## SVN送信と配布確認
 
 公開専用の新しい作業コピーはWSL Ubuntu-24.04の
 `/tmp/odbfs3-publish-021.4C3Y9LhX/svn`。
 trunkと新規tags/0.2.1は検査済みZIPと一致する。既存のWindows側SVN作業コピーと既存タグは変更していない。
-非対話commitはE215004で認証に失敗し、新しいrevisionは作成されていない。
+最初の非対話commitはE215004で認証に失敗したが、その後ユーザーのターミナルから認証して送信し、revision `3751447` が作成された。再送は不要。
 
-ユーザーのWSLターミナルで、送信前に `svn status` とリモートのタグ一覧を確認する。
-0.2.1が他の操作ですでに公開されていれば再送せず内容を照合する。未公開なら次を実行する。
-
-```bash
-svn commit --username ozekihiroshi /tmp/odbfs3-publish-021.4C3Y9LhX/svn/trunk /tmp/odbfs3-publish-021.4C3Y9LhX/svn/tags/0.2.1 -m "Release 0.2.1: verified database backup integrity and isolated recovery tests"
-```
-
-認証プロンプトにはWordPress.orgのSVN用パスワードを入力し、チャットや文書へ保存しない。
-この一時パスが失われた場合は検査済みZIPから新規SVN作業コピーを作り直す。
-送信後はrevision・公開バージョン・配布ZIP内容を確認し、READMEとGitHub Releaseの認証待ち記載を更新する。
+WordPress.org APIでバージョン `0.2.1` と配布URLを確認した。
+https://downloads.wordpress.org/plugin/ozeki-database-backup-for-s3.0.2.1.zip
+から実際に取得し、展開後の全ファイルを検査済みZIPと比較して差分なし。
+WordPress.orgでZIPが再生成されるため、ZIP自体のハッシュではなくファイル内容で照合した。
+READMEとGitHub Releaseの認証待ち記載も公開済みに更新した。
 
 ## 検証範囲
 
