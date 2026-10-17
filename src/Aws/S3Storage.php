@@ -144,7 +144,12 @@ final class S3Storage
             if (! fflush($output)) { throw new RuntimeException('Unable to flush backup download.'); }
             $success = true;
         } catch (Throwable $e) {
-            throw new RuntimeException('Unable to download and verify database backup.', 0, $e);
+            throw new RuntimeException(
+                'Unable to download and verify database backup.',
+                0,
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception is chained internally, not rendered as output.
+                $e
+            );
         } finally {
             if ($body !== null) { $body->close(); }
             elseif ($sink !== null) { $sink->close(); }

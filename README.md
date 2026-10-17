@@ -1,12 +1,31 @@
 # Ozeki Database Backup for S3
 
-Back up WordPress to your own S3 bucket. Ozeki Database Backup for S3 gives
-site administrators manual and scheduled database backups, plus on-demand
-uploads-directory backups, from WordPress administration and WP-CLI.
+Ozeki Database Backup for S3 helps administrators keep WordPress database and
+uploaded-media backups in their own S3 bucket, without storing long-lived AWS
+access keys in WordPress. It provides manual and scheduled database backups
+and on-demand uploads-directory backups through WordPress administration and
+WP-CLI.
 
-Use the server's AWS identity. The AWS SDK default credential provider chain
-supports IAM roles and other runtime credential sources. The plugin has no
-fields for storing long-lived AWS access keys in the WordPress database.
+The goal is a reusable foundation for verifiable recovery: knowing which
+backup materials exist, whether their integrity has been checked, and what
+else is needed to restore a site. Upload completion alone is not proof of
+recoverability. The current plugin verifies individual backup components;
+it is not a complete site recovery or one-click restore system.
+
+## Design principles
+
+- **Keep credentials out of WordPress.** Prefer server identities and temporary
+  AWS credentials, such as an EC2 IAM role. The plugin uses the AWS SDK default
+  credential provider chain and offers no access-key fields. It does not enforce
+  temporary credentials across every provider in that chain.
+- **Make success depend on verification.** Required integrity checks must pass
+  before a backup is reported successful. Distinguish stored-object integrity
+  from a tested restore.
+- **Keep the core useful for a single site.** Routine backups should not require
+  a centralized management service. Customer-specific dashboards, notifications,
+  and orchestration belong in integration layers, not in the backup core.
+- **Keep recovery boundaries visible.** Explain what is included, what must be
+  saved separately, and which recovery checks remain the operator's responsibility.
 
 ## Get the plugin
 
@@ -47,6 +66,29 @@ operational checks.
 | Authentication | AWS SDK default credential provider chain, including IAM roles. |
 | Removal | Uninstall removes local plugin settings and history while preserving completed backups in S3. |
 
+## What a successful backup means
+
+In 0.2.1, a successful database backup means that the generated SQL is non-empty,
+gzip expansion matches its size and SHA-256, and S3 reports the uploaded object's
+expected size and SHA-256. Unique object keys and conditional writes prevent
+accidental replacement of an existing backup. New history entries retain the
+compressed file's SHA-256 and the `remote_integrity` verification state; older
+entries without evidence remain unverified.
+
+If a required check fails, the backup is not reported successful and the
+success-dependent retention step does not run. An object uploaded before a
+verification failure may remain in S3 for inspection. This protects existing
+backups from success-dependent deletion; it does not make an incomplete job valid.
+
+Media jobs verify their uploaded files and inventory before writing a completion
+marker. Neither a media completion marker nor database integrity evidence proves
+that the complete WordPress site can be restored.
+
+Independent download, checksum, decompression, and isolated database import tests
+have passed for synthetic fixtures using both native and PHP dump backends and
+real S3. These are development tests, not automatic restore tests of every user's
+backup. See the [test scope and results](docs/aws-database-integrity-test-2026-10-17.md).
+
 ## Requirements
 
 - WordPress 5.9 or later and PHP 8.1 or later.
@@ -57,6 +99,12 @@ operational checks.
 
 AWS storage and request charges may apply. Bucket access, encryption, retention,
 and restore procedures remain part of the administrator's setup.
+Scope permissions to the intended bucket, prefix, and operations. Database
+integrity checks require object metadata and checksum read access as well as
+upload access; connection testing and retention need their respective delete
+permissions. Encryption permissions, including KMS where used, must also be
+checked. The current real-S3 integrity tests used SSE-S3, not SSE-KMS, and do not
+certify a least-privilege policy for every deployment.
 
 ## Create the first backup
 
@@ -68,6 +116,9 @@ and restore procedures remain part of the administrator's setup.
    the database in a separate environment.
 6. Enable daily backups and choose retention when the setup is ready.
 
+The connection test checks temporary test objects, not the contents or
+recoverability of a database backup.
+
 Media backup needs one additional setting. Define `ODBFS3_MEDIA_WORK_DIR` in
 `wp-config.php` with the private work directory's absolute path, then start a
 media job explicitly. Keep the uploads tree unchanged until it completes.
@@ -75,14 +126,40 @@ See [readme.txt](readme.txt) for the complete setup and WP-CLI instructions.
 
 ## Recovery and operating boundaries
 
-Database and media backups are separate. A complete recovery needs appropriate
-copies of both, plus any site files outside the uploads directory. This release
-does not provide a production media restore command, automatic media scheduling,
-or media retention.
+The plugin backs up the database and regular files in a single site's uploads
+directory. It does not back up WordPress core, themes, plugins, `wp-config.php`,
+or files elsewhere. Full recovery also needs the appropriate software versions,
+configuration, secrets, and infrastructure setup, such as web-server settings,
+scheduled tasks, and certificates. Preserve or document those separately.
+
+Database and media jobs are independent: the plugin does not guarantee an atomic
+snapshot or a shared point in time between them. A recovery set linking the two
+and a unified recovery manifest are not implemented. Coordinate writes when
+preparing a consistent recovery point, then test database and attachment
+references together in an isolated environment.
+
+There is no user-facing production restore command or button for either database
+or media, and no automatic media scheduling or media retention. Download and
+verification helpers and fixture test tools are not a general-purpose restore
+workflow. Never point isolated restore tests at a production database. Backup
+history is limited to the latest 20 entries and is not a permanent recovery
+catalog; retain the evidence and recovery instructions you need separately.
 
 WP-Cron runs when WordPress receives requests. Use a system scheduler to invoke
 WordPress Cron if your installation requires predictable execution. Failed
 media jobs require inspection and explicit WP-CLI cleanup by their exact job ID.
+
+## Development direction
+
+The next recovery work is to identify related database and media backups,
+describe required and missing materials in a recovery manifest, and document
+and test an end-to-end isolated WordPress restore. Clearer operational failure
+states, scheduling health checks, and stable machine-readable outputs should
+support integrations without making the core customer-specific.
+
+These are planned capabilities, not current guarantees or a finalized external
+integration API. See the [integrity implementation](docs/database-integrity-verification.md)
+for the completed work and remaining verification boundaries.
 
 ## Data and external service
 
