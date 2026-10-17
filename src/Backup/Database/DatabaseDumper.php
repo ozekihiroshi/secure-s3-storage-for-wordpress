@@ -1,8 +1,3 @@
 <?php
-
-namespace SecureS3StorageForWordpress\Backup\Database;
-
-interface DatabaseDumper
-{
-    public function dump(DatabaseConnection $connection): DumpResult;
-}
+// Compatibility alias. Do not duplicate the shared implementation.
+require_once __DIR__.'/../shared-core-compat.php';

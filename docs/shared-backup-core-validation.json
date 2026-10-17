@@ -1,0 +1,21 @@
+{
+  "kind": "legacy_shared_core_regression",
+  "passed": true,
+  "compatibility_checks": 7,
+  "database_restore_rows": 1007,
+  "pipeline_checks_each": 94,
+  "pipeline_backends": [
+    "native",
+    "php"
+  ],
+  "sigkill_boundaries_each": 6,
+  "wordpress_restore_checks_each": 46,
+  "wordpress_backends": [
+    "native",
+    "php"
+  ],
+  "zip_sha256": "0b4f314a17b26b865d03b91db5a37536e1e58ae318a256536503c1a2eed7d57d",
+  "zip_component_matches_canonical_manifest": true,
+  "wordpress_org_published": false,
+  "version_header": "0.3.0 retained for development comparison; this is not a new stable release"
+}

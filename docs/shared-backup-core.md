@@ -1,0 +1,11 @@
+# 共通DB部品への移行（開発ブランチ）
+
+PHP DBダンパーとその依存11ファイルをOzeki Backup Core 0.1.0へ移した。保守元はozeki-wordpress-resilienceのpackages/backup-core。libs/backup-coreはtools/vendor-backup-core.pyで生成した固定版で、直接編集しない。distribution.jsonが全ファイルのハッシュを固定する。
+
+従来のSecureS3StorageForWordpress名前空間の入口を互換エイリアスとして維持する。コンストラクター・メソッドとnative/PHP切替は維持するが、get_classやReflectionが返す名前は版付き共通クラスになる。サービスオブジェクトのserialize互換性は保証しない。
+
+別プラグインをインストール・有効化する必要はない。WordPressの設定、CLI、履歴、スケジュール、保持処理、S3保存形式は変更しない。今回共通化したのはPHP DBダンプと書込み補助であり、S3転送・gzip・メディア収集全体を共通化したわけではない。
+
+build-release.shはlibsを同梱する。共通部品は既に版付き名前空間を持つためPHP-Scoperの対象名前空間から除外し、梱包時に原本を復元してdistribution.jsonとの一致を維持する。ODBFS3_BUILD_DIRで既存公開候補と異なる出力先を指定できる。
+
+この変更は開発ブランチでの導入であり、WordPress.orgへのリリースではない。既存の0.3.0公開候補と公開準備スクリプトは変更しない。

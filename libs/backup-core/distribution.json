@@ -1,0 +1,23 @@
+{
+  "package": "ozeki/backup-core",
+  "version": "0.1.0",
+  "source": "https://github.com/ozekihiroshi/ozeki-wordpress-resilience/tree/codex/shared-backup-core/packages/backup-core",
+  "files": {
+    "autoload.php": "eab6e65171013daf0a506809048161db9cfdb1939fec8a679ffd8cacc5a47752",
+    "composer.json": "89418ddc4a5049f95f03f1e88205f9e8d0b483b0682758b2199d53a848471230",
+    "LICENSE": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "README.md": "41eff5567bcc4c6fc193cae3fd3825ae02615dd46e011ddaf9aab22636dbcaa4",
+    "UPSTREAM.json": "d3d46bed10f931a28160de4586b5b45f42f2ab6439a874f318fcc5dc302f9e6c",
+    "src/CompleteStreamWriter.php": "f10b30c21dab8d3a92f9b0e4a72ec5b9f615abb6579feb9624eaa0a1d7a4c02e",
+    "src/SecureTemporaryFile.php": "249416f9783302bbea412ff9946e754bbdc5465f5cbb9349dc64272b68630b00",
+    "src/Database/DatabaseConnection.php": "1652c9ce73373da5e2a346f8e95177042498c893a4fbda33d45d3a75e7fa3a5a",
+    "src/Database/DatabaseDumper.php": "8911cfb2a0d4b8ca435e6fddc3007b488b7915787e8d165d47a53258f4db00fc",
+    "src/Database/DumpResult.php": "6fd7873fff87b770e1909d195d365c227c0d09ccf349e8a32ffb25ee3ac45a6f",
+    "src/Database/Php/ColumnMetadataReader.php": "57cacc504e1ddad802b62c78b4df4510c88d22cb905503f0ad3cf2bfde986062",
+    "src/Database/Php/PhpMySqlDumper.php": "bb0ff4432ba221adeaf2d446e3b668e1b15f087d99f49c5e7b40a0a34dbfd6fe",
+    "src/Database/Php/RowReader.php": "4fc0fc8c43c52978105b4719b661c49f224c659e18d92c8b9da27d96bf8fd937",
+    "src/Database/Php/SchemaReader.php": "808f2f890cca1854a024b317ebf3c99a34ada1097e91ad9062703f3e82d29028",
+    "src/Database/Php/SqlValueSerializer.php": "c3507a5b12a0d1c47fafb3f2cff4665f8075527fe2a972df76e37477b6996ad6",
+    "src/Database/Php/SqlWriter.php": "e0c9e6b5879ef85002b6b1d0c996d9d9744c927c1ab43da0c487b76b370124c4"
+  }
+}

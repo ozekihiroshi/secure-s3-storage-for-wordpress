@@ -1,0 +1,63 @@
+{
+  "repository": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress",
+  "commit": "627e47c2b31527ef1486e582b79fd5dba875843f",
+  "license": "GPL-2.0-or-later",
+  "transformation": "Namespace moved to Ozeki\\BackupCore\\V0_1_0; LF normalization; behavior unchanged",
+  "files": [
+    {
+      "upstream_path": "src/Backup/Database/DatabaseConnection.php",
+      "upstream_sha256": "493ecbe13e9647bb78dba8164c0edef3c17dd1f7534e2c263deebe0becac13b9",
+      "package_path": "src/Database/DatabaseConnection.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/DatabaseDumper.php",
+      "upstream_sha256": "c9fdbba3d554b0c73cbc5f19e770656b605c381409ef75a3f801f79f1a251398",
+      "package_path": "src/Database/DatabaseDumper.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/DumpResult.php",
+      "upstream_sha256": "6f369e833c859a5a004bd9571801cb2b35501b9af93d8e2165d7523c3dbf202d",
+      "package_path": "src/Database/DumpResult.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/Php/ColumnMetadataReader.php",
+      "upstream_sha256": "b4d661386c6fa208375865bff14231e3b97a959e5416d2d2d5b018751ff6de30",
+      "package_path": "src/Database/Php/ColumnMetadataReader.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/Php/PhpMySqlDumper.php",
+      "upstream_sha256": "1bd82637e9710b6d0931529f897eaeebd757b2da932043e5651aca0c54d3c94c",
+      "package_path": "src/Database/Php/PhpMySqlDumper.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/Php/RowReader.php",
+      "upstream_sha256": "261c9cfa0c1ef8bee8ca1d025581e0b68d3c5a010cf89760318a87dbb165df0f",
+      "package_path": "src/Database/Php/RowReader.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/Php/SchemaReader.php",
+      "upstream_sha256": "279f83821045e61220706217e6c31866d956efc9c391050e286dabad289c2ac8",
+      "package_path": "src/Database/Php/SchemaReader.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/Php/SqlValueSerializer.php",
+      "upstream_sha256": "8fd522d34e7c9838f86997c1dda8a1a857f674d5e67a79889ff4825808876adc",
+      "package_path": "src/Database/Php/SqlValueSerializer.php"
+    },
+    {
+      "upstream_path": "src/Backup/Database/Php/SqlWriter.php",
+      "upstream_sha256": "74849fb3086506b2d49461275c8c6657ac2bb76cf46b00a516ca5cced8636c02",
+      "package_path": "src/Database/Php/SqlWriter.php"
+    },
+    {
+      "upstream_path": "src/Backup/CompleteStreamWriter.php",
+      "upstream_sha256": "b4433c2e3596b14378d928873c82b796dfa9c440a854f7ab0e1fb323c5929fc8",
+      "package_path": "src/CompleteStreamWriter.php"
+    },
+    {
+      "upstream_path": "src/Backup/SecureTemporaryFile.php",
+      "upstream_sha256": "f9262ece189605dbe70bbe93fe9fc8dafd099874dc6f6c212f4341da1be4ca2a",
+      "package_path": "src/SecureTemporaryFile.php"
+    }
+  ]
+}

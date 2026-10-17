@@ -1,0 +1,16 @@
+{
+  "name": "ozeki/backup-core",
+  "description": "WordPress-independent PHP MySQL dump primitives",
+  "version": "0.1.0",
+  "license": "GPL-2.0-or-later",
+  "type": "library",
+  "require": {
+    "php": ">=8.1",
+    "ext-mysqli": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Ozeki\\BackupCore\\V0_1_0\\": "src/"
+    }
+  }
+}
