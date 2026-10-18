@@ -9,3 +9,5 @@ PHP DBダンパーとその依存11ファイルをOzeki Backup Core 0.1.0へ移�
 build-release.shはlibsを同梱する。共通部品は既に版付き名前空間を持つためPHP-Scoperの対象名前空間から除外し、梱包時に原本を復元してdistribution.jsonとの一致を維持する。ODBFS3_BUILD_DIRで既存公開候補と異なる出力先を指定できる。
 
 この変更は開発ブランチでの導入であり、WordPress.orgへのリリースではない。既存の0.3.0公開候補と公開準備スクリプトは変更しない。
+
+互換入口12ファイルも第三者名前空間を参照しないため、ビルド時に原文を維持する。WordPress内またはCLIのみ読込みを許可するガードが、PHP-Scoperの名前空間付与によってPlugin Checkから認識されなくなることを防ぐ。直接HTTP実行の停止とWordPress内の読込みを別途検証する。
