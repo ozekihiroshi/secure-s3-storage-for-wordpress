@@ -1,4 +1,8 @@
 <?php
+// Allow independent CLI tools and WordPress; reject direct web execution.
+if (!defined('ABSPATH') && PHP_SAPI !== 'cli') {
+    exit;
+}
 // Generated compatibility entrypoints; implementation lives in libs/backup-core.
 require_once dirname(__DIR__, 2).'/libs/backup-core/autoload.php';
 class_alias('Ozeki\\BackupCore\\V0_1_0\\Database\\DatabaseConnection', 'SecureS3StorageForWordpress\\Backup\\Database\\DatabaseConnection');

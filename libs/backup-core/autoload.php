@@ -1,4 +1,8 @@
 <?php
+// Allow independent CLI tools and WordPress; reject direct web execution.
+if (!defined('ABSPATH') && PHP_SAPI !== 'cli') {
+    exit;
+}
 // Version-scoped package: no WordPress hooks, runtime downloads or global aliases.
 spl_autoload_register(static function (string $class): void {
     $prefix = 'Ozeki\\BackupCore\\V0_1_0\\';

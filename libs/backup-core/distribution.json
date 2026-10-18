@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "source": "https://github.com/ozekihiroshi/ozeki-wordpress-resilience/tree/codex/shared-backup-core/packages/backup-core",
   "files": {
-    "autoload.php": "eab6e65171013daf0a506809048161db9cfdb1939fec8a679ffd8cacc5a47752",
+    "autoload.php": "e9bd7e4865fc797f06dbf152bd7708bc93835122b746d7347ebb46d43f1a218b",
     "composer.json": "89418ddc4a5049f95f03f1e88205f9e8d0b483b0682758b2199d53a848471230",
     "LICENSE": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
     "README.md": "41eff5567bcc4c6fc193cae3fd3825ae02615dd46e011ddaf9aab22636dbcaa4",
