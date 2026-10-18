@@ -9,7 +9,7 @@ ROOT_DIR="$(
     pwd
 )"
 
-BUILD_DIR="${ROOT_DIR}/build"
+BUILD_DIR="${ODBFS3_BUILD_DIR:-${ROOT_DIR}/build}"
 
 PLUGIN_FILE="${ROOT_DIR}/ozeki-database-backup-for-s3.php"
 COMPOSER_FILE="${ROOT_DIR}/composer.json"
@@ -191,6 +191,9 @@ cp -R "${ROOT_DIR}/src" \
     "${STAGE_DIR}/src"
 
 #
+# Shared component is a generated pinned distribution.
+cp -R "${ROOT_DIR}/libs" "${STAGE_DIR}/libs"
+
 # Composer files are copied temporarily so production dependencies
 # can be installed reproducibly from composer.lock.
 #
@@ -237,6 +240,30 @@ cp "${STAGE_DIR}/ozeki-database-backup-for-s3.php" \
 
 cp "${STAGE_DIR}/uninstall.php" \
     "${SCOPED_DIR}/uninstall.php"
+
+# Compatibility entrypoints only load the already versioned shared component.
+# Preserve their global namespace and guards, just like the plugin entrypoint.
+shared_entrypoints=(
+    "shared-core-compat.php"
+    "CompleteStreamWriter.php"
+    "SecureTemporaryFile.php"
+    "Database/DatabaseConnection.php"
+    "Database/DatabaseDumper.php"
+    "Database/DumpResult.php"
+    "Database/Php/ColumnMetadataReader.php"
+    "Database/Php/PhpMySqlDumper.php"
+    "Database/Php/RowReader.php"
+    "Database/Php/SchemaReader.php"
+    "Database/Php/SqlValueSerializer.php"
+    "Database/Php/SqlWriter.php"
+)
+for entrypoint in "${shared_entrypoints[@]}"; do
+    cp "${STAGE_DIR}/src/Backup/${entrypoint}" \
+        "${SCOPED_DIR}/src/Backup/${entrypoint}"
+done
+
+# Keep the version-scoped shared component byte-identical to its manifest.
+cp -R "${STAGE_DIR}/libs/." "${SCOPED_DIR}/libs/"
 
 composer dump-autoload \
     --working-dir="${SCOPED_DIR}" \

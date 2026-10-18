@@ -7,6 +7,7 @@ return [
     'php-version' => '8.1',
     'exclude-namespaces' => [
         'SecureS3StorageForWordpress',
+        'Ozeki\\BackupCore\\V0_1_0',
     ],
     'exclude-classes' => [
         'WP_CLI',

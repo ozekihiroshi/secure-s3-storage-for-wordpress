@@ -1,38 +1,9 @@
 <?php
-
-namespace SecureS3StorageForWordpress\Backup;
-
-use RuntimeException;
-
-final class CompleteStreamWriter
-{
-    /**
-     * @param callable(string): (int|false) $writeChunk
-     */
-    public static function writeAll(
-        string $content,
-        callable $writeChunk,
-        string $failureMessage
-    ): void {
-        $length = strlen($content);
-        $offset = 0;
-
-        while ($offset < $length) {
-            $remaining = substr($content, $offset);
-            $written = $writeChunk($remaining);
-
-            if (
-                ! is_int($written)
-                || $written <= 0
-                || $written > strlen($remaining)
-            ) {
-                throw new RuntimeException(
-                    // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception message is not HTML output.
-                    $failureMessage
-                );
-            }
-
-            $offset += $written;
-        }
+// Allow independent CLI tools and WordPress; reject direct web execution.
+if (!defined('ABSPATH')) {
+    if (PHP_SAPI !== 'cli') {
+        exit;
     }
 }
+// Compatibility alias. Do not duplicate the shared implementation.
+require_once __DIR__.'/shared-core-compat.php';
