@@ -1,7 +1,9 @@
 <?php
 // Allow independent CLI tools and WordPress; reject direct web execution.
-if (!defined('ABSPATH') && PHP_SAPI !== 'cli') {
-    exit;
+if (!defined('ABSPATH')) {
+    if (PHP_SAPI !== 'cli') {
+        exit;
+    }
 }
 // Generated compatibility entrypoints; implementation lives in libs/backup-core.
 require_once dirname(__DIR__, 2).'/libs/backup-core/autoload.php';
