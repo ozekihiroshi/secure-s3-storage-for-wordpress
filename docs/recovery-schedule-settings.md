@@ -30,6 +30,8 @@ Backup for S3単独のRecovery Set機能。予定判定だけを設定する。�
 
 ## 検証範囲
 
+後続の[ブラウザ受入確認](recovery-schedule-settings-browser.md)では、管理画面からの保存・停止再開・古い画面の拒否・権限とCron登録内容の不変性を確認する。以下は先行したハンドラー試験の記録。
+
 [検証集計](recovery-schedule-settings-validation.json)：専用WordPressで38項目合格。既存予定判定39項目はPHP 8.1/8.3で回帰確認し、追加ハンドラーのPHP 8.1構文も確認した。
 
 既存管理画面37項目と実WP-CLIの実行記録JSONも回帰確認し、表示前後のDBとworkspaceが不変であることを確認した。これらの件数は重複するため合算しない。

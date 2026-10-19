@@ -18,9 +18,15 @@ elif '--pending' in sys.argv:
     print(wp('eval-file','/repo/tests/manual/seed-recovery-browser-cleanup.php',s['set_id']))
 elif '--cron' in sys.argv:
     print(wp('cron','event','list','--format=json'))
+elif '--canary' in sys.argv:
+    print(wp('eval', "if (!wp_next_scheduled('odbfs3_fixture_canary')) { wp_schedule_event(time()+86400, 'daily', 'odbfs3_fixture_canary'); } echo 'Fixture canary scheduled; no handler installed';"))
 else:
     sql="SELECT option_name,option_value,autoload FROM wp_options WHERE option_name LIKE 'odbfs3_%' OR option_name LIKE 'secure_s3_%' OR option_name IN ('cron','active_plugins') ORDER BY option_name"
     data=run('docker','exec',db,'mariadb','-uroot','-pfixture-only','--batch','--skip-column-names','fixture','-e',sql)
     files=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',s['set_id'],'snapshot')
-    print(json.dumps({'options_sha256':hashlib.sha256(data.encode()).hexdigest(),'workspace':files}))
+    protected='\n'.join(line for line in data.splitlines() if not line.startswith('odbfs3_expectation_'))
+    cron=run('docker','exec',db,'mariadb','-uroot','-pfixture-only','--batch','--skip-column-names','fixture','-e',"SELECT option_value FROM wp_options WHERE option_name='cron'")
+    print(json.dumps({'options_sha256':hashlib.sha256(data.encode()).hexdigest(),
+        'protected_options_sha256':hashlib.sha256(protected.encode()).hexdigest(),
+        'cron_sha256':hashlib.sha256(cron.encode()).hexdigest(),'workspace':files}))
 

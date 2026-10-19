@@ -1,0 +1,67 @@
+{
+  "date_jst": "2026-10-20",
+  "source_commit": "641f751",
+  "passed": true,
+  "browser": "155.0.4283.62",
+  "checks": [
+    "one dedicated settings form",
+    "scope distinction visible",
+    "POST status 200",
+    "enabled persisted via browser",
+    "saved policy assessment displayed",
+    "POST status 200",
+    "period and grace persisted",
+    "POST status 400",
+    "stale page did not overwrite",
+    "POST status 200",
+    "assessment stopped",
+    "POST status 400",
+    "invalid resume kept stopped",
+    "POST status 200",
+    "resume with future anchor",
+    "POST status 400",
+    "invalid grace no change",
+    "POST status 403",
+    "POST status 400",
+    "subscriber menu absent",
+    "subscriber direct GET denied",
+    "subscriber POST denied even with admin payload",
+    "guest GET requires login",
+    "guest POST cannot save",
+    "unauthorized requests preserved policy",
+    "no unexpected browser script errors"
+  ],
+  "protected_options_unchanged": true,
+  "cron_unchanged": true,
+  "workspace_unchanged": true,
+  "expectation_changed": true,
+  "cron_sha256": "8a749d713f53a07e2276d3febaab253d051056b4f154597cadc88656da0e6bbc",
+  "protected_options_sha256": "473262078257722ed688ba674e5d5e7ffd5be4c1275c6026b683618e6f89c08c",
+  "browser_observations": [
+    {
+      "url": "http://localhost:18763/wp-admin/admin-post.php",
+      "name": "InvalidStateError",
+      "message": "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+      "stack": ""
+    },
+    {
+      "url": "http://localhost:18763/wp-admin/admin-post.php",
+      "name": "InvalidStateError",
+      "message": "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+      "stack": ""
+    },
+    {
+      "url": "http://localhost:18763/wp-admin/admin-post.php",
+      "name": "InvalidStateError",
+      "message": "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+      "stack": ""
+    },
+    {
+      "url": "http://localhost:18763/wp-admin/admin-post.php",
+      "name": "InvalidStateError",
+      "message": "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+      "stack": ""
+    }
+  ],
+  "scope": "Disposable full-plugin browser test, generated data; no shared-core, S3 or production changes"
+}
