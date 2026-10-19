@@ -10,7 +10,7 @@ use Throwable;
 /** POSIX, read-only advisory plan. Never constructs RecoveryWorkspace or authorizes deletion. */
 final class RecoveryCleanupPlan
 {
-    public static function inspect(JobStore $store, string $id, string $parent, array $excludedRoots): array
+    public static function inspect(JobStore $store, string $id, string $parent, array $excludedRoots, $heldLock = null): array
     {
         Contract::id($id);
         $out=['schema_version'=>1,'set_id'=>$id,'dry_run'=>true,'deletion_authorized'=>false,'inspection_scope'=>'top_level_only','phase'=>'unknown','inspection_complete'=>false,
@@ -30,8 +30,9 @@ final class RecoveryCleanupPlan
             }
             $path=$parent.'/recovery-'.$id;
             $dir=self::stat($path);Contract::require(self::directory($dir) && realpath($path)===$path);
-            $lock=self::open($path.'/worker.lock');
-            if(!flock($lock,LOCK_SH|LOCK_NB)){$out['protection_reasons'][]='workspace_busy';return $out;}
+            $lock=$heldLock??self::open($path.'/worker.lock');
+            Contract::require(is_resource($lock) && self::identity(fstat($lock))===self::stat($path.'/worker.lock') && self::file(self::stat($path.'/worker.lock')));
+            if($heldLock===null && !flock($lock,LOCK_SH|LOCK_NB)){$out['protection_reasons'][]='workspace_busy';return $out;}
             $intent=self::open($path.'/intent.json');
             try{$intentIdentity=self::identity(fstat($intent));$bytes=stream_get_contents($intent,8193);Contract::require(strlen($bytes)<=8192 && feof($intent));}
             finally{fclose($intent);}
@@ -59,7 +60,7 @@ final class RecoveryCleanupPlan
             Contract::require(self::names($path)===$names);
             $out['inspection_complete']=true;
         }catch(Throwable $e){$out['protection_reasons'][]='inspection_unavailable_or_changed';}
-        finally{if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}}
+        finally{if($heldLock===null && is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}}
         $out['protection_reasons']=array_values(array_unique($out['protection_reasons']));
         foreach($out['entries'] as &$entry){
             if($entry['disposition']==='candidate'){

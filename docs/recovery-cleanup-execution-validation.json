@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "passed": true,
+  "scope": "explicit completed Recovery Set local database temporary cleanup",
+  "contracts": {"php_8_1_new_checks": 26, "php_8_3_new_checks": 26, "dry_run_regression_each": 29, "counts_not_additive": true},
+  "faults": ["second unlink failure", "journal failure after unlink", "initial journal acknowledgement loss", "collector change before unlink", "same-size content change before unlink", "recreated file", "corrupt journal", "missing prepared file", "active lock", "symlink", "hardlink", "unknown entry"],
+  "real_wordpress_cli": {
+    "passed": true,
+    "fixture": "synthetic Collector and temporary files, test-only registrar",
+    "confirmation_required": true,
+    "only_cleanup_journal_and_options_auto_increment_changed": true,
+    "evidence_preserved": true,
+    "completed_replay_unchanged": true,
+    "remaining_candidate_bytes": 0,
+    "log_sha256": "77c7a270679b0fd5fe0eb28f3ff99fc624d8dfe96ae92ea0e7dd1ae16673ea6d"
+  },
+  "actual_acquisition_cleanup_restore": {
+    "wordpress": "7.0.2",
+    "native": {"source_checks": 47, "restore_checks": 44, "manifest_sha256": "7320e2d9ec58f1c327aadf4c634a1f74141b152a74ae2d22716716238710b0a7"},
+    "php": {"source_checks": 47, "restore_checks": 44, "manifest_sha256": "744210625ede14ca228c606ba8e2f610cf285f1ea2348fb75340aa74f5984f82"},
+    "source_database_removed_before_restore": true,
+    "cron_does_not_recreate_cleaned_files": true,
+    "transport": "disk S3 double",
+    "network": "internal Docker networks",
+    "log_sha256": "46417cbde5279d04bdece264fbb460744baa02f7d1b6142917baee51b464b174"
+  },
+  "limitations": ["only two database temporary filenames", "1 GiB content verification limit per file", "no recursive or automatic cleanup", "no current S3 availability probe", "no hostile same-user race or OS crash durability acceptance", "no production deployment"]
+}

@@ -12,6 +12,8 @@
 
 ## 目的と開発単位
 
+後続の追記：[明示cleanup](recovery-cleanup-execution.md)を追加。exact set ID確認・排他ロック・削除直前hash検証・専用台帳・途中失敗後の照合を実装。対象は完了DB一時ファイル2種のみ。自動／再帰cleanup、メディア削除は含まない。
+
 最新の追記：[workspace cleanup dry-run](recovery-cleanup-plan.md)を追加。完了セットのDB一時ファイル候補と保護理由を読取り専用で表示する。media subtreeは保護し、再帰容量を推測しない。削除実行・自動cleanupは未実装。
 
 Ozeki Database Backup for S3は、バックアップとリストアの完全性を高める独立製品として改善を続ける。既存Recovery Setの内部契約を利用し、オペレーターが不足・失敗・未検証を識別して操作できる入口を追加する。Resilienceの独立署名、侵害耐性、watchdogの仕組みをこの変更の必須要件にしない。

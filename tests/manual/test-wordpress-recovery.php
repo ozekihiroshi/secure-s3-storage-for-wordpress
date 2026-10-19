@@ -131,6 +131,11 @@ if ($mode === 'source') {
     verify($availability===['operation_passed'=>true,'registration'=>'registered'],'Actual availability automatically registered');
     verify($catalog->observations($set->id,gmdate('Y-m-d\TH:i:s\Z'))['availability']['state']==='available','Availability visible in aggregation');
     verify($store->read()===file_get_contents('/expected/collector.json'),'Availability registration preserved complete evidence');
+    $cleanup=new \SecureS3StorageForWordpress\Backup\Recovery\RecoveryCleanup($store,WordPressJobStore::forRecoveryCleanup($GLOBALS['wpdb'],$set->id));
+    $clean=$cleanup->execute($set->id,'/private',['/site',$uploads]);
+    verify($clean['state']==='complete' && $clean['files']===['database.sql'=>'deleted','database.sql.gz'=>'deleted'],'Actual captured SQL/gzip cleanup verified');
+    verify($store->read()===file_get_contents('/expected/collector.json'),'Cleanup preserves completion evidence');
+    do_action($hook);verify($cronResult['reason_code']==='already_complete','Cron does not recreate cleaned files');
     echo "PASS WordPress source backend=$backend core={$GLOBALS['wp_version']} checks=$checks\n";
     exit;
 }

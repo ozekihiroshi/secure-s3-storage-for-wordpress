@@ -1,6 +1,6 @@
 # Recovery Set workspace cleanupのdry-run
 
-共通DB部品の採用変更とは別の`codex/recovery-operator-plan`に追加した、読取り専用の計画表示。削除実行、保存期間による自動整理、S3削除は実装していない。
+共通DB部品の採用変更とは別の`codex/recovery-operator-plan`に追加した、読取り専用の計画表示。このコマンドは削除しない。別の[明示実行入口](recovery-cleanup-execution.md)を後続変更で追加した。保存期間による自動整理、S3削除は実装していない。
 
 ```sh
 wp ozeki-database-backup-for-s3 recovery-set cleanup-plan <set-id> \

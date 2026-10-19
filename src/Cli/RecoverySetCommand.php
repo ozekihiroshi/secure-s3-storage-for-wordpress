@@ -11,6 +11,43 @@ use WP_CLI;
 final class RecoverySetCommand
 {
     /**
+     * Explicitly remove only verified completed database temporary files.
+     *
+     * ## OPTIONS
+     *
+     * <set-id>
+     * : Exact completed Recovery Set ID.
+     * --workspace-parent=<path>
+     * : Existing private POSIX workspace parent.
+     * --confirm-set=<id>
+     * : Repeat the same set ID to authorize local temporary cleanup.
+     * [--format=<format>]
+     * : json or table. Default: table.
+     *
+     * @subcommand cleanup
+     * @when after_wp_load
+     */
+    public function cleanup(array $args,array $assocArgs):void
+    {
+        $format=$assocArgs['format']??'table';$parent=$assocArgs['workspace-parent']??null;
+        if(count($args)!==1 || !is_string($args[0]) || preg_match('/^[a-f0-9]{32}$/D',$args[0])!==1
+            || ($assocArgs['confirm-set']??null)!==$args[0] || !is_string($parent) || $parent===''
+            || !in_array($format,['json','table'],true) || array_diff(array_keys($assocArgs),['workspace-parent','confirm-set','format'])){
+            $this->output(['schema_version'=>1,'reason_code'=>'invalid_request'],$format==='json',2);return;
+        }
+        try{
+            $db=$GLOBALS['wpdb'];$old=$db->suppress_errors(true);
+            try{
+                $uploads=wp_upload_dir(null,false,false);if(!empty($uploads['error']))throw new \RuntimeException('Uploads unavailable');
+                $run=new \SecureS3StorageForWordpress\Backup\Recovery\RecoveryCleanup(
+                    WordPressJobStore::forRecovery($db,$args[0]),WordPressJobStore::forRecoveryCleanup($db,$args[0]));
+                $result=$run->execute($args[0],$parent,[ABSPATH,$uploads['basedir']]);
+            }finally{$db->suppress_errors($old);}
+        }catch(Throwable $e){$result=['schema_version'=>1,'set_id'=>$args[0],'state'=>'incomplete','reason_code'=>'state_unavailable'];}
+        $this->output($result,$format==='json',$result['state']==='complete'?0:4);
+    }
+
+    /**
      * Inspect workspace cleanup candidates without deleting or changing state.
      *
      * ## OPTIONS

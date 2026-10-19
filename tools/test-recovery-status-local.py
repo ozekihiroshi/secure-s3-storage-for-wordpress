@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Disposable WP-CLI/MariaDB status test. Local images, internal network, no AWS."""
-import hashlib, ipaddress, json, pathlib, subprocess, sys, time, uuid
+import hashlib, ipaddress, json, pathlib, re, subprocess, sys, time, uuid
 
 root = pathlib.Path(__file__).resolve().parents[1]
 name = 'odb-status-' + uuid.uuid4().hex[:10]
@@ -45,9 +45,13 @@ try:
         '--admin_password=fixture-only-long-password','--admin_email=fixture@example.invalid','--skip-email')
     sid=wp('eval-file','/repo/tests/manual/seed-recovery-status.php')
     workspace_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'setup')
-    def snapshot():
+    def snapshot(ignore_cleanup=False):
         data=run('docker','exec',db,'mariadb-dump','-uroot','-pfixture-only',
-                 '--skip-comments','--skip-dump-date','--order-by-primary','fixture')
+                 '--skip-comments','--skip-dump-date','--skip-extended-insert','--order-by-primary','fixture')
+        if ignore_cleanup:
+            data='\n'.join(line for line in data.splitlines() if not (line.startswith('INSERT INTO `wp_options`') and 'odbfs3_cleanup_' in line))
+            # Creating the one journal row also advances wp_options' next generated ID.
+            data=re.sub(r'(CREATE TABLE `wp_options` .*?AUTO_INCREMENT=)\d+',r'\g<1>JOURNAL_COUNTER',data,flags=re.S)
         return hashlib.sha256(data.encode()).hexdigest()
     before=snapshot()
     cleanup=('ozeki-database-backup-for-s3','recovery-set','cleanup-plan')
@@ -62,6 +66,24 @@ try:
     assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==workspace_before
     assert snapshot()==before, 'Cleanup plan changed database'
     print('PASS cleanup-plan WP CLI: JSON/table/missing/unsafe-parent; files and DB unchanged')
+    if '--cleanup-execute-only' in sys.argv:
+        wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'prepare-execution')
+        original=snapshot(True)
+        evidence=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'evidence')
+        execute=('ozeki-database-backup-for-s3','recovery-set','cleanup',sid,'--workspace-parent=/inspection','--format=json')
+        assert wp(*execute,code=1)=='' # WP-CLI required-argument parser rejects before dispatch.
+        no_confirm=json.loads(wp(*execute,'--confirm-set='+'f'*32,code=2))
+        assert no_confirm['reason_code']=='invalid_request' and snapshot(True)==original
+        result=json.loads(wp(*execute,'--confirm-set='+sid))
+        assert result['state']=='complete' and set(result['files'].values())=={'deleted'}
+        assert snapshot(True)==original, 'Only cleanup journal may change in DB'
+        assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'evidence')==evidence
+        after=snapshot()
+        assert json.loads(wp(*execute,'--confirm-set='+sid))['state']=='complete'
+        assert snapshot()==after, 'Replay must not update even the journal'
+        assert json.loads(wp(*cleanup,sid,'--workspace-parent=/inspection','--format=json'))['candidate_bytes']==0
+        print(json.dumps({'kind':'cleanup_execution_real_wordpress_cli','passed':True,'only_cleanup_journal_changed':True,'evidence_preserved':True,'replay_unchanged':True,'remaining_candidate_bytes':0,'external_network':'blocked','bootstrap':'test-only registrar, synthetic Collector fixture'}))
+        raise SystemExit(0)
     if '--cleanup-only' in sys.argv:
         print(json.dumps({'kind':'cleanup_plan_real_wordpress_cli','passed':True,'files_unchanged':True,'database_unchanged':True,'cases':4,'external_network':'blocked','bootstrap':'test-only registrar'}))
         raise SystemExit(0)

@@ -184,7 +184,7 @@ recorded availability/restoration observations bound to the exact manifest.
 [Automatic observation recording](docs/automatic-recovery-observations.md) now
 connects the isolated verification/restoration pipeline to the catalog, with a
 durable delivery journal and delivery-only retries. General operator restore
-commands, scheduled verification, and cleanup remain planned work.
+commands, scheduled verification, and automatic cleanup remain planned work.
 
 An opt-in [Recovery Set Cron entry](docs/recovery-cron-entry.md) now freezes a
 daily intent, deduplicates callbacks, and advances one Collector operation per
@@ -198,7 +198,11 @@ monitoring are not included.
 The read-only [workspace cleanup plan](docs/recovery-cleanup-plan.md) lists
 completed database temporary-file candidates and protection reasons. It retains
 coordination/evidence files and media subtrees, blocks unsafe or unfinished
-workspaces, and never deletes files or contacts S3. Actual cleanup remains future work.
+workspaces, and never deletes files or contacts S3.
+The separate [explicit cleanup command](docs/recovery-cleanup-execution.md) requires
+the exact set ID twice, revalidates hashes under an exclusive lock, and journals
+each local temporary-file deletion for safe reconciliation after interruption.
+It retains evidence and media subtrees; automatic or recursive cleanup is not included.
 
 Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)
