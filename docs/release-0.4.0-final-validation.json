@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "previous": null,
+      "candidate": {
+        "version": "0.4.0",
+        "sha256": "4876c3971ebb5d7d4adf829a755c574216f22a20b5d6be9a74552ca00721fd62",
+        "files": 3894
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "schedule_settings_and_execution_preserved": true,
+      "schedule_and_execution_json": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true,
+      "settings_handler_checks": 38
+    },
+    {
+      "previous": {
+        "version": "0.3.0",
+        "sha256": "ea7c6a3cd7f76f949a95af296af0c799556f38aeb2c249aed950f9ef2d6d8080",
+        "files": 3876
+      },
+      "candidate": {
+        "version": "0.4.0",
+        "sha256": "4876c3971ebb5d7d4adf829a755c574216f22a20b5d6be9a74552ca00721fd62",
+        "files": 3894
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "schedule_settings_and_execution_preserved": true,
+      "schedule_and_execution_json": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true,
+      "settings_handler_checks": 38
+    }
+  ],
+  "scope": "real ZIP Plugin_Upgrader on disposable WP; generated records; no S3",
+  "date_jst": "2026-10-20",
+  "source_commit": "c6a3c1da30e9fa25461af3f73666d6b95bdc3b18",
+  "zip_sha256": "4876c3971ebb5d7d4adf829a755c574216f22a20b5d6be9a74552ca00721fd62",
+  "changed_from_previous_040": [
+    "ozeki-database-backup-for-s3/readme.txt",
+    "ozeki-database-backup-for-s3/src/Admin/RecoveryScheduleSettings.php",
+    "ozeki-database-backup-for-s3/src/Admin/RecoverySetsPage.php",
+    "ozeki-database-backup-for-s3/src/Backup/Recovery/RecoveryCleanup.php",
+    "ozeki-database-backup-for-s3/src/Backup/Recovery/RecoveryCleanupPlan.php"
+  ],
+  "vendor_unchanged": true,
+  "shared_core_changed": false,
+  "real_s3_retested": false,
+  "publication": "unpublished 0.4.0 release candidate"
+}

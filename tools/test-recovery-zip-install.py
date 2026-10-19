@@ -101,7 +101,13 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   events=json.loads(wp('cron','event','list','--format=json'))
   assert len([e for e in events if e['hook']=='secure_s3_storage_database_backup_cron'])==1,'Legacy daily schedule not restored'
   assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==files_before
+  # State-preservation assertions above are complete. Reuse only this disposable
+  # source's policy for POST/nonce/CAS/permissions regression against installed code.
+  wp('eval',"delete_option('odbfs3_expectation_'.str_repeat('a',32));")
+  settings_result=json.loads(wp('eval-file','/repo/tests/manual/test-recovery-schedule-settings-wordpress.php'))
+  assert settings_result['passed'],'Installed settings handler regression'
   result={'previous':archive_info(old) if old else None,'candidate':info,'passed':True,'installed_files_match_zip':True,'upgrade_state_preserved':True,'same_version_pending_records_preserved':True,'schedule_settings_and_execution_preserved':True,'schedule_and_execution_json':True,'read_views_unchanged':True,'deactivate_reactivate_preserved':True,'workspace_preserved':True}
+  result['settings_handler_checks']=settings_result['checks']
   results.append(result);print(json.dumps(result),flush=True)
  finally:
   for kind,item in reversed(created):run('docker',kind,'rm',*(['-f','-v'] if kind=='container' else []),item)
