@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.WP.AlternativeFunctions.file_system_operations_fclose, WordPress.WP.AlternativeFunctions.unlink_unlink -- Private POSIX cleanup requires the same local descriptor for flock/fstat/hash checks and direct unlink of the revalidated path. WP_Filesystem transports cannot supply these guarantees; wp_delete_file filters can redirect the path and return no unlink result. execute() constrains root, owner, mode, inode, manifest hash and deletion journal before unlink.
+
 namespace SecureS3StorageForWordpress\Backup\Recovery;
 
 use SecureS3StorageForWordpress\Backup\Job\JobStore;

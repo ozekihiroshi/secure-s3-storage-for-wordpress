@@ -16,11 +16,16 @@ final class RecoveryScheduleSettings
     public function register():void { add_action('admin_post_'.self::ACTION,[$this,'handle']); }
     public function handle():void
     {
-        $result=$this->save(wp_unslash($_POST),$_SERVER['REQUEST_METHOD']??'');
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- save() validates capability, every field's type/allowlist and the source/token-bound nonce before any mutation.
+        $post=wp_unslash($_POST);
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Request-method metadata only; save() verifies the nonce before writing.
+        $method=isset($_SERVER['REQUEST_METHOD']) && is_string($_SERVER['REQUEST_METHOD'])
+            ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'])) : '';
+        $result=$this->save($post,$method);
         if ($result!=='saved') {
             wp_die(esc_html('保存を確認できませんでした。保存済みの可能性もあるため、再送せず画面を再読込みしてください。権限・入力・確認欄と最新設定を確認してください。停止から再開する場合は未来の初回予定が必要です。'),'', ['response'=>$result==='denied'?403:400]);return;
         }
-        wp_safe_redirect(add_query_arg(['page'=>RecoverySetsPage::SLUG,'source_id'=>$_POST['source_id'],'schedule_saved'=>'1'],admin_url('options-general.php')));
+        wp_safe_redirect(add_query_arg(['page'=>RecoverySetsPage::SLUG,'source_id'=>$post['source_id'],'schedule_saved'=>'1'],admin_url('options-general.php')));
         exit;
     }
 

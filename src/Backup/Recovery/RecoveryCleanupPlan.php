@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Read-only POSIX inspection needs local descriptors for flock/fstat and bounded reads with inode revalidation. WP_Filesystem transports do not expose these guarantees. open() rejects unsafe owner, mode, links and changed identity; no files are created here.
+
 namespace SecureS3StorageForWordpress\Backup\Recovery;
 
 use SecureS3StorageForWordpress\Backup\Job\JobStore;

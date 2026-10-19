@@ -21,5 +21,14 @@ if($mode==='legacy'){
  ob_start();(new \SecureS3StorageForWordpress\Admin\RecoverySetsPage())->render();$html=ob_get_clean();
  foreach(['Manifest SHA-256','needs_reconciliation','available','failed'] as $word)if(!str_contains($html,$word))throw new RuntimeException('Missing rendered state '.$word);
  if(str_contains($html,'SECRET'))throw new RuntimeException('Leaked path');
+ // Exercise malformed GET shapes and XSS input against the installed ZIP renderer.
+ foreach ([['set_id'=>[$args[1]]],['set_id'=>'<script>alert(1)</script>'],['source_id'=>['a']],['source_id'=>str_repeat('a',32).'<b>']] as $query) {
+  $_GET=$query;ob_start();(new \SecureS3StorageForWordpress\Admin\RecoverySetsPage())->render();$bad=ob_get_clean();
+  if(!str_contains($bad,'32桁の小文字16進数') || str_contains($bad,'<script>'))throw new RuntimeException('Malformed filter not safely rejected');
+ }
+ $_GET=['source_id'=>str_repeat('a',32),'schedule_saved'=>'1'];
+ ob_start();(new \SecureS3StorageForWordpress\Admin\RecoverySetsPage())->render();$form=ob_get_clean();
+ foreach(['設定を保存しました','name="_wpnonce"','name="source_id"','name="expected"'] as $word)
+  if(!str_contains($form,$word))throw new RuntimeException('Buffered form lost '.$word);
 }else{throw new RuntimeException('Unknown fixture action');}
 echo 'PASS '.$mode;

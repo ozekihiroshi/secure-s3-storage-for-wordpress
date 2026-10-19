@@ -10,6 +10,14 @@ use Throwable;
 final class RecoverySetsPage
 {
     public const SLUG='odbfs3-recovery-sets';
+    /** Read-only filters: reject malformed input rather than normalize it into another ID. */
+    private function query(string $name, string $pattern): ?string
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Read-only filter; unslashed below and accepted only by the complete allowlist expression.
+        $value=wp_unslash($_GET[$name]??'');
+        if (!is_string($value)) return null;
+        return preg_match($pattern,$value)===1?$value:null;
+    }
     public function register():void {add_action('admin_menu',[$this,'menu']);(new RecoveryScheduleSettings())->register();}
     public function menu():void {add_options_page('Recovery Sets','Recovery Sets','manage_options',self::SLUG,[$this,'render']);}
     private function row(string $label,mixed $value):void {
@@ -63,18 +71,18 @@ final class RecoverySetsPage
     {
         if(!current_user_can('manage_options')){wp_die(esc_html__('この画面を表示する権限がありません。','ozeki-database-backup-for-s3'));return;}
         echo '<div class="wrap"><h1>Recovery Sets</h1><p>状態の表示は読取り専用です。表示してもバックアップ・検証・cleanupは実行されません。予定判定の設定は専用フォームから明示的に保存します。</p>';
-        if (($_GET['schedule_saved']??null)==='1') echo '<p>予定判定の設定を保存しました。実Cronは変更していません。</p>';
+        if ($this->query('schedule_saved','/^(|1)$/D')==='1') echo '<p>予定判定の設定を保存しました。実Cronは変更していません。</p>';
         echo '<p>保存完了、取得可否の観測、復元試験は別の結果です。観測の鮮度は24時間。時刻はUTCです。</p>';
         echo '<form method="get" action="'.esc_url(admin_url('options-general.php')).'"><input type="hidden" name="page" value="'.esc_attr(self::SLUG).'"><label for="odb-source">Source ID</label> <input id="odb-source" name="source_id" maxlength="32" size="36"> <button class="button" type="submit">実行記録を表示</button></form>';
         echo '<form method="get" action="'.esc_url(admin_url('options-general.php')).'"><input type="hidden" name="page" value="'.esc_attr(self::SLUG).'"><label for="odb-set">セットID</label> <input id="odb-set" name="set_id" type="text" size="36" maxlength="32"> <button class="button" type="submit">状態を表示</button></form>';
-        $id=$_GET['set_id']??'';
+        $id=$this->query('set_id','/^(|[a-f0-9]{32})$/D');
         if(!is_string($id) || ($id!=='' && preg_match('/^[a-f0-9]{32}$/D',$id)!==1)){
             echo '<p role="alert">セットIDは32桁の小文字16進数で指定してください。</p></div>';return;
         }
         $db=$GLOBALS['wpdb'];$old=$db->suppress_errors(true);
         $bufferLevel=ob_get_level();ob_start();
         try{
-            $source=$_GET['source_id']??'';
+            $source=$this->query('source_id','/^(|[a-f0-9]{32})$/D');
             if (!is_string($source) || ($source!=='' && preg_match('/^[a-f0-9]{32}$/D',$source)!==1)) {
                 echo '<p role="alert">Source IDは32桁の小文字16進数で指定してください。</p>';
             } elseif ($source!=='') { $this->execution($source); }
@@ -118,6 +126,7 @@ final class RecoverySetsPage
                 }
                 if($store->read()!==$snapshot)throw new \RuntimeException('Record changed during display.');
             }
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Buffer contains only this renderer's static markup and individually esc_html/esc_attr/esc_url escaped values. Discard it if the record changes; escaping the whole buffer would break the settings form.
             echo ob_get_clean();
         }catch(Throwable $e){while(ob_get_level()>$bufferLevel)ob_end_clean();echo '<p role="alert">記録を安全に読めません。状態は不明です。再読込みして確認してください。</p>';}
         finally{$db->suppress_errors($old);}
