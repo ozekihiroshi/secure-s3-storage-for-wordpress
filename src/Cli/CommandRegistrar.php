@@ -16,6 +16,7 @@ final class CommandRegistrar
         }
 
         WP_CLI::add_command('ozeki-database-backup-for-s3 media', MediaCommand::class);
+        WP_CLI::add_command('ozeki-database-backup-for-s3 recovery-set', RecoverySetCommand::class);
 
         WP_CLI::add_command(
             'ozeki-database-backup-for-s3 backup',

@@ -28,3 +28,5 @@ jobs:
           php tests/manual/test-recovery-workspace.php
           php -l tests/manual/test-recovery-publication.php
           php tests/manual/test-recovery-publication.php
+          php -l src/Cli/RecoverySetCommand.php
+          php tests/manual/test-recovery-status.php

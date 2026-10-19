@@ -176,6 +176,11 @@ latest-set index, Cron orchestration, and workspace cleanup. This work is
 independent of shared database-core adoption. Publication completion, current
 availability, and restoration-test results will be reported separately.
 
+A read-only [Recovery Set status command](docs/recovery-set-status.md) now exposes
+existing site-local set records as a table or versioned JSON. It does not create
+sets, contact S3, or aggregate external restoration observations. Latest-set
+discovery, Cron orchestration, and cleanup remain planned work.
+
 Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)
 for the completed work and remaining verification boundaries.
