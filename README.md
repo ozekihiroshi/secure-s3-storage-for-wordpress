@@ -212,6 +212,12 @@ The [reviewed candidate ZIP](docs/recovery-cumulative-review.md) has now passed
 fresh installation, upgrades from local 0.2.1/0.3.0 packages, and pending-state
 preservation tests. Its exact hash and scope are recorded; it is not a published release.
 
+The same unchanged ZIP also passed a [real-S3 round trip and isolated restore](docs/recovery-zip-real-s3.md)
+with synthetic data using both native and PHP database backends. This is a
+test bridge using the packaged runtime, not a production worker acceptance test.
+Version-pinned retention, independent signing and separated read/write roles
+are outside this test's scope.
+
 For details, start with the [current inventory](docs/recovery-operator-roadmap.md)
 and [publication checklist and remaining limitations](docs/recovery-operator-release-readiness.md).
 Before distributing an update, review the cumulative changes, validate the final

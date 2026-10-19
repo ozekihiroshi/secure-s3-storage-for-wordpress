@@ -66,10 +66,11 @@ try {
     $listing = $sdk->listObjectsV2(['Bucket' => $bucket, 'Prefix' => $prefix . '/', 'MaxKeys' => 1]);
     requireFixture(count($listing['Contents'] ?? []) === 0);
     $report = ['run' => $argv[2], 'backend' => $argv[3], 'bucket' => $bucket, 'prefix' => $prefix,
-        'transport' => 'real_s3', 'synthetic_only' => true, 'objects' => [], 'php' => PHP_VERSION];
+        'transport' => 'real_s3', 'synthetic_only' => true, 'objects' => [], 'php' => PHP_VERSION,
+        'runtime_manifest_sha256' => is_file(__DIR__.'/../runtime-sha256.txt') ? hash_file('sha256',__DIR__.'/../runtime-sha256.txt') : null];
     foreach (['getBucketVersioning', 'getBucketEncryption', 'getPublicAccessBlock'] as $operation) {
         try { $settings = $sdk->$operation(['Bucket' => $bucket])->toArray(); unset($settings['@metadata']); $report['bucket_checks'][$operation] = $settings; }
-        catch (\Aws\Exception\AwsException $e) { $report['bucket_checks'][$operation] = ['unavailable' => $e->getAwsErrorCode()]; }
+        catch (\Aws\Exception\AwsException|\SecureS3StorageForWordpressVendor\Aws\Exception\AwsException $e) { $report['bucket_checks'][$operation] = ['unavailable' => $e->getAwsErrorCode()]; }
     }
     $upload = static function (string $oldKey, string $newKey, int $size, string $hash) use ($sourcePath, $client, $bucket, &$report): array {
         $path = $sourcePath($oldKey);
@@ -153,7 +154,7 @@ try {
     echo 'PASS real S3 recovery transport backend=' . $argv[3] . ' objects=' . count($report['objects']) . ' prefix=' . $prefix . "\n";
 } catch (Throwable $e) {
     $cause = $e; while ($cause->getPrevious() !== null) { $cause = $cause->getPrevious(); }
-    $code = $cause instanceof \Aws\Exception\AwsException ? $cause->getAwsErrorCode() : get_class($cause);
+    $code = ($cause instanceof \Aws\Exception\AwsException || $cause instanceof \SecureS3StorageForWordpressVendor\Aws\Exception\AwsException) ? $cause->getAwsErrorCode() : get_class($cause);
     fwrite(STDERR, 'Real S3 recovery failed stage=' . $phase . ' code=' . preg_replace('/[^A-Za-z0-9_\\\\]/', '', (string) $code) . "\n");
     exit(1);
 }

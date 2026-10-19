@@ -49,7 +49,7 @@ ZIP導入はWP-CLIのinstaller、更新はWordPress `Plugin_Upgrader::upgrade()`
 
 ## 残る公開・運用判断
 
-最終結果は`recovery-zip-validation.json`を参照。一般向けcreate/restore、失敗reset/設定移行、100件超の索引、長期Cron監視、最終版の実S3検証は今回追加しない。WordPress最低対応版・PHP全組合せや他プラグインとの全互換性をこの試験で保証しない。
+最終結果は`recovery-zip-validation.json`を参照。一般向けcreate/restore、失敗reset/設定移行、100件超の索引、長期Cron監視は今回追加しない。後続で同じZIPの[実S3検証](recovery-zip-real-s3.md)を実施した。WordPress最低対応版・PHP全組合せや他プラグインとの全互換性をこの試験で保証しない。
 
 新規導入/更新/再有効化とアンインストールは別。現行アンインストールはRecovery SetのCollector・観測・schedule・cleanup記録を自動消去しない。証拠の保存と最終削除/エクスポート方針は公開説明・次段階の運用設計で扱う。未完了証拠を黙って削除する修正は今回行わない。
 

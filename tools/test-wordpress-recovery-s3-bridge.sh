@@ -13,10 +13,12 @@ docker run --rm --pull=never --network none -v "$remote_volume:/objects:ro" -v "
     -c 'mkdir /export/objects; cp -a /objects/. /export/objects/; cp /expected/locator.json /export/locator.json; chown -R "$FIXTURE_OWNER" /export/objects /export/locator.json'
 remote_work=$(ssh -o BatchMode=yes -o ConnectTimeout=10 community 'mktemp -d /tmp/odbfs3-wp-s3.XXXXXXXX')
 [[ "$remote_work" =~ ^/tmp/odbfs3-wp-s3\.[A-Za-z0-9]{8}$ ]]
+(cd "$repo"; find src vendor -type f -print0 | sort -z | xargs -0 sha256sum) > "$local_work/runtime-sha256.txt"
 tar -C "$repo" -cf "$local_work/code.tar" src vendor tools/test-recovery-s3-roundtrip.php
+tar -rf "$local_work/code.tar" -C "$local_work" runtime-sha256.txt
 tar -C "$local_work" -cf "$local_work/input.tar" objects locator.json
 scp -q "$local_work/code.tar" "$local_work/input.tar" "community:$remote_work/"
-ssh -o BatchMode=yes community "cd '$remote_work' && tar -xf code.tar && mkdir fixture && tar -xf input.tar -C fixture && php tools/test-recovery-s3-roundtrip.php '$remote_work/fixture' '$run' '$backend'"
+ssh -o BatchMode=yes community "cd '$remote_work' && tar -xf code.tar && sha256sum --quiet -c runtime-sha256.txt && mkdir fixture && tar -xf input.tar -C fixture && php tools/test-recovery-s3-roundtrip.php '$remote_work/fixture' '$run' '$backend' && sha256sum --quiet -c runtime-sha256.txt"
 scp -q "community:$remote_work/output.tar" "$local_work/output.tar"
 # Use NEW volumes, never overwrite the pre-transfer fixture or use it as a fallback.
 download_volume="odbfs3-wp-$run-$backend-s3-download"
