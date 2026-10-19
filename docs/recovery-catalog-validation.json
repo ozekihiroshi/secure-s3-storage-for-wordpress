@@ -1,0 +1,24 @@
+{
+  "kind": "recovery_catalog_and_observation_validation",
+  "date": "2026-10-19",
+  "passed": true,
+  "catalog_contract_checks_each": 43,
+  "php_versions_executed": ["8.1", "8.3"],
+  "prior_status_contract_checks_each": 105,
+  "prior_recovery_contract_checks_each": 127,
+  "wordpress_cli": {
+    "passed": true,
+    "php": "8.3",
+    "database": "MariaDB 11.8",
+    "new_cases": ["incomplete_index", "latest_attempt_vs_complete", "profile_filter", "observations", "stale_observation"],
+    "prior_status_cases": ["complete_json", "complete_table", "missing", "corrupt", "invalid_id"],
+    "database_unchanged_by_reads": true,
+    "observation_append_idempotent": true,
+    "completion_evidence_preserved": true,
+    "network": "internal Docker network; outbound blocked",
+    "bootstrap": "Test-only autoloader with production CommandRegistrar; no plugin workers",
+    "data": "Synthetic collector records and observations; no real S3 verification"
+  },
+  "known_limits": ["100-record read cap; overflow reports incomplete", "local observer assertions are not independently signed", "automatic observer integration not implemented", "full plugin activation acceptance not performed"],
+  "git_scope": "codex/recovery-operator-plan; independent of shared-backup-core adoption"
+}

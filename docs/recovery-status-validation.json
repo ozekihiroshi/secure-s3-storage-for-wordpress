@@ -1,0 +1,21 @@
+{
+  "kind": "read_only_recovery_status_validation",
+  "date": "2026-10-19",
+  "passed": true,
+  "status_contract_checks_each": 105,
+  "php_versions_executed": ["8.1", "8.3"],
+  "prerequisite_recovery_contract_checks_each": 127,
+  "wordpress_cli": {
+    "passed": true,
+    "php": "8.3",
+    "database": "MariaDB 11.8",
+    "database_dump_unchanged": true,
+    "cases": ["complete_json", "complete_table", "missing", "corrupt", "invalid_id"],
+    "network": "internal Docker network; outbound blocked",
+    "bootstrap": "Test-only autoloader with production CommandRegistrar; plugin workers not loaded",
+    "data": "Synthetic local collector records, not real S3 completion evidence"
+  },
+  "not_tested": ["full plugin activation acceptance", "live S3 verification", "external recovery observation aggregation"],
+  "environment_note": "Default Docker address pools were exhausted before fixture creation. Runner selects a non-overlapping internal subnet; existing networks unchanged.",
+  "git_scope": "Separate from shared-backup-core adoption; no production deployment"
+}

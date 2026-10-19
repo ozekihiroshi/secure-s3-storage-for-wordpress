@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-19",
+  "scope": "source branch; dedicated synthetic fixtures only",
+  "passed": true,
+  "contract": {
+    "php_versions": ["8.1", "8.3"],
+    "execution_checks_per_version": 24,
+    "prerequisite_checks_not_additive": {"recovery_contract": 127, "status": 105, "cron": 25},
+    "cases": ["start_finish", "committed_progress", "busy_not_progress", "blocked_configuration", "failure", "overlapping_returns", "unfinished_after_reopen", "last_success_preserved", "corruption", "cas_contention", "clock_rollback", "lost_start_ack", "end_record_failure", "publication_timestamp", "already_complete", "readonly_json"]
+  },
+  "wordpress_admin_and_cli": {
+    "render_checks": 37,
+    "actual_wordpress_hook": true,
+    "execution_json_and_missing_exit_code": true,
+    "database_unchanged_by_reads": true,
+    "workspace_unchanged_by_reads": true,
+    "permission_checks": true,
+    "browser_acceptance": false
+  },
+  "wordpress_roundtrip": {
+    "wordpress": "7.0.2",
+    "backends": ["native", "php"],
+    "source_checks_per_backend": 50,
+    "restore_checks_per_backend": 44,
+    "source_database_removed_before_restore": true,
+    "network": "internal Docker networks",
+    "s3": "disk test implementation",
+    "new_execution_assertions": ["completion_persisted", "progress_and_publication_time", "duplicate_preserves_progress_and_success"]
+  },
+  "limits": [
+    "unfinished execution is simulated durable state, not a new OS kill test",
+    "no real S3 run for this change",
+    "no package build, production deployment or notification",
+    "no full invocation history or live process heartbeat",
+    "overdue evaluation remains unimplemented"
+  ]
+}

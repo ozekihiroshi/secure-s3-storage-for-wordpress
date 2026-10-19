@@ -1,0 +1,118 @@
+{
+  "run": "aa004f79632e",
+  "backend": "php",
+  "visitor_requests": 0,
+  "http_server_started": false,
+  "disable_wp_cron": true,
+  "scheduler": "BusyBox crond; 60-second cron; bounded 45-second pulse",
+  "missed_slots_detected": 2,
+  "state_preserved_during_stop": true,
+  "same_set_resumed": true,
+  "sql_gzip_preserved": true,
+  "completed_restart_preserved": true,
+  "set_id": "b2ed8bb408d0c2de8067b63ea60ce5ce",
+  "checked_at": 1792419306.8148005,
+  "date": "2026-10-19",
+  "status": "passed",
+  "zip_sha256": "34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43",
+  "evidence_tar_sha256": "c948872c1cf3664ad13ed1bc0dc0ee43c0e5124f66f079cdf6038275e741420f",
+  "runtime_files_matching_zip": 3884,
+  "missed_start_observations": [
+    {
+      "event": "scheduled_start_missing",
+      "slot_utc_epoch": 1792418940,
+      "observed_at": 1792418945.0032296,
+      "scenario": "scheduler_not_started",
+      "detector": "independent lab controller; not a production monitor"
+    },
+    {
+      "event": "scheduled_start_missing",
+      "slot_utc_epoch": 1792419060,
+      "observed_at": 1792419065.0017905,
+      "scenario": "scheduler_and_worker_stopped",
+      "detector": "independent lab controller; not a production monitor"
+    }
+  ],
+  "pulse_start_times": [
+    1792419000,
+    1792419120,
+    1792419180,
+    1792419240,
+    1792419300
+  ],
+  "callback_count": 42,
+  "manifest_sha256": "b8b9c56983833653664ec9407ff95462d11b5f3e8326de2c88a554c8cdea99cc",
+  "s3": {
+    "transport": "direct_wordpress_worker",
+    "prefix": "wordpress-test/direct-worker/aa004f79632e/php",
+    "objects": [
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/manifest.json",
+        "size_bytes": 3023,
+        "sha256": "b8b9c56983833653664ec9407ff95462d11b5f3e8326de2c88a554c8cdea99cc",
+        "version_id": null,
+        "encryption": "AES256"
+      },
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/database/dump.sql.gz",
+        "size_bytes": 18524,
+        "sha256": "ca32f0d9fc76895f6f502da6c2578f12766a13d068de6c4243300b8af9a25b7c",
+        "version_id": null,
+        "encryption": "AES256"
+      },
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f247bf2cd77178428012e2cbe303a7f9/inventory.jsonl",
+        "size_bytes": 762,
+        "sha256": "c6f6365aae03d5c796c73180f6f467c1126a9b525e27fc55223f802ff55d8c42",
+        "version_id": null,
+        "encryption": "AES256"
+      },
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f247bf2cd77178428012e2cbe303a7f9/complete.json",
+        "size_bytes": 282,
+        "sha256": "26a89e777e7c24bb40662fd20111f998cbf9924b2e6ff68800145f493b79777f",
+        "version_id": null,
+        "encryption": "AES256"
+      },
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f247bf2cd77178428012e2cbe303a7f9/files/d40f8692f75380ad47b23368cac85ad974fea90f9cb99da1bc9b5894a0855331",
+        "size_bytes": 489,
+        "sha256": "c78c57d8e4842951cec73547edaf3a2d66185e54f113952e7221fc1e5d0b143e",
+        "version_id": null,
+        "encryption": "AES256"
+      },
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f247bf2cd77178428012e2cbe303a7f9/files/368749e1ef23faf83385418ae8ad3d0a96210f7c42b608318aeee63f5db32eb1",
+        "size_bytes": 763,
+        "sha256": "7275a083dc0b54d5eda617215eb3a8e52eced087fa64fac0d474b210ded0822d",
+        "version_id": null,
+        "encryption": "AES256"
+      },
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f247bf2cd77178428012e2cbe303a7f9/files/8a37d26e3adf5e1d093acc48bc0586b7b49c557d007468bce99d280362c5c0ac",
+        "size_bytes": 1231,
+        "sha256": "62f288d07f9d427f7cb6945b9b92cc9e6c3d3be63eb5d3ebdf0f5908a2620b7a",
+        "version_id": null,
+        "encryption": "AES256"
+      },
+      {
+        "key": "wordpress-test/direct-worker/aa004f79632e/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f247bf2cd77178428012e2cbe303a7f9/files/0783074e1491c043d02394156dbda255a3396b07c2f643cfd0c4feae5a972e57",
+        "size_bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "version_id": null,
+        "encryption": "AES256"
+      }
+    ],
+    "worker_manifest_unchanged": true,
+    "fresh_download_verified": true,
+    "checked_at": "2026-10-19T14:15:09+00:00"
+  },
+  "total_object_bytes": 25074,
+  "limitations": [
+    "PHP backend only for this external-Cron test; previous native/PHP results are separate.",
+    "One-minute real cron plus a bounded 45-second lab pulse; not production schedule setup.",
+    "Missed-start detector is a separate lab controller, not a shipped monitor or notification system.",
+    "No daily-slot rollover/multi-day soak, no unacknowledged PUT interruption, no independent signing/retention/role separation.",
+    "Fresh S3 package verification; isolated WordPress rendering not repeated."
+  ]
+}

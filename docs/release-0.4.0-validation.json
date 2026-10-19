@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "previous": {
+        "version": "0.3.0",
+        "sha256": "ea7c6a3cd7f76f949a95af296af0c799556f38aeb2c249aed950f9ef2d6d8080",
+        "files": 3876
+      },
+      "candidate": {
+        "version": "0.4.0",
+        "sha256": "e2a5f0272a0e4b77e86add61775d9529659f0edff00cc44cf5dc170c3c094d57",
+        "files": 3894
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "schedule_settings_and_execution_preserved": true,
+      "schedule_and_execution_json": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true
+    }
+  ],
+  "scope": "real ZIP Plugin_Upgrader on disposable WP; generated records; no S3",
+  "date_jst": "2026-10-20",
+  "version": "0.4.0",
+  "zip_sha256": "e2a5f0272a0e4b77e86add61775d9529659f0edff00cc44cf5dc170c3c094d57",
+  "only_changes_from_preceding_tested_zip": [
+    "ozeki-database-backup-for-s3/readme.txt",
+    "ozeki-database-backup-for-s3/ozeki-database-backup-for-s3.php"
+  ],
+  "src_vendor_unchanged": true,
+  "real_s3_retested": false,
+  "publication": "unpublished 0.4.0 development candidate",
+  "public_030": {
+    "tag": "v0.3.0",
+    "commit": "627e47c2b31527ef1486e582b79fd5dba875843f",
+    "zip_sha256": "ea7c6a3cd7f76f949a95af296af0c799556f38aeb2c249aed950f9ef2d6d8080",
+    "asset_readback_verified": true
+  }
+}

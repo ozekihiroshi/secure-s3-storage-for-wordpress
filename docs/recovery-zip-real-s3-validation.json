@@ -1,0 +1,217 @@
+{
+  "date": "2026-10-19",
+  "candidate_version": "0.3.0 operator candidate (unpublished)",
+  "zip_sha256": "34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43",
+  "run": "02175543dc75",
+  "status": "passed_with_documented_scope",
+  "wordpress": "7.0.2",
+  "database": "MariaDB 11.8",
+  "source_restore_php": "8.3",
+  "transport": "remote PHP 8.1.2; candidate src/vendor; existing credential chain",
+  "source_removed_before_restore": true,
+  "restore_network_internal": true,
+  "reports": [
+    {
+      "run": "02175543dc75",
+      "backend": "native",
+      "bucket": "ceri-secure-s3-storage-test",
+      "prefix": "wordpress-test/recovery-integrity/02175543dc75/native",
+      "transport": "real_s3",
+      "synthetic_only": true,
+      "objects": [
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/database/dump.sql.gz",
+          "size_bytes": 9139,
+          "sha256": "07606dbca2ef610a23cacc9300dbb70581edcb08046dbac4304e04bc3ea6374e",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/6fa8880f02acee6849d1474242971e4d/files/d40f8692f75380ad47b23368cac85ad974fea90f9cb99da1bc9b5894a0855331",
+          "size_bytes": 98,
+          "sha256": "68166e171c063ea60b1cf46f89640ecb1cec96686b87939848a17de1e9778aea",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/6fa8880f02acee6849d1474242971e4d/files/368749e1ef23faf83385418ae8ad3d0a96210f7c42b608318aeee63f5db32eb1",
+          "size_bytes": 102,
+          "sha256": "274961dd86b464b40f970d9a374ae57bea44c070cd72013ef0bf8e193729d24c",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/6fa8880f02acee6849d1474242971e4d/files/8a37d26e3adf5e1d093acc48bc0586b7b49c557d007468bce99d280362c5c0ac",
+          "size_bytes": 1231,
+          "sha256": "62f288d07f9d427f7cb6945b9b92cc9e6c3d3be63eb5d3ebdf0f5908a2620b7a",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/6fa8880f02acee6849d1474242971e4d/files/0783074e1491c043d02394156dbda255a3396b07c2f643cfd0c4feae5a972e57",
+          "size_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/6fa8880f02acee6849d1474242971e4d/inventory.jsonl",
+          "size_bytes": 761,
+          "sha256": "338f7bd83c8d90b998a0872d1bc2090dd6d1c96398c397c188bb0a9cae7cf8cd",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/6fa8880f02acee6849d1474242971e4d/complete.json",
+          "size_bytes": 282,
+          "sha256": "19d28fd805f7a4a90e4bff1eaa8294340eec6e9abe3641a608d0e37adb5c01a7",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/manifest.json",
+          "size_bytes": 3067,
+          "sha256": "17dfea59b5408f3e041cc6742e5af4ac46f4ad428dc15dea0119a60b76880b61",
+          "version_id": null,
+          "encryption": "AES256"
+        }
+      ],
+      "php": "8.1.2-1ubuntu2.26",
+      "runtime_manifest_sha256": "687b694a22d7a40a1c127ef63c439be8c71adf6b2691998dd98c8cb060364334",
+      "bucket_checks": {
+        "getBucketVersioning": {
+          "unavailable": "AccessDenied"
+        },
+        "getBucketEncryption": {
+          "unavailable": "AccessDenied"
+        },
+        "getPublicAccessBlock": {
+          "unavailable": "AccessDenied"
+        }
+      },
+      "receipt": {
+        "bucket": "ceri-secure-s3-storage-test",
+        "key": "wordpress-test/recovery-integrity/02175543dc75/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/manifest.json",
+        "size_bytes": 3067,
+        "sha256": "17dfea59b5408f3e041cc6742e5af4ac46f4ad428dc15dea0119a60b76880b61",
+        "version_id": null,
+        "verified_at": "2026-10-19T13:12:04Z",
+        "method": "head_sha256_get_exact_bytes"
+      },
+      "lost_ack_reconciled_without_second_put": true,
+      "conditional_conflict_412": true,
+      "all_downloads_verified": true,
+      "checked_at": "2026-10-19T13:12:05+00:00",
+      "source_checks": 47,
+      "restore_checks": 44,
+      "restored_media_files": 4,
+      "runtime_files_matching_zip": 3884,
+      "output_tar_sha256": "b193c038c5f586996cdce7100ebf884f21d2b262c3492cdac88d7f54a7785695",
+      "total_object_bytes": 14680
+    },
+    {
+      "run": "02175543dc75",
+      "backend": "php",
+      "bucket": "ceri-secure-s3-storage-test",
+      "prefix": "wordpress-test/recovery-integrity/02175543dc75/php",
+      "transport": "real_s3",
+      "synthetic_only": true,
+      "objects": [
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/database/dump.sql.gz",
+          "size_bytes": 8611,
+          "sha256": "6721b4e11dd0c5c8aa9d1632344877aa27a306d7b9d5fb270e31226da2118db8",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/c357349f940af2f743e7c69c8dd7f27d/files/d40f8692f75380ad47b23368cac85ad974fea90f9cb99da1bc9b5894a0855331",
+          "size_bytes": 98,
+          "sha256": "68166e171c063ea60b1cf46f89640ecb1cec96686b87939848a17de1e9778aea",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/c357349f940af2f743e7c69c8dd7f27d/files/368749e1ef23faf83385418ae8ad3d0a96210f7c42b608318aeee63f5db32eb1",
+          "size_bytes": 102,
+          "sha256": "274961dd86b464b40f970d9a374ae57bea44c070cd72013ef0bf8e193729d24c",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/c357349f940af2f743e7c69c8dd7f27d/files/8a37d26e3adf5e1d093acc48bc0586b7b49c557d007468bce99d280362c5c0ac",
+          "size_bytes": 1231,
+          "sha256": "62f288d07f9d427f7cb6945b9b92cc9e6c3d3be63eb5d3ebdf0f5908a2620b7a",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/c357349f940af2f743e7c69c8dd7f27d/files/0783074e1491c043d02394156dbda255a3396b07c2f643cfd0c4feae5a972e57",
+          "size_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/c357349f940af2f743e7c69c8dd7f27d/inventory.jsonl",
+          "size_bytes": 761,
+          "sha256": "338f7bd83c8d90b998a0872d1bc2090dd6d1c96398c397c188bb0a9cae7cf8cd",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/c357349f940af2f743e7c69c8dd7f27d/complete.json",
+          "size_bytes": 282,
+          "sha256": "568e144f01fbd8ca58df1c4030f6aaed16f429fe9c8505027a6c710dd01364aa",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/manifest.json",
+          "size_bytes": 3049,
+          "sha256": "9a72040a3e24031d94da85f2db431df5f672460664df32511bf6c3d0c189eb6b",
+          "version_id": null,
+          "encryption": "AES256"
+        }
+      ],
+      "php": "8.1.2-1ubuntu2.26",
+      "runtime_manifest_sha256": "687b694a22d7a40a1c127ef63c439be8c71adf6b2691998dd98c8cb060364334",
+      "bucket_checks": {
+        "getBucketVersioning": {
+          "unavailable": "AccessDenied"
+        },
+        "getBucketEncryption": {
+          "unavailable": "AccessDenied"
+        },
+        "getPublicAccessBlock": {
+          "unavailable": "AccessDenied"
+        }
+      },
+      "receipt": {
+        "bucket": "ceri-secure-s3-storage-test",
+        "key": "wordpress-test/recovery-integrity/02175543dc75/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/manifest.json",
+        "size_bytes": 3049,
+        "sha256": "9a72040a3e24031d94da85f2db431df5f672460664df32511bf6c3d0c189eb6b",
+        "version_id": null,
+        "verified_at": "2026-10-19T13:18:47Z",
+        "method": "head_sha256_get_exact_bytes"
+      },
+      "lost_ack_reconciled_without_second_put": true,
+      "conditional_conflict_412": true,
+      "all_downloads_verified": true,
+      "checked_at": "2026-10-19T13:18:47+00:00",
+      "source_checks": 47,
+      "restore_checks": 44,
+      "restored_media_files": 4,
+      "runtime_files_matching_zip": 3884,
+      "output_tar_sha256": "c7dbeec91751ac914d3211766af90f381bf5826b0986d264cf298880709b33ef",
+      "total_object_bytes": 14134
+    }
+  ],
+  "limitations": [
+    "Bridge republishes captured synthetic assets and rebuilds destination references; not an uninterrupted production WordPress worker-to-S3 test.",
+    "Version IDs absent; bucket configuration reads AccessDenied. Fixed-version retention and public-access-block configuration not verified.",
+    "Same remote credential chain for PUT/GET; no split-role, independent signature, Object Lock or long-running Cron acceptance.",
+    "No production data, production installation, IAM changes or S3 deletions."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "date_jst": "2026-10-20",
+  "scope": "Backup for S3 standalone source branch; synthetic data",
+  "passed": true,
+  "contracts": {
+    "php_versions": ["8.1", "8.3"],
+    "new_checks_per_version": 39,
+    "prerequisites_not_additive": {"recovery": 127, "status": 105, "cron": 25, "execution": 24},
+    "cases": ["unconfigured", "not_due", "grace_boundary", "one_second_overdue", "separate_start_and_completion", "failed_not_complete", "future_evidence", "validated_success", "late_completion", "previous_slot", "old_capture_completed_today", "missing_or_corrupt_evidence", "foreign_source", "receipt_timestamp_mismatch", "stopped", "explicit_resume_anchor", "stale_config", "clock_rollback", "invalid_settings", "cas_conflict", "read_races", "readonly_stores"]
+  },
+  "wordpress": {
+    "environment": "disposable WordPress and MariaDB on internal Docker network",
+    "render_and_storage_checks": 21,
+    "real_wp_cli_cases": ["stopped_json", "overdue_json_exit_zero", "unconfigured_exit_three", "corrupt_exit_four", "table", "invalid_exit_two"],
+    "database_unchanged_by_reads": true,
+    "workspace_unchanged_by_reads": true,
+    "cron_unchanged_by_policy_updates": true,
+    "subscriber_and_guest_denied_before_reads": true,
+    "browser_test": false
+  },
+  "limits": [
+    "current slot only, not historical missed-slot inventory",
+    "explicit trusted PHP configuration API; read-only admin UI",
+    "expectation stop does not cancel Cron or kill workers",
+    "no notification, external monitoring or shared core changes",
+    "no new S3 roundtrip, release ZIP, production deployment or publication"
+  ]
+}

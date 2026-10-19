@@ -4,7 +4,7 @@ Tags: backup, amazon s3, aws, database backup, media backup
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,6 +120,8 @@ Deactivating the plugin removes its scheduled database and media WordPress Cron 
 Uninstalling the plugin removes its local WordPress settings, backup history, current media job state, and archived media job metadata.
 
 Uninstalling Ozeki Database Backup for S3 does NOT delete database or media backups stored in Amazon S3. It also does not automatically remove private media work directories or discover unknown incomplete multipart uploads.
+
+Recovery Set collector, observation, execution, schedule-assessment and cleanup records are retained on uninstall. Stop any externally registered Recovery Set schedule separately and preserve recovery evidence before planning manual retirement. Automated export and final deletion of these records are not provided in this release.
 
 This is intentional. Remote backups should not disappear merely because the WordPress plugin is removed.
 
@@ -283,14 +285,50 @@ After inspecting an exact failed media job, explicitly clean only its recorded i
 
 `wp ozeki-database-backup-for-s3 media cleanup <job-id> --yes`
 
+= Recovery Sets (0.4.0 development candidate) =
+
+Settings > Recovery Sets displays existing site-local sets, component/manifest verification, later observations, execution records and cleanup journal progress. Reading the page does not create sets, contact S3, run restore tests or delete files. Existing standalone backup history is not automatically converted into sets.
+
+Administrators can explicitly save schedule-assessment settings on this page: enabled/stopped, first expected time (UTC), period and start/completion grace (seconds). These settings only assess expectations; they do not start, stop or reschedule actual Cron jobs. Saving requires confirmation, a valid nonce and the current settings revision. Stale forms are rejected; reload before retrying. Resuming assessment requires a future first expected time. Unfinished execution records are preserved and do not prove that a worker is alive. Read-only JSON is available through recovery-set execution and recovery-set schedule-status with --source-id and --format=json.
+
+WP-CLI commands (replace IDs with 32 lowercase hexadecimal characters):
+
+`wp ozeki-database-backup-for-s3 recovery-set status <set-id> --format=json`
+`wp ozeki-database-backup-for-s3 recovery-set latest --source-id=<source-id> --format=json`
+`wp ozeki-database-backup-for-s3 recovery-set observations <set-id> --format=json`
+
+Exit code 0 means a successful read, not successful backup/restore. Inspect phase, completeness, index/aggregation completeness and observation freshness. Indexes are bounded to 100 records and report incomplete results explicitly. Observation freshness defaults to 24 hours; refreshing the page does not revalidate S3.
+
+Recovery Set Cron is a developer integration through WordPressRecoverySchedule::register with fixed configuration, locking adapters and a result reporter. It is not enabled by activation or the existing daily database-backup setting. Each invocation advances one operation; repeated calls are needed to finish a set. Daily slots use UTC. Failed sets, missing evidence and configuration changes require review; do not delete journals to force a retry. Stop the external scheduler and unschedule the exact integration hook before maintenance; deactivation does not manage externally registered Recovery Set schedules.
+
+Inspect local cleanup first:
+
+`wp ozeki-database-backup-for-s3 recovery-set cleanup-plan <set-id> --workspace-parent=<private-parent> --format=json`
+
+After confirming recovery materials and the plan, explicitly execute:
+
+`wp ozeki-database-backup-for-s3 recovery-set cleanup <set-id> --workspace-parent=<private-parent> --confirm-set=<same-set-id> --format=json`
+
+Only completed database.sql and database.sql.gz temporary files are eligible, with a 1 GiB limit per file. The command revalidates hashes under a lock and records deletion progress. Evidence, media subtrees and S3 objects are retained. If interrupted, review the reason and resume with the same ID and parent; preserve the journal. This is not automatic/recursive cleanup or a current S3 availability check.
+
+There is no general Recovery Set create/restore command or acquisition configuration UI. The schedule-assessment form does not configure acquisition. DB/media correspondence does not guarantee a point-in-time snapshot. Local records are not independently signed. See the repository docs/recovery-operations.md for integration, stopping and incident procedures. This candidate has not been published merely by building its ZIP.
+
 == Changelog ==
+
+= 0.4.0 =
+
+* Add read-only Recovery Set status/latest/observations JSON commands and an administrator page.
+* Add an opt-in developer Cron entry with persistent daily intents and duplicate suppression.
+* Add workspace cleanup planning and explicit, journaled DB temporary-file cleanup.
+* Connect dedicated verification/restore runs to durable observation delivery.
+* Add execution summaries, schedule-assessment JSON and guarded administrator settings. Assessment settings do not change actual Cron jobs.
 
 = 0.3.0 =
 
 * Add an internal recovery-set model, resumable DB/media collection and independently verified S3 manifest publication.
 * Preserve caller-owned upload streams on success and failure in the S3 adapter.
 * Isolate recovery job state and storage destinations from standalone backups.
-* Add synthetic WordPress recovery and real-S3 integration tests. Recovery-set orchestration has no admin, CLI or Cron entry point yet; existing backup controls are unchanged.
+* Add synthetic WordPress recovery and real-S3 integration tests. Existing standalone backup controls remain unchanged; Recovery Set creation uses an explicit developer integration.
 
 = 0.2.1 =
 

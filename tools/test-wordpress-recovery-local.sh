@@ -56,6 +56,7 @@ for backend in native php; do
         docker run --rm --pull=never --name "$worker" --network "$network" \
             --label odbfs3.test=wordpress-recovery --memory=768m --cpus=1 \
             -e ODBFS3_WP_FIXTURE=1 -e FIXTURE_PASSWORD="$password" -e FIXTURE_BACKEND="$backend" \
+            -e ODBFS3_EXECUTION_RECORD_TEST=1 \
             -v "$repo:/repo:ro" -v "$site:/site" -v "$private:/private" \
             -v "$remote:/remote:$access" -v "$expected:/expected:$access" \
             --entrypoint sh "$wp_image" -c \

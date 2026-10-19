@@ -4,6 +4,7 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [[ $# == 1 && -f "$1" ]]
 zip=$(realpath "$1")
 work=$(mktemp -d /tmp/odbfs3-candidate.XXXXXXXX)
+trap 'rm -rf -- "$work"' EXIT
 # Copy the archive to Linux first; avoid repeated cross-filesystem ZIP reads.
 cp "$zip" "$work/candidate.zip"
 unzip -q "$work/candidate.zip" -d "$work"
