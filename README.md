@@ -177,6 +177,8 @@ current-slot assessment. Configuring expectations does not change Cron execution
 Administrators can now edit those expectations using the explicit POST form in
 Recovery Sets. See [schedule settings (Japanese)](docs/recovery-schedule-settings.md)
 for UTC input, grace periods, stopping/resuming assessment and stale-form protection.
+The [candidate ZIP installation checks (Japanese)](docs/recovery-schedule-zip.md)
+cover fresh installation, upgrades and preservation of settings and records.
 
 These improvements are on `codex/recovery-operator-plan`, separate from shared
 DB-core adoption. They are implemented and tested in dedicated environments;

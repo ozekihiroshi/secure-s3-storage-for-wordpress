@@ -285,7 +285,9 @@ After inspecting an exact failed media job, explicitly clean only its recorded i
 
 = Recovery Sets (0.3.0 development candidate) =
 
-Settings > Recovery Sets is a read-only administrator page for existing site-local sets, component/manifest verification, later observations and cleanup journal progress. It does not create sets, contact S3, run restore tests or delete files. Existing standalone backup history is not automatically converted into sets.
+Settings > Recovery Sets displays existing site-local sets, component/manifest verification, later observations, execution records and cleanup journal progress. Reading the page does not create sets, contact S3, run restore tests or delete files. Existing standalone backup history is not automatically converted into sets.
+
+Administrators can explicitly save schedule-assessment settings on this page: enabled/stopped, first expected time (UTC), period and start/completion grace (seconds). These settings only assess expectations; they do not start, stop or reschedule actual Cron jobs. Saving requires confirmation, a valid nonce and the current settings revision. Stale forms are rejected; reload before retrying. Resuming assessment requires a future first expected time. Unfinished execution records are preserved and do not prove that a worker is alive. Read-only JSON is available through recovery-set execution and recovery-set schedule-status with --source-id and --format=json.
 
 WP-CLI commands (replace IDs with 32 lowercase hexadecimal characters):
 
@@ -307,7 +309,7 @@ After confirming recovery materials and the plan, explicitly execute:
 
 Only completed database.sql and database.sql.gz temporary files are eligible, with a 1 GiB limit per file. The command revalidates hashes under a lock and records deletion progress. Evidence, media subtrees and S3 objects are retained. If interrupted, review the reason and resume with the same ID and parent; preserve the journal. This is not automatic/recursive cleanup or a current S3 availability check.
 
-There is no general Recovery Set create/restore command or configuration UI. DB/media correspondence does not guarantee a point-in-time snapshot. Local records are not independently signed. See the repository docs/recovery-operations.md for integration, stopping and incident procedures. This candidate has not been published merely by building its ZIP.
+There is no general Recovery Set create/restore command or acquisition configuration UI. The schedule-assessment form does not configure acquisition. DB/media correspondence does not guarantee a point-in-time snapshot. Local records are not independently signed. See the repository docs/recovery-operations.md for integration, stopping and incident procedures. This candidate has not been published merely by building its ZIP.
 
 == Changelog ==
 

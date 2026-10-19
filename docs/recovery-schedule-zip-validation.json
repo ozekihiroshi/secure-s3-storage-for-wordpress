@@ -1,0 +1,103 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "previous": null,
+      "candidate": {
+        "version": "0.3.0",
+        "sha256": "4a92b0e4ff85f16b34254f41ba54ea626ccaf050f82fd77930e0d6d8b4b80797",
+        "files": 3894
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "schedule_settings_and_execution_preserved": true,
+      "schedule_and_execution_json": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true
+    },
+    {
+      "previous": {
+        "version": "0.2.1",
+        "sha256": "059204332e09db69b156da02dfbb696d3c23594899d90a2d4ef2c3384a6829f6",
+        "files": 3863
+      },
+      "candidate": {
+        "version": "0.3.0",
+        "sha256": "4a92b0e4ff85f16b34254f41ba54ea626ccaf050f82fd77930e0d6d8b4b80797",
+        "files": 3894
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "schedule_settings_and_execution_preserved": true,
+      "schedule_and_execution_json": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true
+    },
+    {
+      "previous": {
+        "version": "0.3.0",
+        "sha256": "34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43",
+        "files": 3889
+      },
+      "candidate": {
+        "version": "0.3.0",
+        "sha256": "4a92b0e4ff85f16b34254f41ba54ea626ccaf050f82fd77930e0d6d8b4b80797",
+        "files": 3894
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "schedule_settings_and_execution_preserved": true,
+      "schedule_and_execution_json": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true
+    }
+  ],
+  "scope": "real ZIP Plugin_Upgrader on disposable WP; generated records; no S3",
+  "date_jst": "2026-10-20",
+  "source_base_commit": "005bbbc",
+  "source_changes": "bundled readme updated; runtime PHP unchanged",
+  "branch": "codex/recovery-operator-plan",
+  "assembly": {
+    "builder_zip_sha256": "4e0fe85ae4c49263343467113ed015dc619d6797fd6bdc392e643c8799fc12ff",
+    "final_zip_sha256": "4a92b0e4ff85f16b34254f41ba54ea626ccaf050f82fd77930e0d6d8b4b80797",
+    "final_zip_bytes": 8243593,
+    "only_member_replaced": "ozeki-database-backup-for-s3/readme.txt",
+    "all_other_members_identical": true
+  },
+  "package_inspection": {
+    "passed": true,
+    "required_schedule_classes": true,
+    "first_party_secret_path_pattern_scan": true,
+    "wp_cli_scope_preserved": true,
+    "readme_matches_source": true,
+    "first_party_files": 103
+  },
+  "environment": {
+    "wordpress": "7.0.2",
+    "php": "8.3",
+    "database": "MariaDB 11.8"
+  },
+  "publication": "local development candidate only",
+  "limits": [
+    "WP-CLI install and Plugin_Upgrader update; not browser ZIP upload",
+    "generated settings and execution records; no real S3 or actual backup success asserted",
+    "no shared-core changes, production deployment or public release",
+    "deactivation intentionally reschedules legacy Cron; only update preserves Cron exactly"
+  ],
+  "logs_sha256": {
+    "build.log": "e5cc1628446f17eb50812d25b8661a0359bf01e3f4300ffff330cd2828ebc1a7",
+    "install.log": "8a9e46f288ff0745ba91c0aabc52402b61b45ac519cdb9933e361ab2c440fd02",
+    "assembly.json": "e7528ff25f52ae11f999572c1a627cd3c1fbb6390192ca0a6896462c5405b051",
+    "package-inspection.json": "3aa597e28cc6a0fecf8427eb78f9c378a6afcf35380dae688db1c3e5309e0206",
+    "run.py": "233de0ee674d3b7baec32f4cc30659e8f3d7e12599b84f88826bf1c13437efb0"
+  }
+}

@@ -77,11 +77,17 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
   wp('eval-file','/repo/tests/manual/seed-recovery-browser-cleanup.php',sid)
   wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','extended',sid)
+  assert wp('eval',"global $wpdb; echo $wpdb->get_var(\"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE 'odbfs3_expectation_%'\");")=='0','Activation unexpectedly created expectation settings'
+  wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','seed',sid)
   before=snapshot();files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')
   wp('eval-file','/repo/tests/manual/upgrade-recovery-zip.php')
   wp('plugin','activate',slug)
   assert snapshot()==before,'Same-version replacement lost pending state'
+  wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','verify',sid)
   command=('ozeki-database-backup-for-s3','recovery-set')
+  for source,mode in [('a'*32,'not_due'),('b'*32,'stopped')]:
+   assert json.loads(wp(*command,'schedule-status','--source-id='+source,'--format=json'))['state']==mode,'ZIP schedule JSON differs'
+   assert json.loads(wp(*command,'execution','--source-id='+source,'--format=json'))['latest_run']['finished_at'] is None,'ZIP lost unfinished invocation'
   assert json.loads(wp(*command,'status',sid,'--format=json'))['phase']=='complete'
   assert 'complete' in wp(*command,'status',sid),'ZIP table formatter failed'
   assert json.loads(wp(*command,'observations',sid,'--format=json'))['restore']['state']=='failed'
@@ -91,10 +97,11 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   data_before=snapshot(False)
   wp('plugin','deactivate',slug);wp('plugin','activate',slug)
   assert snapshot(False)==data_before,'Reactivation lost state'
+  wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','verify',sid)
   events=json.loads(wp('cron','event','list','--format=json'))
   assert len([e for e in events if e['hook']=='secure_s3_storage_database_backup_cron'])==1,'Legacy daily schedule not restored'
   assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==files_before
-  result={'previous':archive_info(old) if old else None,'candidate':info,'passed':True,'installed_files_match_zip':True,'upgrade_state_preserved':True,'same_version_pending_records_preserved':True,'read_views_unchanged':True,'deactivate_reactivate_preserved':True,'workspace_preserved':True}
+  result={'previous':archive_info(old) if old else None,'candidate':info,'passed':True,'installed_files_match_zip':True,'upgrade_state_preserved':True,'same_version_pending_records_preserved':True,'schedule_settings_and_execution_preserved':True,'schedule_and_execution_json':True,'read_views_unchanged':True,'deactivate_reactivate_preserved':True,'workspace_preserved':True}
   results.append(result);print(json.dumps(result),flush=True)
  finally:
   for kind,item in reversed(created):run('docker',kind,'rm',*(['-f','-v'] if kind=='container' else []),item)
