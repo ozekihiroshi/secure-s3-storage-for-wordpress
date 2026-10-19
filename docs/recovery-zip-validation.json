@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "passed": true,
+  "source_commit": "356bf81",
+  "branch": "codex/recovery-operator-plan",
+  "zip_sha256": "34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43",
+  "zip_bytes": 8254794,
+  "version": "0.3.0",
+  "publication": "local_review_candidate_only",
+  "review_findings_resolved": [
+    "WP_CLI namespaced helper incorrectly scoped; exclude WP_CLI namespace",
+    "bundled readme described implemented interfaces as unavailable"
+  ],
+  "contract_scripts": {
+    "php_8_1": 11,
+    "php_8_3": 11,
+    "counts_not_additive": true
+  },
+  "wordpress": "7.0.2",
+  "php": "8.3",
+  "database": "MariaDB 11.8",
+  "installation_cases": [
+    {
+      "previous": null,
+      "candidate": {
+        "version": "0.3.0",
+        "sha256": "34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43",
+        "files": 3889
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true
+    },
+    {
+      "previous": {
+        "version": "0.2.1",
+        "sha256": "059204332e09db69b156da02dfbb696d3c23594899d90a2d4ef2c3384a6829f6",
+        "files": 3863
+      },
+      "candidate": {
+        "version": "0.3.0",
+        "sha256": "34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43",
+        "files": 3889
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true
+    },
+    {
+      "previous": {
+        "version": "0.3.0",
+        "sha256": "9a9853b84397e579201c88c25e075e2f4805958ff43d6d4925ce7b35e28a0508",
+        "files": 3876
+      },
+      "candidate": {
+        "version": "0.3.0",
+        "sha256": "34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43",
+        "files": 3889
+      },
+      "passed": true,
+      "installed_files_match_zip": true,
+      "upgrade_state_preserved": true,
+      "same_version_pending_records_preserved": true,
+      "read_views_unchanged": true,
+      "deactivate_reactivate_preserved": true,
+      "workspace_preserved": true
+    }
+  ],
+  "api": "WP-CLI installer; Plugin_Upgrader::upgrade with local ZIP followed by reactivation in separate process",
+  "zip_roundtrip": {
+    "native": {
+      "source_checks": 47,
+      "restore_checks": 44
+    },
+    "php": {
+      "source_checks": 47,
+      "restore_checks": 44
+    },
+    "source_removed_before_restore": true,
+    "storage": "disk S3 double; no AWS",
+    "counts_not_additive": true
+  },
+  "preserved": [
+    "settings",
+    "legacy history",
+    "legacy Cron on upgrade",
+    "active plugin state after reactivation",
+    "existing 0.3.0 Collector and workspace",
+    "failed set",
+    "manifest-bound observations",
+    "delivery_pending observer run",
+    "incomplete daily schedule",
+    "needs_reconciliation cleanup journal"
+  ],
+  "deactivation_note": "Legacy DB/media Cron removed by existing behavior; daily DB event recreated once on activation; timestamp equality not required",
+  "package_checks": [
+    "all installed files equal archive",
+    "principal runtime classes loaded from installed ZIP",
+    "table and JSON CLI",
+    "read-only admin render",
+    "no top-level tests/tools/docs/git in ZIP",
+    "first-party private-key/access-key/local-path pattern scan",
+    "bundled readme equals source",
+    "scoped dependency collision check PHP8.1 and builder"
+  ],
+  "environment_issue": "Concurrent test network deletion during inventory; fresh case passed, old-version cases rerun after bounded inventory retry; original log retained",
+  "limits": [
+    "generated records and isolated environments",
+    "no browser upload/update button acceptance",
+    "no real S3 revalidation",
+    "no long-running Cron acceptance",
+    "not all supported WordPress/PHP combinations",
+    "uninstall and historical package provenance are outside acceptance",
+    "no push, public release or production deployment"
+  ],
+  "logs_sha256": {
+    "backup-final-build.log": "7bec285720d50d73c9a22459b089eea9d7c77f70c8631bcd1afa27e46b7c4690",
+    "backup-build-scoping-failure.log": "331db2cc23480442a55ce275832c532e9adb564f20227963341fd4cf9f0c34ff",
+    "backup-final-contracts.json": "8a999e663a53a61e584f2c170f1de5385006216faea35f30c66b08c643c1a85b",
+    "backup-zip-fresh-and-harness-race.log": "e267a7bfbbda1d42ad2dba048cb2993b27d3800a510482ae5e79fd675dea75f1",
+    "backup-zip-upgrades.log": "ae5848fd6c69c4bf58cca3990dd2c968e5c6cc2b59798881d3fddccde50095b2",
+    "backup-final-zip-recovery.log": "5c071690a33037f76236ccb4069d6a9b0d6a0648ad01851ffe6af5a7e122695d"
+  }
+}

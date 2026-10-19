@@ -208,6 +208,9 @@ native/PHP acquisition/restoration using a disk S3 test double, plus
 The earlier [real-S3 foundation tests](docs/aws-recovery-set-verification-2026-10-17.md)
 are separate evidence, not an end-to-end acceptance of all these new interfaces.
 Source activation tests do not replace final distribution-ZIP upgrade tests.
+The [reviewed candidate ZIP](docs/recovery-cumulative-review.md) has now passed
+fresh installation, upgrades from local 0.2.1/0.3.0 packages, and pending-state
+preservation tests. Its exact hash and scope are recorded; it is not a published release.
 
 For details, start with the [current inventory](docs/recovery-operator-roadmap.md)
 and [publication checklist and remaining limitations](docs/recovery-operator-release-readiness.md).
