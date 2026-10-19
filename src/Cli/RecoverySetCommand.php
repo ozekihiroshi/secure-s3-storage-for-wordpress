@@ -11,6 +11,30 @@ use WP_CLI;
 final class RecoverySetCommand
 {
     /**
+     * Assess expected starts and completions using local records only.
+     *
+     * ## OPTIONS
+     *
+     * --source-id=<id>
+     * : Source ID (32 lowercase hex characters).
+     * [--format=<format>]
+     * : json or table. Default: table.
+     *
+     * @subcommand schedule-status
+     * @when after_wp_load
+     */
+    public function schedule_status(array $args,array $assocArgs):void
+    {
+        $source=$assocArgs['source-id']??'';$format=$assocArgs['format']??'table';
+        if ($args!==[] || !is_string($source) || preg_match('/^[a-f0-9]{32}$/D',$source)!==1
+            || !in_array($format,['json','table'],true) || array_diff(array_keys($assocArgs),['source-id','format'])) {
+            $this->output(['schema_version'=>1,'reason_code'=>'invalid_request'],$format==='json',2);return;
+        }
+        $r=\SecureS3StorageForWordpress\WordPress\WordPressRecoveryScheduleStatus::read($GLOBALS['wpdb'],$source);
+        $this->output($r,$format==='json',$r['state']==='unknown'?4:($r['state']==='not_configured'?3:0));
+    }
+
+    /**
      * Read the source-local execution summary without starting work.
      *
      * ## OPTIONS

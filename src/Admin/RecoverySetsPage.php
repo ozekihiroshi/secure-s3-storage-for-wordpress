@@ -17,6 +17,7 @@ final class RecoverySetsPage
     }
     private function execution(string $source):void
     {
+        $this->schedule($source);
         echo '<h2>実行記録（Source ID: '.esc_html($source).'）</h2><p>最新の呼出しと確定した進捗の記録です。終了未記録は処理中・中断・記録失敗のいずれかで、生存確認ではありません。時刻はUTCです。</p>';
         try {
             $r=(new \SecureS3StorageForWordpress\Cron\RecoveryExecutionRecord(
@@ -31,6 +32,31 @@ final class RecoverySetsPage
             $this->row('最終保存成功（公開検証時刻）',$r['last_success']);
             echo '</tbody></table>';
         } catch (Throwable $e) { echo '<p role="alert">実行記録を安全に読めません。状態は不明です。</p>'; }
+    }
+    private function schedule(string $source):void
+    {
+        $r=\SecureS3StorageForWordpress\WordPress\WordPressRecoveryScheduleStatus::read($GLOBALS['wpdb'],$source);
+        $labels=['unknown'=>'判定不能','not_configured'=>'予定未設定','stopped'=>'予定判定を停止中',
+            'not_due'=>'初回予定前','within_grace'=>'猶予時間内','overdue'=>'予定超過',
+            'observed'=>'起動記録あり','complete'=>'保存完了','complete_late'=>'期限後に保存完了'];
+        echo '<h2>予定と猶予時間の判定</h2><p>閲覧時点の現在の予定枠を評価します。停止は予定判定の設定であり、Cron自体を停止する操作ではありません。起動記録はプラグインの呼出しを示し、生存や定刻起動の証明ではありません。</p><table class="widefat striped"><tbody>';
+        $this->row('判定',$labels[$r['state']]??$r['state']);$this->row('判定日時（UTC）',$r['evaluated_at']);
+        $this->row('理由',$r['reason_code']);$this->row('対象予定枠（UTC）',$r['slot_at']);$this->row('次回予定枠（UTC）',$r['next_slot_at']);
+        if ($r['policy']!==null) {
+            $s=$r['policy']['settings'];
+            $this->row('初回予定（UTC）',gmdate('Y-m-d\TH:i:s\Z',$s['anchor_at']));
+            $this->row('判定の有効・停止',$s['mode']);$this->row('予定間隔（秒）',$s['interval_seconds']);
+            $this->row('起動の猶予（秒）',$s['start_grace_seconds']);$this->row('完了の猶予（秒）',$s['completion_grace_seconds']);
+        }
+        foreach (['start'=>'起動','completion'=>'保存完了'] as $key=>$label) {
+            if ($r[$key]===null) continue;
+            $this->row($label.'：判定',$labels[$r[$key]['state']]??$r[$key]['state']);
+            $this->row($label.'：期限（UTC）',$r[$key]['deadline_at']);
+            $this->row($label.'：観測日時（UTC）',$r[$key]['observed_at']);
+            $this->row($label.'：未達の超過秒数',$r[$key]['overdue_seconds']);
+            if ($key==='completion') $this->row($label.'：完了時の遅延秒数',$r[$key]['completion_delay_seconds']);
+        }
+        echo '</tbody></table>';
     }
     public function render():void
     {

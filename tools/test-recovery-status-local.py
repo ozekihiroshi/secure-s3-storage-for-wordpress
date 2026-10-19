@@ -54,6 +54,25 @@ try:
             data=re.sub(r'(CREATE TABLE `wp_options` .*?AUTO_INCREMENT=)\d+',r'\g<1>JOURNAL_COUNTER',data,flags=re.S)
         return hashlib.sha256(data.encode()).hexdigest()
     before=snapshot()
+    if '--schedule-only' in sys.argv:
+        print(wp('eval-file','/repo/tests/manual/test-recovery-schedule-wordpress.php',sid))
+        schedule_before=snapshot()
+        cmd=('ozeki-database-backup-for-s3','recovery-set','schedule-status')
+        stopped=json.loads(wp(*cmd,'--source-id='+'7'*32,'--format=json'))
+        assert stopped['state']=='stopped' and stopped['start'] is None
+        overdue=json.loads(wp(*cmd,'--source-id='+'5'*32,'--format=json'))
+        assert overdue['state']=='overdue' and overdue['completion']['overdue_seconds']>0
+        missing=json.loads(wp(*cmd,'--source-id='+'8'*32,'--format=json',code=3))
+        assert missing['state']=='not_configured'
+        corrupt=json.loads(wp(*cmd,'--source-id='+'6'*32,'--format=json',code=4))
+        assert corrupt['state']=='unknown' and 'SECRET' not in json.dumps(corrupt)
+        assert 'stopped' in wp(*cmd,'--source-id='+'7'*32)
+        invalid=json.loads(wp(*cmd,'--source-id=invalid','--format=json',code=2))
+        assert invalid['reason_code']=='invalid_request'
+        assert snapshot()==schedule_before
+        assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==workspace_before
+        print('PASS real WP-CLI schedule JSON/table/missing/corrupt/invalid; DB and workspace unchanged')
+        raise SystemExit(0)
     if '--admin-only' in sys.argv:
         wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
         print(wp('eval-file','/repo/tests/manual/test-recovery-admin-wordpress.php',sid))

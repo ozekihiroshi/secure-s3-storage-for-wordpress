@@ -2,6 +2,8 @@
 
 起動・最終進捗・終了結果・最終保存成功は[実行記録の手順](recovery-execution-status.md)を参照。設定 → Recovery SetsのSource ID検索、または`recovery-set execution --source-id=<id> --format=json`で読取り確認できる。終了未記録は生存確認ではなく状態不明として扱う。
 
+有効・停止・猶予を含む[予定超過の判定](recovery-schedule-status.md)も同じ画面と`recovery-set schedule-status`で確認できる。初回予定の明示設定が必要で、未設定は正常扱いしない。予定判定の停止と実Cronの停止は別操作。
+
 2026-10-19。対象は`codex/recovery-operator-plan`のソース。READMEに記載された公開版0.2.1へ、この手順の機能が追加されたという意味ではない。配布候補の作成・公開は別作業。[公開前の残課題](recovery-operator-release-readiness.md)も確認する。
 
 ## 使い始める前に

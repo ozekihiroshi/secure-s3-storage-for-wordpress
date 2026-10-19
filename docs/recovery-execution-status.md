@@ -38,6 +38,8 @@ JSONと管理画面は同じ保存記録を読み、表示中に実行・修復�
 
 予定超過判定、全履歴保存・エクスポート、処理内部のライブ進捗、一般向けリストア入口は今回の追加範囲外。配布済みZIPや実サイトには適用していない。
 
+後続で[有効・停止・猶予を含む予定超過判定](recovery-schedule-status.md)を追加した。既存のexecution JSON契約は維持し、別のschedule-statusと画面欄で表示する。
+
 ## 専用環境の検証
 
 [検証集計](recovery-execution-validation.json)：PHP 8.1/8.3の追加24項目ずつ、実WordPress管理画面37項目と実WP-CLI、native/PHP各保存50・復元44項目が合格。前提試験・backend間の件数は合算しない。

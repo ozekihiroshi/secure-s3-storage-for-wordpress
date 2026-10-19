@@ -169,6 +169,11 @@ The [execution record guide (Japanese)](docs/recovery-execution-status.md) descr
 the new source-local start, committed progress and completion summaries, available
 in Recovery Sets and `recovery-set execution --source-id=<id> --format=json`.
 
+The [schedule assessment guide (Japanese)](docs/recovery-schedule-status.md) covers
+explicit enabled/stopped expectations and separate start/completion grace periods.
+Use `recovery-set schedule-status --source-id=<id> --format=json` for a read-only
+current-slot assessment. Configuring expectations does not change Cron execution.
+
 These improvements are on `codex/recovery-operator-plan`, separate from shared
 DB-core adoption. They are implemented and tested in dedicated environments;
 this does not publish a new directory package or enable Recovery Set scheduling
