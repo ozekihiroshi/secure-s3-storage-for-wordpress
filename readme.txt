@@ -121,6 +121,8 @@ Uninstalling the plugin removes its local WordPress settings, backup history, cu
 
 Uninstalling Ozeki Database Backup for S3 does NOT delete database or media backups stored in Amazon S3. It also does not automatically remove private media work directories or discover unknown incomplete multipart uploads.
 
+Recovery Set collector, observation, execution, schedule-assessment and cleanup records are retained on uninstall. Stop any externally registered Recovery Set schedule separately and preserve recovery evidence before planning manual retirement. Automated export and final deletion of these records are not provided in this release.
+
 This is intentional. Remote backups should not disappear merely because the WordPress plugin is removed.
 
 == External Service ==
