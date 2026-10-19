@@ -35,3 +35,5 @@ PRは0.4.0のソースレビュー用。自動マージ・WordPress.org配布・
 ## 2026-10-20 追補：Plugin Checkと最終ZIP
 
 上記レビュー後にCIで検出された指摘へ対応し、修正コードの全7ワークフローが成功。README変更を含む新しい固定ZIP `4876c397…` で新規導入・公開0.3.0からの更新・状態保持が成功した。詳細は [Plugin Check対応](release-0.4.0-plugin-check.md)、[最終ZIP検証](release-0.4.0-final-validation.json)、[コードのCI結果](release-0.4.0-code-ci.json)。過去のZIPと証拠は維持する。今回のZIPで実S3往復は再実施していない。マージ/公開は未実施。
+
+同一最終ZIPの実S3往復も後続試験で成功：[0.4.0固定ZIP実S3試験](release-0.4.0-final-s3.md)。先の未実施記述はその時点の検証範囲として保持する。

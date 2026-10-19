@@ -1,0 +1,234 @@
+{
+  "run": "e2507a245a9c",
+  "date": "2026-10-20",
+  "status": "passed",
+  "zip_sha256": "4876c3971ebb5d7d4adf829a755c574216f22a20b5d6be9a74552ca00721fd62",
+  "evidence_tar_sha256": "cbf22691512cf7b0fe6e37b2a994dce9cb26370aa65203ef3e040d1675f903de",
+  "worker": "WordPress hook -> RecoverySetCronHandler -> RecoveryCollector -> RecoveryPipeline/RecoveryPublisher -> MediaS3Client -> S3",
+  "no_asset_republication_or_manifest_rewrite": true,
+  "source_db_removed_before_download": true,
+  "fresh_independent_download": true,
+  "restore_internal_network": true,
+  "reports": [
+    {
+      "transport": "direct_wordpress_worker",
+      "prefix": "wordpress-test/direct-worker/e2507a245a9c/native",
+      "objects": [
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/manifest.json",
+          "size_bytes": 3040,
+          "sha256": "db25c40199dfd907d34aefd4e3b151bc3b846939722e3489f931942795ca5d34",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/database/dump.sql.gz",
+          "size_bytes": 9272,
+          "sha256": "ec08e2c71ec5bf1832fbc68cd295196fec2befd66150ad47144c3ae9caaa4668",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f650aa720b9b9fb946f6a0372aa9e521/inventory.jsonl",
+          "size_bytes": 762,
+          "sha256": "c6f6365aae03d5c796c73180f6f467c1126a9b525e27fc55223f802ff55d8c42",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f650aa720b9b9fb946f6a0372aa9e521/complete.json",
+          "size_bytes": 282,
+          "sha256": "a1133f35c1fb5573ffaf615e69b31c8765bb1753adac059b590709fe95e493bd",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f650aa720b9b9fb946f6a0372aa9e521/files/d40f8692f75380ad47b23368cac85ad974fea90f9cb99da1bc9b5894a0855331",
+          "size_bytes": 489,
+          "sha256": "c78c57d8e4842951cec73547edaf3a2d66185e54f113952e7221fc1e5d0b143e",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f650aa720b9b9fb946f6a0372aa9e521/files/368749e1ef23faf83385418ae8ad3d0a96210f7c42b608318aeee63f5db32eb1",
+          "size_bytes": 763,
+          "sha256": "7275a083dc0b54d5eda617215eb3a8e52eced087fa64fac0d474b210ded0822d",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f650aa720b9b9fb946f6a0372aa9e521/files/8a37d26e3adf5e1d093acc48bc0586b7b49c557d007468bce99d280362c5c0ac",
+          "size_bytes": 1231,
+          "sha256": "62f288d07f9d427f7cb6945b9b92cc9e6c3d3be63eb5d3ebdf0f5908a2620b7a",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/native/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/f650aa720b9b9fb946f6a0372aa9e521/files/0783074e1491c043d02394156dbda255a3396b07c2f643cfd0c4feae5a972e57",
+          "size_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "version_id": null,
+          "encryption": "AES256"
+        }
+      ],
+      "worker_manifest_unchanged": true,
+      "fresh_download_verified": true,
+      "checked_at": "2026-10-19T23:00:20+00:00",
+      "backend": "native",
+      "source_checks": 48,
+      "restore_checks": 44,
+      "wordpress": "7.0",
+      "manifest_sha256": "db25c40199dfd907d34aefd4e3b151bc3b846939722e3489f931942795ca5d34",
+      "total_object_bytes": 15839,
+      "restore_observation": {
+        "schema_version": 1,
+        "set_id": "b2ed8bb408d0c2de8067b63ea60ce5ce",
+        "manifest_sha256": "db25c40199dfd907d34aefd4e3b151bc3b846939722e3489f931942795ca5d34",
+        "observed_at": "2026-10-19T23:01:07Z",
+        "max_age_seconds": 86400,
+        "records_scanned": 1,
+        "aggregation_complete": true,
+        "invalid_records": 0,
+        "truncated": false,
+        "reason_code": null,
+        "availability": {
+          "state": "unknown",
+          "recorded_state": null,
+          "checked_at": null,
+          "freshness": "unknown",
+          "environment_id": null,
+          "checks": [],
+          "reason_code": "no_observation"
+        },
+        "restore": {
+          "state": "passed",
+          "recorded_state": "passed",
+          "checked_at": "2026-10-19T23:01:07Z",
+          "freshness": "fresh",
+          "environment_id": "a3d442ad5a92b1d01936694487b0acec",
+          "checks": [
+            "attachment_references",
+            "media_hashes",
+            "sql_import",
+            "wordpress_content"
+          ],
+          "reason_code": null
+        }
+      },
+      "runtime_files_matching_zip": 3889
+    },
+    {
+      "transport": "direct_wordpress_worker",
+      "prefix": "wordpress-test/direct-worker/e2507a245a9c/php",
+      "objects": [
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/manifest.json",
+          "size_bytes": 3022,
+          "sha256": "930a7f8d0a3b78e8301ea627b49f7430c24166f5f99ed522c3122333b86c5af2",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/database/dump.sql.gz",
+          "size_bytes": 8762,
+          "sha256": "12e4eca83cd30a2403daa34512b2d64056ac4c8073ee961e7b09c994ee7370f4",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/ccedb9a31d94318c66b108d68d137a27/inventory.jsonl",
+          "size_bytes": 762,
+          "sha256": "c6f6365aae03d5c796c73180f6f467c1126a9b525e27fc55223f802ff55d8c42",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/ccedb9a31d94318c66b108d68d137a27/complete.json",
+          "size_bytes": 282,
+          "sha256": "4e0c30cf71a9ba96e5ceb4d9a3ac5d09aa1f378c2112169a1617a6f88fc03227",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/ccedb9a31d94318c66b108d68d137a27/files/d40f8692f75380ad47b23368cac85ad974fea90f9cb99da1bc9b5894a0855331",
+          "size_bytes": 489,
+          "sha256": "c78c57d8e4842951cec73547edaf3a2d66185e54f113952e7221fc1e5d0b143e",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/ccedb9a31d94318c66b108d68d137a27/files/368749e1ef23faf83385418ae8ad3d0a96210f7c42b608318aeee63f5db32eb1",
+          "size_bytes": 763,
+          "sha256": "7275a083dc0b54d5eda617215eb3a8e52eced087fa64fac0d474b210ded0822d",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/ccedb9a31d94318c66b108d68d137a27/files/8a37d26e3adf5e1d093acc48bc0586b7b49c557d007468bce99d280362c5c0ac",
+          "size_bytes": 1231,
+          "sha256": "62f288d07f9d427f7cb6945b9b92cc9e6c3d3be63eb5d3ebdf0f5908a2620b7a",
+          "version_id": null,
+          "encryption": "AES256"
+        },
+        {
+          "key": "wordpress-test/direct-worker/e2507a245a9c/php/backups/recovery-sets/b2ed8bb408d0c2de8067b63ea60ce5ce/media/ccedb9a31d94318c66b108d68d137a27/files/0783074e1491c043d02394156dbda255a3396b07c2f643cfd0c4feae5a972e57",
+          "size_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "version_id": null,
+          "encryption": "AES256"
+        }
+      ],
+      "worker_manifest_unchanged": true,
+      "fresh_download_verified": true,
+      "checked_at": "2026-10-19T23:01:43+00:00",
+      "backend": "php",
+      "source_checks": 48,
+      "restore_checks": 44,
+      "wordpress": "7.0",
+      "manifest_sha256": "930a7f8d0a3b78e8301ea627b49f7430c24166f5f99ed522c3122333b86c5af2",
+      "total_object_bytes": 15311,
+      "restore_observation": {
+        "schema_version": 1,
+        "set_id": "b2ed8bb408d0c2de8067b63ea60ce5ce",
+        "manifest_sha256": "930a7f8d0a3b78e8301ea627b49f7430c24166f5f99ed522c3122333b86c5af2",
+        "observed_at": "2026-10-19T23:02:27Z",
+        "max_age_seconds": 86400,
+        "records_scanned": 1,
+        "aggregation_complete": true,
+        "invalid_records": 0,
+        "truncated": false,
+        "reason_code": null,
+        "availability": {
+          "state": "unknown",
+          "recorded_state": null,
+          "checked_at": null,
+          "freshness": "unknown",
+          "environment_id": null,
+          "checks": [],
+          "reason_code": "no_observation"
+        },
+        "restore": {
+          "state": "passed",
+          "recorded_state": "passed",
+          "checked_at": "2026-10-19T23:02:27Z",
+          "freshness": "fresh",
+          "environment_id": "2226af073153473811f61d429fda198c",
+          "checks": [
+            "attachment_references",
+            "media_hashes",
+            "sql_import",
+            "wordpress_content"
+          ],
+          "reason_code": null
+        }
+      },
+      "runtime_files_matching_zip": 3889
+    }
+  ],
+  "limitations": [
+    "Explicit hook dispatch; not automatic wp-cron.php scheduling or multi-day operation.",
+    "Read-only download and restore use lab helpers, not a general restore UI/CLI.",
+    "Existing credential chain shared for write and read; no independent signature/Object Lock/role separation acceptance.",
+    "WordPress core/theme separately provided; synthetic DB/media only."
+  ]
+}
