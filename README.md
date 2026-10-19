@@ -139,9 +139,11 @@ scheduled tasks, and certificates. Preserve or document those separately.
 
 Database and media jobs are independent: the plugin does not guarantee an atomic
 snapshot or a shared point in time between them. A recovery set linking the two
-and a unified recovery manifest are implemented internally in the 0.3.0 source,
-but are not connected to the admin, CLI or Cron entry points. Existing standalone
-backups do not automatically become linked recovery sets. Coordinate writes when
+and a unified recovery manifest are implemented in the 0.3.0 source. This
+development branch adds read-only CLI/admin views, an opt-in developer Cron
+entry and explicit local temporary-file cleanup. It does not provide a general
+create/restore button or CLI. Existing standalone backups do not automatically
+become linked recovery sets. Coordinate writes when
 preparing a consistent recovery point, then test database and attachment
 references together in an isolated environment.
 
@@ -156,63 +158,69 @@ WP-Cron runs when WordPress receives requests. Use a system scheduler to invoke
 WordPress Cron if your installation requires predictable execution. Failed
 media jobs require inspection and explicit WP-CLI cleanup by their exact job ID.
 
-## Development direction
+## Recovery Set operations (development branch)
 
-The 0.3.0 source includes persistent recovery-set state, resumable DB/media
-collection, conditional manifest publication and independent S3 verification.
-Synthetic WordPress restoration from real-S3 artifacts passed with both dump
-backends. See [the verification record](docs/aws-recovery-set-verification-2026-10-17.md).
-This is an internal foundation, not a new operator-facing backup or restore command.
-Private workspace retention and disk capacity remain the caller's responsibility;
-do not enable cloned workers or remove their workspaces without an explicit policy.
+These improvements are on `codex/recovery-operator-plan`, separate from shared
+DB-core adoption. They are implemented and tested in dedicated environments;
+this does not publish a new directory package or enable Recovery Set scheduling
+on an existing site. See the [operator guide (Japanese)](docs/recovery-operations.md)
+for the complete workflow and failure handling.
 
-Next steps are operator-facing orchestration and cleanup guidance. Clearer operational failure
-states, scheduling health checks, and stable machine-readable outputs should
-support integrations without making the core customer-specific.
+| Task | Entry point | Boundary |
+| --- | --- | --- |
+| Inspect a set | `recovery-set status <set-id> --format=json` | Reads saved component/manifest evidence; no S3 check |
+| Find the latest | `recovery-set latest --source-id=<source-id> --format=json` | Latest attempt and latest complete are separate; incomplete index is explicit |
+| Read later verification results | `recovery-set observations <set-id> --format=json` | Recorded availability/restore results and freshness; does not run verification |
+| Create through Cron | Explicit `WordPressRecoverySchedule::register(...)` integration | Developer-supplied adapters/reporting; one Collector operation per invocation |
+| Inspect cleanup candidates | `recovery-set cleanup-plan <set-id> --workspace-parent=<private-parent> --format=json` | Read-only; protection reasons and provisional candidates |
+| Execute cleanup | `recovery-set cleanup <set-id> --workspace-parent=<private-parent> --confirm-set=<same-set-id> --format=json` | Only completed local SQL/gzip temporary files, with revalidation and a journal |
+| View in WordPress | **Settings > Recovery Sets** | Administrator read-only list, details, observations and cleanup progress |
 
-The [operator roadmap and implementation inventory](docs/recovery-operator-roadmap.md)
-separate the existing recovery-set foundation from operator interfaces,
-Cron orchestration, and pending workspace cleanup. This work is
-independent of shared database-core adoption. Publication completion, current
-availability, and restoration-test results will be reported separately.
+Prefix all CLI entries with `wp ozeki-database-backup-for-s3`; replace IDs and
+paths with the actual values. Run from the intended WordPress installation.
+Read commands returning exit code 0 mean the record was read, not that the
+backup or restore succeeded. Inspect the JSON states and completeness flags.
+An empty catalog does not create a set or import standalone backup history.
 
-A read-only [Recovery Set status command](docs/recovery-set-status.md) now exposes
-existing site-local set records as a table or versioned JSON. It does not create
-sets or contact S3. The separate [latest-set index and observation aggregation](docs/recovery-catalog-observations.md)
-commands expose the latest attempt versus latest complete set, and locally
-recorded availability/restoration observations bound to the exact manifest.
-[Automatic observation recording](docs/automatic-recovery-observations.md) now
-connects the isolated verification/restoration pipeline to the catalog, with a
-durable delivery journal and delivery-only retries. General operator restore
-commands, scheduled verification, and automatic cleanup remain planned work.
+**Cron is not a ready-to-enable daily Recovery Set setting.** The existing daily
+DB-backup setting remains separate. The new hook requires trusted integration,
+fixed configuration, locking adapters and a result reporter. Repeated calls are
+needed to finish one set; a single daily callback is insufficient. Daily slots
+use UTC (09:00 JST). Failed sets and configuration changes stop for review;
+there is no automatic reset. See [Cron setup and stopping](docs/recovery-cron-entry.md).
 
-An opt-in [Recovery Set Cron entry](docs/recovery-cron-entry.md) now freezes a
-daily intent, deduplicates callbacks, and advances one Collector operation per
-invocation. Incomplete work resumes across days; failed or changed configurations
-require review. The WordPress hook accepts trusted adapters and a result reporter;
-it does not automatically replace the existing database Cron. Isolated WordPress
-tests cover native/PHP acquisition and restoration with a disk S3 double.
-Production setup UI, automatic failure reset, and long-running scheduler
-monitoring are not included.
+Before cleanup, confirm the recovery materials you still need, inspect the
+plan, then explicitly repeat the exact set ID. Cleanup does not query S3 or
+prove current recoverability. It preserves media subtrees, evidence and
+journals, and never changes S3 retention. Automatic/recursive cleanup is not
+provided; each candidate file has a 1 GiB validation limit. Follow the
+[cleanup procedure and interruption handling](docs/recovery-cleanup-execution.md).
 
-The read-only [workspace cleanup plan](docs/recovery-cleanup-plan.md) lists
-completed database temporary-file candidates and protection reasons. It retains
-coordination/evidence files and media subtrees, blocks unsafe or unfinished
-workspaces, and never deletes files or contacts S3.
-The separate [explicit cleanup command](docs/recovery-cleanup-execution.md) requires
-the exact set ID twice, revalidates hashes under an exclusive lock, and journals
-each local temporary-file deletion for safe reconciliation after interruption.
-It retains evidence and media subtrees; automatic or recursive cleanup is not included.
+The [admin page](docs/recovery-admin-readonly.md) requires `manage_options`.
+Its views do not start backups, validation or cleanup. Storage completion,
+recorded availability and restoration tests remain separate. Stale or unreadable
+evidence is not promoted to success. Set and observation indexes have a
+100-record read limit; the UI/CLI report incomplete results rather than hiding it.
 
-The [read-only Recovery Sets admin page](docs/recovery-admin-readonly.md), under
-Settings → Recovery Sets, displays local set status, recorded verification results,
-and cleanup journal progress for administrators. It does not start jobs, inspect
-workspace files, or contact S3. Stale, incomplete, and unreadable evidence is
-shown separately from successful results.
+Verification includes PHP contract checks, dedicated WordPress CLI and
+native/PHP acquisition/restoration using a disk S3 test double, plus
+[full plugin activation and browser acceptance](docs/recovery-admin-browser.md).
+The earlier [real-S3 foundation tests](docs/aws-recovery-set-verification-2026-10-17.md)
+are separate evidence, not an end-to-end acceptance of all these new interfaces.
+Source activation tests do not replace final distribution-ZIP upgrade tests.
 
-Those next steps are planned capabilities, not current guarantees or a finalized external
-integration API. See the [integrity implementation](docs/database-integrity-verification.md)
-for the completed work and remaining verification boundaries.
+For details, start with the [current inventory](docs/recovery-operator-roadmap.md)
+and [publication checklist and remaining limitations](docs/recovery-operator-release-readiness.md).
+Before distributing an update, review the cumulative changes, validate the final
+package and upgrades, and align release documentation. General create/restore
+interfaces, failure-reset/configuration migration, pagination and long-running
+Cron monitoring remain follow-up work. No automatic restore guarantee is made.
+
+Backup for S3 remains focused on backup/recovery materials and verification.
+Ozeki WordPress Resilience addresses independent trust, retained recovery assets
+and recovery after compromise or source loss. This branch does not add a mandatory
+plugin dependency, independent signatures or a watchdog. Shared-core adoption
+and its release validation remain a separate change.
 
 ## Data and external service
 

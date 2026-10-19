@@ -7,7 +7,7 @@ wp ozeki-database-backup-for-s3 recovery-set status <32桁のset-id>
 wp ozeki-database-backup-for-s3 recovery-set status <32桁のset-id> --format=json
 ```
 
-IDは小文字16進32桁。ID一覧・latest・作成はこの変更に含まない。現在は内部Recovery Set実行時に記録したIDを指定する。WordPressを読み込めるローカルWP-CLI実行権限が必要。
+IDは小文字16進32桁。既存セットのIDを指定する。IDは管理画面の一覧、latest、作成処理のreportから確認できる。status自体は一覧取得や作成を行わない。WordPressを読み込めるローカルWP-CLI実行権限が必要。
 
 後続実装として、[latest索引と観測集約](recovery-catalog-observations.md)を別サブコマンドに追加した。このstatusの既存出力・観測範囲は維持している。
 
