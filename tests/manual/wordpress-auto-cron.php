@@ -28,6 +28,7 @@ final class CronLabStopGate implements RecoveryStep,RecoveryLock {
 add_filter('cron_schedules',static fn(array $s):array=>$s+['fixture_fast'=>['interval'=>2,'display'=>'Lab only']]);
 // Permit only WordPress's own loopback Cron request; the fixture guard blocks all other HTTP/mail.
 add_filter('pre_http_request',static function($pre,$args,$url) {
+    if (getenv('ODBFS3_EXTERNAL_CRON')==='1') { return $pre; }
     $allowed=getenv('FIXTURE_HTTP_URL').'/wp-cron.php';
     return ($url===$allowed || str_starts_with($url,$allowed.'?')) ? false : $pre;
 },PHP_INT_MAX,3);

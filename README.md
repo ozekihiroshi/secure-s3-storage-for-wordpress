@@ -227,6 +227,10 @@ ordinary HTTP visits triggered S3 backup, concurrent visits were suppressed,
 and interrupted/completed workers preserved state across restarts. It uses
 explicit lab registration and a short test schedule; production scheduling
 configuration, multi-day operation and a general-purpose restore interface remain separate work.
+The [external crond test](docs/recovery-external-cron-s3.md) also passed for the PHP
+backend without an HTTP server or visitor requests: missing scheduled starts were
+recorded by the lab controller, and the same set resumed after a worker stop.
+This does not add a production missed-start monitor or notification service.
 
 For details, start with the [current inventory](docs/recovery-operator-roadmap.md)
 and [publication checklist and remaining limitations](docs/recovery-operator-release-readiness.md).

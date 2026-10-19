@@ -34,7 +34,7 @@ function rejects(callable $action, string $label): void {
 function bootFixture(string $prefix, bool $install): void {
     $config = "<?php\n";
     foreach (['DB_NAME' => 'fixture', 'DB_USER' => 'fixture', 'DB_PASSWORD' => getenv('FIXTURE_PASSWORD'), 'DB_HOST' => getenv('FIXTURE_DB_HOST') ?: 'fixture-db',
-        'DB_CHARSET' => 'utf8mb4', 'DB_COLLATE' => '', 'DISABLE_WP_CRON' => getenv('ODBFS3_AUTO_CRON') !== '1', 'WP_HTTP_BLOCK_EXTERNAL' => true,
+        'DB_CHARSET' => 'utf8mb4', 'DB_COLLATE' => '', 'DISABLE_WP_CRON' => getenv('ODBFS3_AUTO_CRON') !== '1' || getenv('ODBFS3_EXTERNAL_CRON') === '1', 'WP_HTTP_BLOCK_EXTERNAL' => true,
         'AUTOMATIC_UPDATER_DISABLED' => true, 'DISALLOW_FILE_MODS' => true, 'WP_DISABLE_FATAL_ERROR_HANDLER' => true, 'WP_ENVIRONMENT_TYPE' => 'local'] as $key => $value) {
         $config .= 'define(' . var_export($key, true) . ', ' . var_export($value, true) . ");\n";
     }
