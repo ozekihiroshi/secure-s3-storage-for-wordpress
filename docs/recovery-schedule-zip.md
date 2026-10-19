@@ -6,6 +6,8 @@
 
 最終ZIPは8,243,593 bytes、SHA-256は `4a92b0e4ff85f16b34254f41ba54ea626ccaf050f82fd77930e0d6d8b4b80797`。通常の`build/ozeki-database-backup-for-s3-0.3.0.zip`にも同一ファイルを配置した。
 
+後続確認：[同じZIPでの実ワーカーS3往復・隔離復元](recovery-schedule-direct-s3.md)が完了。また、WordPress.orgには別内容の0.3.0が公開済みであることを確認したため、[版番号整理](release-version-reconciliation.md)を参照。この候補を公開版0.3.0へ上書きしない。
+
 ## 最終パッケージ
 
 `build-release.sh`でPHP構文、依存同梱・名前空間分離、実行時構造を検査して作成。そのビルド中に更新した同梱readme.txtを最終組立で反映し、それ以外の全ZIPエントリーがビルダー出力とバイト単位で同一であることを確認した。試験対象は、この最終組立後のZIP。ソース・同梱READMEの説明も一致させる。

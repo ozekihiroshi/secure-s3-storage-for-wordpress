@@ -179,6 +179,10 @@ Recovery Sets. See [schedule settings (Japanese)](docs/recovery-schedule-setting
 for UTC input, grace periods, stopping/resuming assessment and stale-form protection.
 The [candidate ZIP installation checks (Japanese)](docs/recovery-schedule-zip.md)
 cover fresh installation, upgrades and preservation of settings and records.
+WordPress.org already distributes 0.3.0. This branch's same-numbered test ZIP
+contains additional unpublished changes and must not replace that release.
+See [version reconciliation (Japanese)](docs/release-version-reconciliation.md)
+for the missing GitHub release entry and next-version plan.
 
 These improvements are on `codex/recovery-operator-plan`, separate from shared
 DB-core adoption. They are implemented and tested in dedicated environments;

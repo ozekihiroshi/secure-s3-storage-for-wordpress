@@ -7,7 +7,9 @@ assert not root.is_symlink()
 run=secrets.token_hex(6)
 runtime=root/'ozeki-database-backup-for-s3'
 archive=root/'candidate.zip'
-assert hashlib.sha256(archive.read_bytes()).hexdigest()=='34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43'
+expected_sha256=sys.argv[2] if len(sys.argv)>2 else '34315c718ac34a970f64dcc5353c1208ec3b40c272be803bdfae127217200d43'
+assert len(expected_sha256)==64 and all(c in '0123456789abcdef' for c in expected_sha256)
+assert hashlib.sha256(archive.read_bytes()).hexdigest()==expected_sha256
 with zipfile.ZipFile(archive) as z:
     assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
     z.extractall(root)
