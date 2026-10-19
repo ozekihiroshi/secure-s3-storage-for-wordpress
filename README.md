@@ -221,8 +221,12 @@ are outside this test's scope.
 A subsequent [direct WordPress worker test](docs/recovery-direct-worker-s3.md)
 also passed with that ZIP: registered WordPress hooks ran the production pipeline
 directly against S3, then a fresh download was restored in an isolated environment.
-No manifest rewriting or asset republication was used. Automatic Cron scheduling
-and a general-purpose restore interface remain separate work.
+No manifest rewriting or asset republication was used. An additional
+[automatic WP-Cron test](docs/recovery-auto-cron-s3.md) passed for both backends:
+ordinary HTTP visits triggered S3 backup, concurrent visits were suppressed,
+and interrupted/completed workers preserved state across restarts. It uses
+explicit lab registration and a short test schedule; production scheduling
+configuration, multi-day operation and a general-purpose restore interface remain separate work.
 
 For details, start with the [current inventory](docs/recovery-operator-roadmap.md)
 and [publication checklist and remaining limitations](docs/recovery-operator-release-readiness.md).

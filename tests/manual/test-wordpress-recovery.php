@@ -21,7 +21,7 @@ use SecureS3StorageForWordpress\WordPress\WordPressJobStore;
 
 $mode = $argv[1] ?? '';
 $backend = getenv('FIXTURE_BACKEND');
-if (getenv('ODBFS3_WP_FIXTURE') !== '1' || ! in_array($mode, ['source', 'restore'], true)
+if (getenv('ODBFS3_WP_FIXTURE') !== '1' || ! in_array($mode, ['source', 'restore', 'cronsetup'], true)
     || ! in_array($backend, ['native', 'php'], true) || ! is_file('/site/wp-includes/version.php')) { throw new RuntimeException('Isolated fixture required.'); }
 umask(0077); chmod('/private', 0700);
 $_SERVER['HTTP_HOST'] = 'fixture.invalid'; $_SERVER['SERVER_NAME'] = 'fixture.invalid'; $_SERVER['SERVER_PORT'] = '80'; $_SERVER['REQUEST_URI'] = '/';
@@ -34,7 +34,7 @@ function rejects(callable $action, string $label): void {
 function bootFixture(string $prefix, bool $install): void {
     $config = "<?php\n";
     foreach (['DB_NAME' => 'fixture', 'DB_USER' => 'fixture', 'DB_PASSWORD' => getenv('FIXTURE_PASSWORD'), 'DB_HOST' => getenv('FIXTURE_DB_HOST') ?: 'fixture-db',
-        'DB_CHARSET' => 'utf8mb4', 'DB_COLLATE' => '', 'DISABLE_WP_CRON' => true, 'WP_HTTP_BLOCK_EXTERNAL' => true,
+        'DB_CHARSET' => 'utf8mb4', 'DB_COLLATE' => '', 'DISABLE_WP_CRON' => getenv('ODBFS3_AUTO_CRON') !== '1', 'WP_HTTP_BLOCK_EXTERNAL' => true,
         'AUTOMATIC_UPDATER_DISABLED' => true, 'DISALLOW_FILE_MODS' => true, 'WP_DISABLE_FATAL_ERROR_HANDLER' => true, 'WP_ENVIRONMENT_TYPE' => 'local'] as $key => $value) {
         $config .= 'define(' . var_export($key, true) . ', ' . var_export($value, true) . ");\n";
     }
@@ -52,7 +52,7 @@ if (getenv('ODBFS3_DIRECT_S3') === '1' && $mode === 'source') {
     $transport = \SecureS3StorageForWordpress\Aws\MediaS3Client::create('ap-northeast-1');
     $remote = new WordPressDirectS3Reader($transport);
 }
-if ($mode === 'source') {
+if ($mode === 'source' || $mode === 'cronsetup') {
     bootFixture('fx_', true);
     require '/site/wp-load.php';
     require '/site/wp-admin/includes/upgrade.php';
@@ -109,6 +109,19 @@ if ($mode === 'source') {
         $workspace = new RecoveryWorkspace('/private', $set, '/site', $uploads);
         return [new RecoveryPipeline($workspace, $backend==='native'?new NativeMySqlDumper():new PhpMySqlDumper(chunkSize:20), $connection,$backend,$transport,new MediaSource($uploads),'/site'), new RecoveryPublisher($transport,$workspace)];
     };
+    if ($mode === 'cronsetup') {
+        $url=getenv('FIXTURE_HTTP_URL');
+        verify((bool)preg_match('#^http://127\.0\.0\.1:[0-9]+$#D',$url),'Loopback fixture URL');
+        update_option('home',$url);update_option('siteurl',$url);
+        wp_clear_scheduled_hook('odbfs3_fixture_cron');
+        file_put_contents('/private/cron-config.json',json_encode($configuration,JSON_THROW_ON_ERROR));
+        copy(__DIR__.'/wordpress-auto-cron.php','/site/wp-content/mu-plugins/auto-cron.php');
+        add_filter('cron_schedules',static fn(array $s):array=>$s+['fixture_fast'=>['interval'=>2,'display'=>'Lab only']]);
+        $hook='odbfs3_recovery_tick_'.$configuration['source_id'];
+        verify(wp_schedule_event(time()+2,'fixture_fast',$hook)!==false,'Cron event installed');
+        echo 'PASS automatic Cron fixture configured; no handler invoked'."\n";
+        exit;
+    }
     // Exercise opt-in registration and WordPress callback dispatch.
     $cronResult = null;
     $hook=\SecureS3StorageForWordpress\WordPress\WordPressRecoverySchedule::register($GLOBALS['wpdb'],$configuration,$adapterFactory,
