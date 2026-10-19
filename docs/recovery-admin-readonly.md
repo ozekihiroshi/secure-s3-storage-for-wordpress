@@ -32,4 +32,4 @@ cleanup表示は元のCollector・manifestのハッシュに結び付いた専�
 - 既存cleanup実行26項目を両PHP版で回帰確認した。
 - `python3 tools/test-recovery-status-local.py --admin-only`で、使い捨てWordPress/MariaDBの実際のメニュー登録・render callbackを検証。完全/失敗セット、観測、stale、cleanup照合待ち、破損、入力不正、管理者/購読者/未ログインの権限、DB optionsとworkspaceファイルの非変更性を確認する。
 
-fixture準備の書込みは画面表示とは分離する。プラグイン全体の有効化やブラウザのログイン・画面クリックを通した受入、実サイトへの配置は今回の検証には含まない。
+fixture準備の書込みは画面表示とは分離する。追加で、本体有効化・ブラウザログイン/画面クリック・権限・閲覧前後の非変更性を専用環境で確認済み。[ブラウザ受入と再現手順](recovery-admin-browser.md)を参照。実サイトへの配置は含まない。
