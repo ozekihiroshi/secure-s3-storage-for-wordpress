@@ -4,6 +4,8 @@
 
 追記：同じ独立ブランチで[読取り専用statusとJSON](recovery-set-status.md)を実装した。以下の棚卸し表は着手前の記録。statusは既存セットID指定に限定し、latest索引・観測集約・Cron・cleanupは未実装。実装済み部分の仕様と試験範囲はリンク先を優先する。
 
+次の追記：[latest索引・観測集約](recovery-catalog-observations.md)も同ブランチで実装した。読取り上限・不完全判定・観測の追記APIを含む。Cron、実観測処理との自動接続、cleanupは未実装。下記の計画上の状態は、この追記と各機能文書で更新する。
+
 ## 目的と開発単位
 
 Ozeki Database Backup for S3は、バックアップとリストアの完全性を高める独立製品として改善を続ける。既存Recovery Setの内部契約を利用し、オペレーターが不足・失敗・未検証を識別して操作できる入口を追加する。Resilienceの独立署名、侵害耐性、watchdogの仕組みをこの変更の必須要件にしない。

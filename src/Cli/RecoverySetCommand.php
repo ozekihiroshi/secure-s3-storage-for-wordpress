@@ -4,11 +4,75 @@ namespace SecureS3StorageForWordpress\Cli;
 
 use SecureS3StorageForWordpress\Backup\Recovery\RecoveryStatus;
 use SecureS3StorageForWordpress\WordPress\WordPressJobStore;
+use SecureS3StorageForWordpress\WordPress\WordPressRecoveryCatalog;
 use Throwable;
 use WP_CLI;
 
 final class RecoverySetCommand
 {
+    /**
+     * Read the latest attempt and latest complete set from the site-local index.
+     *
+     * ## OPTIONS
+     *
+     * --source-id=<id>
+     * : Exact source ID.
+     * [--profile=<profile>]
+     * : database or database_uploads. Omit to include both.
+     * [--format=<format>]
+     * : json or table. Default: table.
+     *
+     * @when after_wp_load
+     */
+    public function latest(array $args, array $assocArgs): void
+    {
+        $format=$assocArgs['format']??'table'; $source=$assocArgs['source-id']??''; $profile=$assocArgs['profile']??null;
+        if ($args!==[] || !is_string($source) || preg_match('/^[a-f0-9]{32}$/D',$source)!==1
+            || !in_array($profile,[null,'database','database_uploads'],true)
+            || !in_array($format,['json','table'],true) || array_diff(array_keys($assocArgs),['source-id','profile','format'])) {
+            $this->output(['schema_version'=>1,'reason_code'=>'invalid_request'],$format==='json',2); return;
+        }
+        try {
+            $record=(new WordPressRecoveryCatalog($GLOBALS['wpdb']))->latest($source,$profile);
+        } catch (Throwable $e) {
+            $this->output(['schema_version'=>1,'index_complete'=>false,'reason_code'=>'index_unreadable'],$format==='json',4); return;
+        }
+        $this->output($record,$format==='json',!$record['index_complete'] ? 4 : ($record['latest_attempt']===null ? 3 : 0));
+    }
+
+    /**
+     * Aggregate locally recorded observations for the exact completed manifest.
+     *
+     * ## OPTIONS
+     *
+     * <set-id>
+     * : Exact Recovery Set ID.
+     * [--max-age=<seconds>]
+     * : Freshness window from 1 to 31536000 seconds. Default: 86400.
+     * [--format=<format>]
+     * : json or table. Default: table.
+     *
+     * @when after_wp_load
+     */
+    public function observations(array $args, array $assocArgs): void
+    {
+        $format=$assocArgs['format']??'table'; $age=(string)($assocArgs['max-age']??'86400');
+        if (count($args)!==1 || !is_string($args[0]) || preg_match('/^[a-f0-9]{32}$/D',$args[0])!==1
+            || preg_match('/^[1-9][0-9]{0,7}$/D',$age)!==1 || (int)$age>31536000
+            || !in_array($format,['json','table'],true) || array_diff(array_keys($assocArgs),['format','max-age'])) {
+            $this->output(['schema_version'=>1,'reason_code'=>'invalid_request'],$format==='json',2); return;
+        }
+        try {
+            $record=(new WordPressRecoveryCatalog($GLOBALS['wpdb']))->observations($args[0],gmdate('Y-m-d\TH:i:s\Z'),(int)$age);
+        } catch (Throwable $e) {
+            $this->output(['schema_version'=>1,'set_id'=>$args[0],'aggregation_complete'=>false,'reason_code'=>'observations_unreadable'],$format==='json',4); return;
+        }
+        if ($record===null) {
+            $this->output(['schema_version'=>1,'set_id'=>$args[0],'reason_code'=>'set_not_found'],$format==='json',3); return;
+        }
+        $this->output($record,$format==='json',$record['aggregation_complete'] ? 0 : 4);
+    }
+
     /**
      * Read local Recovery Set evidence without advancing the job or contacting S3.
      *

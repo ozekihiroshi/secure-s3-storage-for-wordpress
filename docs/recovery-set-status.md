@@ -9,6 +9,8 @@ wp ozeki-database-backup-for-s3 recovery-set status <32桁のset-id> --format=js
 
 IDは小文字16進32桁。ID一覧・latest・作成はこの変更に含まない。現在は内部Recovery Set実行時に記録したIDを指定する。WordPressを読み込めるローカルWP-CLI実行権限が必要。
 
+後続実装として、[latest索引と観測集約](recovery-catalog-observations.md)を別サブコマンドに追加した。このstatusの既存出力・観測範囲は維持している。
+
 ## JSON schema_version 1
 
 - set_id/source_id/profile/created_at：セット識別情報。時刻は既存記録のUTC ISO 8601。

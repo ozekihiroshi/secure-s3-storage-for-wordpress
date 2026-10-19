@@ -60,8 +60,29 @@ try:
     bad=json.loads(wp(*command,'invalid','--format=json',code=2))
     assert bad['reason_code']=='invalid_request'
     assert snapshot()==before, 'WordPress database changed during status reads'
+    group=('ozeki-database-backup-for-s3','recovery-set')
+    source=result['source_id']
+    incomplete=json.loads(wp(*group,'latest','--source-id='+source,'--format=json',code=4))
+    assert not incomplete['index_complete'] and incomplete['latest_complete'] is None
+    assert snapshot()==before, 'Incomplete-index read changed database'
+    wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
+    before=snapshot()
+    latest=json.loads(wp(*group,'latest','--source-id='+source,'--format=json'))
+    assert latest['index_complete'] and latest['latest_attempt']['phase']=='failed'
+    assert latest['latest_complete']['set_id']==sid
+    empty=json.loads(wp(*group,'latest','--source-id='+source,'--profile=database','--format=json',code=3))
+    assert empty['latest_attempt'] is None
+    obs=json.loads(wp(*group,'observations',sid,'--format=json'))
+    assert obs['aggregation_complete'] and obs['availability']['state']=='available'
+    assert obs['restore']['state']=='failed' and obs['records_scanned']==2
+    stale=json.loads(wp(*group,'observations',sid,'--max-age=1','--format=json'))
+    assert stale['availability']['state']=='unknown' and stale['availability']['recorded_state']=='available'
+    assert stale['availability']['freshness']=='stale'
+    assert snapshot()==before, 'Catalog/observation reads changed database'
     print(json.dumps({'kind':'recovery_status_real_wordpress_cli','passed':True,
         'database_unchanged':True,'cases':['complete_json','complete_table','missing','corrupt','invalid_id'],
+        'catalog_cases':['incomplete_index','latest_attempt_vs_complete','profile_filter','observations','stale_observation'],
+        'observation_append_idempotent':True,'completion_evidence_preserved':True,
         'external_network':'blocked','bootstrap':'test-only registrar; plugin workers not loaded'}))
 finally:
     for kind,item in reversed(created):
