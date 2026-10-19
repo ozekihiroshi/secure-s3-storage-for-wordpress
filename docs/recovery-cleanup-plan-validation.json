@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "passed": true,
+  "scope": "read-only top-level workspace cleanup advisory plan",
+  "contracts": {"php_8_1_new_checks": 29, "php_8_3_new_checks": 29, "prerequisites_not_additive": {"recovery_contract": 127, "status": 105}},
+  "real_wordpress_cli": {
+    "cases": ["json_candidates", "table_output", "missing_set", "unsafe_parent"],
+    "database_dump_unchanged": true,
+    "file_names_hashes_inode_size_mode_mtime_unchanged": true,
+    "external_network": "blocked",
+    "bootstrap": "test-only command registrar, not installed plugin acceptance",
+    "log_sha256": "b98b44f30c5bc301d4a25c7646e7b8be5b39ed147247bd5aec3a5d7a1efc5680"
+  },
+  "existing_status_catalog_cli_regression": "passed",
+  "limitations": ["no deletion execution", "no recursive media inspection", "no S3 availability probe", "candidates are not content-hash verified", "filesystem atime may change on reads", "not protection against hostile concurrent writers"]
+}

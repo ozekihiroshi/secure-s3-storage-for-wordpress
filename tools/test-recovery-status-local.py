@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Disposable WP-CLI/MariaDB status test. Local images, internal network, no AWS."""
-import hashlib, ipaddress, json, pathlib, subprocess, time, uuid
+import hashlib, ipaddress, json, pathlib, subprocess, sys, time, uuid
 
 root = pathlib.Path(__file__).resolve().parents[1]
 name = 'odb-status-' + uuid.uuid4().hex[:10]
 network, volume, db = name+'-net', name+'-site', name+'-db'
+private = name+'-inspection'
 created = []
 def run(*args, code=0):
     p = subprocess.run(args, text=True, capture_output=True, timeout=120)
@@ -14,6 +15,7 @@ def run(*args, code=0):
 def wp(*args, code=0):
     return run('docker','run','--rm','--network',network,'--user','0:0',
         '-e','ODBFS3_STATUS_FIXTURE=1','-v',volume+':/var/www/html',
+        '-v',private+':/inspection',
         '-v',str(root)+':/repo:ro','wordpress:cli-php8.3','wp','--allow-root',
         '--require=/repo/tests/manual/status-cli-bootstrap.php',*args,code=code)
 try:
@@ -25,6 +27,7 @@ try:
                 if not any(n.version==u.version and n.overlaps(u) for u in used))
     run('docker','network','create','--internal','--subnet',subnet,network); created.append(('network',network))
     run('docker','volume','create',volume); created.append(('volume',volume))
+    run('docker','volume','create',private); created.append(('volume',private))
     run('docker','run','--rm','--network','none','--entrypoint','sh','-v',volume+':/site',
         'wordpress:php8.3-apache','-c','cp -a /usr/src/wordpress/. /site/')
     run('docker','run','-d','--name',db,'--network',network,
@@ -41,11 +44,27 @@ try:
     wp('core','install','--url=http://fixture.invalid','--title=Fixture','--admin_user=fixture',
         '--admin_password=fixture-only-long-password','--admin_email=fixture@example.invalid','--skip-email')
     sid=wp('eval-file','/repo/tests/manual/seed-recovery-status.php')
+    workspace_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'setup')
     def snapshot():
         data=run('docker','exec',db,'mariadb-dump','-uroot','-pfixture-only',
                  '--skip-comments','--skip-dump-date','--order-by-primary','fixture')
         return hashlib.sha256(data.encode()).hexdigest()
     before=snapshot()
+    cleanup=('ozeki-database-backup-for-s3','recovery-set','cleanup-plan')
+    plan=json.loads(wp(*cleanup,sid,'--workspace-parent=/inspection','--format=json'))
+    assert plan['inspection_complete'] and plan['candidate_bytes']==27
+    assert len([e for e in plan['entries'] if e['disposition']=='candidate'])==2
+    assert 'candidate_bytes' in wp(*cleanup,sid,'--workspace-parent=/inspection')
+    missing_plan=json.loads(wp(*cleanup,'f'*32,'--workspace-parent=/inspection','--format=json',code=3))
+    assert missing_plan['protection_reasons']==['set_not_found']
+    invalid_plan=json.loads(wp(*cleanup,sid,'--workspace-parent=/does-not-exist','--format=json',code=4))
+    assert not invalid_plan['inspection_complete']
+    assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==workspace_before
+    assert snapshot()==before, 'Cleanup plan changed database'
+    print('PASS cleanup-plan WP CLI: JSON/table/missing/unsafe-parent; files and DB unchanged')
+    if '--cleanup-only' in sys.argv:
+        print(json.dumps({'kind':'cleanup_plan_real_wordpress_cli','passed':True,'files_unchanged':True,'database_unchanged':True,'cases':4,'external_network':'blocked','bootstrap':'test-only registrar'}))
+        raise SystemExit(0)
     command=('ozeki-database-backup-for-s3','recovery-set','status')
     result=json.loads(wp(*command,sid,'--format=json'))
     assert result['phase']=='complete' and result['manifest']['publication']=='verified'

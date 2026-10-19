@@ -35,3 +35,4 @@ jobs:
           php -l src/Cron/RecoverySetCronHandler.php
           php -l src/WordPress/WordPressRecoverySchedule.php
           php tests/manual/test-recovery-cron.php
+          php tests/manual/test-recovery-cleanup-plan.php

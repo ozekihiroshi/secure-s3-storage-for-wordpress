@@ -195,6 +195,11 @@ tests cover native/PHP acquisition and restoration with a disk S3 double.
 Production setup UI, automatic failure reset, and long-running scheduler
 monitoring are not included.
 
+The read-only [workspace cleanup plan](docs/recovery-cleanup-plan.md) lists
+completed database temporary-file candidates and protection reasons. It retains
+coordination/evidence files and media subtrees, blocks unsafe or unfinished
+workspaces, and never deletes files or contacts S3. Actual cleanup remains future work.
+
 Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)
 for the completed work and remaining verification boundaries.

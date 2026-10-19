@@ -11,6 +11,45 @@ use WP_CLI;
 final class RecoverySetCommand
 {
     /**
+     * Inspect workspace cleanup candidates without deleting or changing state.
+     *
+     * ## OPTIONS
+     *
+     * <set-id>
+     * : Exact Recovery Set ID.
+     * --workspace-parent=<path>
+     * : Existing canonical private POSIX workspace parent.
+     * [--format=<format>]
+     * : json or table. Default: table.
+     *
+     * @subcommand cleanup-plan
+     * @when after_wp_load
+     */
+    public function cleanup_plan(array $args, array $assocArgs): void
+    {
+        $format=$assocArgs['format']??'table';$parent=$assocArgs['workspace-parent']??null;
+        if(count($args)!==1 || !is_string($args[0]) || preg_match('/^[a-f0-9]{32}$/D',$args[0])!==1
+            || !is_string($parent) || $parent==='' || !in_array($format,['json','table'],true)
+            || array_diff(array_keys($assocArgs),['format','workspace-parent'])){
+            $this->output(['schema_version'=>1,'reason_code'=>'invalid_request'],$format==='json',2);return;
+        }
+        try{
+            $db=$GLOBALS['wpdb'];$old=$db->suppress_errors(true);
+            try{
+                // wp_upload_dir with create_dir=false: inspection must not create uploads.
+                $uploads=wp_upload_dir(null,false,false);
+                if(!empty($uploads['error']))throw new \RuntimeException('Uploads unavailable.');
+                $record=\SecureS3StorageForWordpress\Backup\Recovery\RecoveryCleanupPlan::inspect(
+                    WordPressJobStore::forRecovery($db,$args[0]),$args[0],$parent,[ABSPATH,$uploads['basedir']]);
+            }finally{$db->suppress_errors($old);}
+        }catch(Throwable $e){
+            $this->output(['schema_version'=>1,'dry_run'=>true,'reason_code'=>'inspection_unavailable'],$format==='json',4);return;
+        }
+        $code=in_array('set_not_found',$record['protection_reasons'],true)?3:($record['inspection_complete']?0:4);
+        $this->output($record,$format==='json',$code);
+    }
+
+    /**
      * Read the latest attempt and latest complete set from the site-local index.
      *
      * ## OPTIONS
