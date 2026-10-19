@@ -22,6 +22,7 @@ final class RecoverySetCronHandler
         private Closure $adapters,
         private array $configuration,
         ?Closure $clock = null,
+        private ?RecoveryExecutionRecord $execution = null,
     ) {
         $this->clock = $clock ?? static fn(): int => time();
         $this->validateConfiguration($configuration);
@@ -30,11 +31,46 @@ final class RecoverySetCronHandler
     /** Safe to call from a trusted WP Cron callback or an operator's bootstrap. */
     public function handle(): array
     {
-        try { return $this->advance(); }
+        $run = null;
+        if ($this->execution !== null) {
+            try { $run = $this->execution->start(($this->clock)()); }
+            catch (Throwable $e) { return $this->result(null, 'unknown', 'execution_record_unavailable'); }
+        }
+        $before = $this->execution === null ? null : $this->progressSnapshot();
+        try { $result = $this->advance(); }
         catch (Throwable $e) {
             // Unknown outcome is never a request to replace a set or remove its workspace.
-            return $this->result(null, 'unknown', 'state_or_adapter_unavailable');
+            $result = $this->result(null, 'unknown', 'state_or_adapter_unavailable');
         }
+        if ($run !== null) {
+            try {
+                $after=$this->progressSnapshot();
+                $progress=$after!==null && $after!==$before && $result['reason_code']!=='already_complete'
+                    && !in_array($result['phase'],['busy','blocked','unknown','failed','contended','lease_lost'],true)
+                    ? $after['set_id'] : null;
+                $success=$after['success']??$before['success']??null;
+                $this->execution->finish($run,$result,($this->clock)(),$progress,$success);
+                $result['execution_recording']='recorded';
+            } catch (Throwable $e) {
+                // Preserve the actual backup result; recording failure does not undo S3 work.
+                $result['execution_recording']='unavailable';
+            }
+        }
+        return $result;
+    }
+
+    /** Committed checkpoint evidence only; lease acquisition is not progress. */
+    private function progressSnapshot(): ?array
+    {
+        try {
+            $bytes=$this->schedule->read(); if ($bytes===null) return null;
+            $r=$this->decode($bytes); $id=$r['intent']['id'];
+            $c=(new RecoveryCollector(($this->stores)($id),$this->clock))->current();
+            $this->assertBinding($c,$r);
+            return ['set_id'=>$id, 'phase'=>$c['phase'], 'checkpoint'=>$c['checkpoint'],
+                'database'=>$c['database'], 'media'=>$c['media'], 'manifest'=>$c['manifest'],
+                'success'=>$c['phase']==='complete' ? ['set_id'=>$id,'at'=>$c['checkpoint']['verified_at']] : null];
+        } catch (Throwable $e) { return null; }
     }
 
     private function advance(): array

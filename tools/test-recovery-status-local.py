@@ -57,6 +57,15 @@ try:
     if '--admin-only' in sys.argv:
         wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
         print(wp('eval-file','/repo/tests/manual/test-recovery-admin-wordpress.php',sid))
+        execution_before=snapshot()
+        execution_cmd=('ozeki-database-backup-for-s3','recovery-set','execution')
+        execution=json.loads(wp(*execution_cmd,'--source-id='+'9'*32,'--format=json'))
+        assert execution['latest_run']['finished_at'] is None
+        assert execution['last_result']['result']['phase']=='unknown'
+        missing=json.loads(wp(*execution_cmd,'--source-id='+'8'*32,'--format=json',code=3))
+        assert missing['latest_run'] is None
+        assert snapshot()==execution_before
+        print('PASS real WP-CLI execution JSON, missing record, DB unchanged')
         assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==workspace_before
         print('PASS admin rendering leaves workspace files unchanged')
         raise SystemExit(0)

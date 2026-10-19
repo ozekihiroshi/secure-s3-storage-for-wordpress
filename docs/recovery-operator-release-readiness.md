@@ -6,6 +6,8 @@
 
 ## 現在の判定
 
+2026-10-19の[単独製品としての棚卸し](backup-standalone-status-audit.md)で範囲を再確認した。通知・外部監視は必須実装から除外する。以下の「本番監視通知」「report停止」の記述は運用側の選択事項であり、Backup for S3の完成条件やResilienceへの依存を意味しない。製品側では起動・進捗・結果の記録と予定超過の読取り表示、利用者向け作成/復元入口、失敗後の再試行、履歴上限を優先する。
+
 同じ候補ZIPの[実S3往復・隔離復元](recovery-zip-real-s3.md)もnative/PHP両方式で合格。Cron呼出し・取得観測・cleanup後の資産を試験bridgeで実S3へ保存し、再取得から復元した。製品src/vendorはZIPと一致。Version IDなし・バケット設定読取り不可のため、固定版/保持の検証とは区別する。本番ワーカー連続実行と長期運転は引き続き未検証。
 
 その後、同じZIPで[WordPress実ワーカーの直接S3保存・隔離復元](recovery-direct-worker-s3.md)もnative/PHP各48/44項目に合格した。専用WordPressの登録hookから製品Pipeline/Publisherを直接S3へ接続し、manifest書換え・資産の再公開なしで復元した。この試験は明示hook起動で、自動wp-cron起動は下記の別試験で確認した。長期運転・本番適用は未検証。

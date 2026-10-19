@@ -13,7 +13,7 @@ final class WordPressJobStore implements JobStore
 
     public function __construct(private wpdb $database, private string $optionName = self::OPTION_NAME)
     {
-        if ($optionName !== self::OPTION_NAME && preg_match('/^odbfs3_(?:recovery|observer_run|schedule|cleanup)_[a-f0-9]{32}$/D', $optionName) !== 1) {
+        if ($optionName !== self::OPTION_NAME && preg_match('/^odbfs3_(?:recovery|observer_run|schedule|cleanup|execution)_[a-f0-9]{32}$/D', $optionName) !== 1) {
             throw new RuntimeException('Invalid backup state slot.');
         }
     }
@@ -60,6 +60,11 @@ final class WordPressJobStore implements JobStore
     {
         if (preg_match('/^[a-f0-9]{32}$/D', $setId)!==1)throw new RuntimeException('Invalid cleanup identity.');
         return new self($database, 'odbfs3_cleanup_'.$setId);
+    }
+
+    public static function forRecoveryExecution(wpdb $database, string $sourceId): self
+    {
+        return new self($database, 'odbfs3_execution_'.$sourceId);
     }
 
     public function compareAndSwap(?string $expected, string $replacement): bool

@@ -136,8 +136,18 @@ if ($mode === 'source' || $mode === 'cronsetup') {
     $collector=new RecoveryCollector($store);
     $set=RecoverySet::fromIntent($collector->current()['intent']);
     verify($collector->current()['phase']==='complete','Cron bounded loop independently published manifest');
+    if (getenv('ODBFS3_EXECUTION_RECORD_TEST')==='1') {
+    $executionRecord=new \SecureS3StorageForWordpress\Cron\RecoveryExecutionRecord(
+        WordPressJobStore::forRecoveryExecution($GLOBALS['wpdb'],$configuration['source_id']),$configuration['source_id']);
+    $executionBefore=$executionRecord->read();
+    verify($executionBefore['latest_run']['result']['phase']==='complete' && $executionBefore['latest_run']['finished_at']!==null,'WordPress execution completion recorded');
+    verify($executionBefore['last_progress']['set_id']===$set->id && $executionBefore['last_success']['at']===$collector->current()['checkpoint']['verified_at'],'WordPress execution progress and verified success');
+    }
     $before=$store->read();do_action($hook);
     verify($cronResult['reason_code']==='already_complete' && $store->read()===$before,'Duplicate Cron preserves complete set');
+    if (getenv('ODBFS3_EXECUTION_RECORD_TEST')==='1') {
+        verify($executionRecord->read()['last_success']===$executionBefore['last_success'] && $executionRecord->read()['last_progress']===$executionBefore['last_progress'],'Duplicate Cron preserves progress and success time');
+    }
     $bytes = $collector->current()['manifest'];
     file_put_contents('/expected/locator.json', json_encode(['bucket' => $set->bucket, 'key' => $set->root() . 'manifest.json', 'size' => strlen($bytes), 'sha256' => hash('sha256', $bytes)], JSON_THROW_ON_ERROR));
     file_put_contents('/expected/collector.json', $store->read());

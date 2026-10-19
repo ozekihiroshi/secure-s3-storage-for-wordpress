@@ -15,11 +15,29 @@ final class RecoverySetsPage
     private function row(string $label,mixed $value):void {
         echo '<tr><th scope="row">'.esc_html($label).'</th><td>'.esc_html(is_bool($value)?($value?'はい':'いいえ'):(is_scalar($value)?(string)$value:($value===null?'—':wp_json_encode($value)))).'</td></tr>';
     }
+    private function execution(string $source):void
+    {
+        echo '<h2>実行記録（Source ID: '.esc_html($source).'）</h2><p>最新の呼出しと確定した進捗の記録です。終了未記録は処理中・中断・記録失敗のいずれかで、生存確認ではありません。時刻はUTCです。</p>';
+        try {
+            $r=(new \SecureS3StorageForWordpress\Cron\RecoveryExecutionRecord(
+                WordPressJobStore::forRecoveryExecution($GLOBALS['wpdb'],$source),$source))->read();
+            echo '<table class="widefat striped"><tbody>';
+            $this->row('最終起動',$r['latest_run']['started_at']??null);
+            $this->row('最新呼出し',$r['latest_run']===null?'記録なし':($r['latest_run']['finished_at']===null?'終了未記録（状態不明）':'終了記録あり'));
+            $this->row('最新呼出しの終了日時',$r['latest_run']['finished_at']??null);
+            $this->row('最新呼出しの結果',$r['latest_run']['result']??null);
+            $this->row('最後に終了を記録した呼出し',$r['last_result']);
+            $this->row('最終進捗（確定した変更の観測時刻）',$r['last_progress']);
+            $this->row('最終保存成功（公開検証時刻）',$r['last_success']);
+            echo '</tbody></table>';
+        } catch (Throwable $e) { echo '<p role="alert">実行記録を安全に読めません。状態は不明です。</p>'; }
+    }
     public function render():void
     {
         if(!current_user_can('manage_options')){wp_die(esc_html__('この画面を表示する権限がありません。','ozeki-database-backup-for-s3'));return;}
         echo '<div class="wrap"><h1>Recovery Sets</h1><p>読取り専用です。表示してもバックアップ・検証・cleanupは実行されません。</p>';
         echo '<p>保存完了、取得可否の観測、復元試験は別の結果です。観測の鮮度は24時間。時刻はUTCです。</p>';
+        echo '<form method="get" action="'.esc_url(admin_url('options-general.php')).'"><input type="hidden" name="page" value="'.esc_attr(self::SLUG).'"><label for="odb-source">Source ID</label> <input id="odb-source" name="source_id" maxlength="32" size="36"> <button class="button" type="submit">実行記録を表示</button></form>';
         echo '<form method="get" action="'.esc_url(admin_url('options-general.php')).'"><input type="hidden" name="page" value="'.esc_attr(self::SLUG).'"><label for="odb-set">セットID</label> <input id="odb-set" name="set_id" type="text" size="36" maxlength="32"> <button class="button" type="submit">状態を表示</button></form>';
         $id=$_GET['set_id']??'';
         if(!is_string($id) || ($id!=='' && preg_match('/^[a-f0-9]{32}$/D',$id)!==1)){
@@ -28,6 +46,10 @@ final class RecoverySetsPage
         $db=$GLOBALS['wpdb'];$old=$db->suppress_errors(true);
         $bufferLevel=ob_get_level();ob_start();
         try{
+            $source=$_GET['source_id']??'';
+            if (!is_string($source) || ($source!=='' && preg_match('/^[a-f0-9]{32}$/D',$source)!==1)) {
+                echo '<p role="alert">Source IDは32桁の小文字16進数で指定してください。</p>';
+            } elseif ($source!=='') { $this->execution($source); }
             $catalog=new WordPressRecoveryCatalog($db);
             if($id===''){
                 $list=$catalog->inventory();
@@ -45,6 +67,7 @@ final class RecoverySetsPage
                 $status=RecoveryStatus::read(new \SecureS3StorageForWordpress\Backup\Recovery\RecoveryRecordSnapshot($snapshot),$id);
                 if($status===null){echo '<p>セット記録がありません。</p>';}
                 else{
+                    if ($source!==$status['source_id']) $this->execution($status['source_id']);
                     echo '<h2>セットの状態</h2><table class="widefat striped"><tbody>';
                     foreach(['set_id'=>'セットID','source_id'=>'Source ID','profile'=>'Profile','created_at'=>'作成日時（UTC）','phase'=>'処理状態','completeness'=>'資産充足','reason_code'=>'状態理由','capture_consistency'=>'取得整合性'] as $key=>$label)$this->row($label,$status[$key]);
                     foreach(['database','media'] as $kind){$this->row($kind.'のセットID',$status['assets'][$kind.'_set_id']);$this->row($kind.' 保存時検証',$status['verification'][$kind]);$this->row($kind.' 検証日時（UTC）',$status['verification'][$kind.'_checked_at']);}

@@ -52,6 +52,8 @@ $configuration = [
 
 戻り値は`schema_version/set_id/phase/reason_code`のみのJSON化可能な配列。`accepted`は受付、`database/media/assemble/ready/publishing`は途中、`complete`は公開検証済み。`busy/contended/lease_lost`は未完了であり、新規作成の指示ではない。
 
+後続の[実行記録](recovery-execution-status.md)を使うWordPress接続では、開始・終了・確定進捗・最終保存成功をsource別に保存する。戻り値には`execution_recording=recorded/unavailable`を追加する。開始記録ができない場合はunknown/execution_record_unavailableで処理を開始しない。既存のreport接続先は引き続き利用できるが、実行サマリーの確認をreport先だけに依存しない。
+
 `handle()`を直接呼ぶ運用CLIでも同じサービスを使用できるが、一般利用者向け`recovery-set create` CLIはまだない。状況確認には既存の`recovery-set status <id> --format=json`と`latest --source-id=<id> --format=json`を使用する。保存completeは復元試験成功を意味しない。
 
 Cronの起動漏れ・report接続先の停止監視は外部の運用側で実施する。今回は自動監視や通知先を追加しない。結果不明時は同じサービスを呼び、既存証拠の照合結果を確認する。失敗・破損を削除して再送しない。

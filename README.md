@@ -160,6 +160,15 @@ media jobs require inspection and explicit WP-CLI cleanup by their exact job ID.
 
 ## Recovery Set operations (development branch)
 
+See the [standalone status audit (Japanese)](docs/backup-standalone-status-audit.md)
+for what last start, last success, progress, failure and overdue status currently
+mean, and the remaining backup/restore work. Resilience integration and external
+notification infrastructure are not requirements for this independent product.
+
+The [execution record guide (Japanese)](docs/recovery-execution-status.md) describes
+the new source-local start, committed progress and completion summaries, available
+in Recovery Sets and `recovery-set execution --source-id=<id> --format=json`.
+
 These improvements are on `codex/recovery-operator-plan`, separate from shared
 DB-core adoption. They are implemented and tested in dedicated environments;
 this does not publish a new directory package or enable Recovery Set scheduling

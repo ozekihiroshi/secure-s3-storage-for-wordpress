@@ -11,6 +11,37 @@ use WP_CLI;
 final class RecoverySetCommand
 {
     /**
+     * Read the source-local execution summary without starting work.
+     *
+     * ## OPTIONS
+     *
+     * --source-id=<id>
+     * : Source ID (32 lowercase hex characters).
+     * [--format=<format>]
+     * : json or table. Default: table.
+     *
+     * @when after_wp_load
+     */
+    public function execution(array $args,array $assocArgs):void
+    {
+        $source=$assocArgs['source-id']??''; $format=$assocArgs['format']??'table';
+        if ($args!==[] || !is_string($source) || preg_match('/^[a-f0-9]{32}$/D',$source)!==1
+            || !in_array($format,['json','table'],true) || array_diff(array_keys($assocArgs),['source-id','format'])) {
+            $this->output(['schema_version'=>1,'reason_code'=>'invalid_request'],$format==='json',2);return;
+        }
+        try {
+            $db=$GLOBALS['wpdb']; $old=$db->suppress_errors(true);
+            try {
+                $r=(new \SecureS3StorageForWordpress\Cron\RecoveryExecutionRecord(
+                    WordPressJobStore::forRecoveryExecution($db,$source),$source))->read();
+            } finally { $db->suppress_errors($old); }
+        } catch (Throwable $e) {
+            $this->output(['schema_version'=>1,'source_id'=>$source,'reason_code'=>'execution_record_unreadable'],$format==='json',4);return;
+        }
+        $this->output($r,$format==='json',$r['latest_run']===null?3:0);
+    }
+
+    /**
      * Explicitly remove only verified completed database temporary files.
      *
      * ## OPTIONS

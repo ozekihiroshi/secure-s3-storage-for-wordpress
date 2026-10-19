@@ -35,6 +35,30 @@ $html=$render(['set_id'=>$id]);$check(str_contains($html,'stale') && str_contain
 update_option('odbfs3_recovery_'.str_repeat('e',32),'SECRET<script>',false);$html=$render([]);
 $check(str_contains($html,'一覧は不完全') && !str_contains($html,'SECRET'),'invalid inventory warning');
 // Permission check must precede all catalog access.
+// Source execution records: real WordPress storage/hook and read-only rendering.
+$executionSource=str_repeat('9',32);
+$cfg=['source_id'=>$executionSource,'profile'=>$r['intent']['profile'],'bucket'=>$r['intent']['bucket'],
+    'region'=>$r['intent']['region'],'prefix'=>$r['intent']['prefix'],'backend'=>'php','environment'=>$r['environment']];
+$reported=null;
+$hook=\SecureS3StorageForWordpress\WordPress\WordPressRecoverySchedule::register($db,$cfg,
+    static function(){throw new RuntimeException('SECRET fixture adapter unavailable');},
+    static function($result)use(&$reported){$reported=$result;});
+do_action($hook);
+$execStore=WordPressJobStore::forRecoveryExecution($db,$executionSource);
+$exec=new \SecureS3StorageForWordpress\Cron\RecoveryExecutionRecord($execStore,$executionSource);
+$check($reported['execution_recording']==='recorded' && $exec->read()['last_result']['result']['phase']==='unknown','actual hook records initialization failure');
+$html=$render(['source_id'=>$executionSource]);
+$check(str_contains($html,'最終起動') && str_contains($html,'state_or_adapter_unavailable') && !str_contains($html,'SECRET'),'execution source view redacts exceptions');
+$pending=$exec->start(time());
+$html=$render(['source_id'=>$executionSource]);
+$check(str_contains($html,'終了未記録（状態不明）'),'unfinished invocation not claimed alive');
+$check((new \SecureS3StorageForWordpress\Cron\RecoveryExecutionRecord($execStore,$executionSource))->read()['latest_run']===$pending,'new reader preserves unfinished record');
+$check($db->get_var($db->prepare("SELECT autoload FROM {$db->options} WHERE option_name=%s",'odbfs3_execution_'.$executionSource))==='no','execution record non-autoload');
+$html=$render(['source_id'=>['bad']]);$check(str_contains($html,'Source IDは32桁'),'source array rejected');
+$executionSaved=$execStore->read();
+update_option('odbfs3_execution_'.$executionSource,'SECRET<script>',false);
+$html=$render(['source_id'=>$executionSource]);$check(str_contains($html,'実行記録を安全に読めません') && !str_contains($html,'SECRET'),'corrupt execution unknown and redacted');
+$check($execStore->compareAndSwap('SECRET<script>',$executionSaved),'restore only synthetic execution fixture');
 add_filter('wp_die_handler',static fn()=>static function(){throw new RuntimeException('denied');});
 $subscriber=wp_insert_user(['user_login'=>'fixtureviewer','user_pass'=>'fixture-only','role'=>'subscriber']);
 wp_set_current_user($subscriber);$_GET=['set_id'=>$id];$before=$db->num_queries;$denied=false;

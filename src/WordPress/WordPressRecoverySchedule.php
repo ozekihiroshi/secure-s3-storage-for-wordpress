@@ -33,6 +33,9 @@ final class WordPressRecoverySchedule
             static fn(string $id): WordPressJobStore => WordPressJobStore::forRecovery($database, $id),
             $adapters,
             $configuration,
+            null,
+            new \SecureS3StorageForWordpress\Cron\RecoveryExecutionRecord(
+                WordPressJobStore::forRecoveryExecution($database,$configuration['source_id']),$configuration['source_id']),
         );
     }
 }
