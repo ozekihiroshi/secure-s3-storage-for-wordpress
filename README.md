@@ -218,6 +218,12 @@ test bridge using the packaged runtime, not a production worker acceptance test.
 Version-pinned retention, independent signing and separated read/write roles
 are outside this test's scope.
 
+A subsequent [direct WordPress worker test](docs/recovery-direct-worker-s3.md)
+also passed with that ZIP: registered WordPress hooks ran the production pipeline
+directly against S3, then a fresh download was restored in an isolated environment.
+No manifest rewriting or asset republication was used. Automatic Cron scheduling
+and a general-purpose restore interface remain separate work.
+
 For details, start with the [current inventory](docs/recovery-operator-roadmap.md)
 and [publication checklist and remaining limitations](docs/recovery-operator-release-readiness.md).
 Before distributing an update, review the cumulative changes, validate the final

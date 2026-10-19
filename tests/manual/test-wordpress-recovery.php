@@ -2,6 +2,7 @@
 
 // Synthetic WordPress fixture only, run by tools/test-wordpress-recovery-local.sh.
 // This local disk-transport fixture needs only product source, not the AWS SDK.
+if (getenv('ODBFS3_DIRECT_S3') === '1') { require_once '/repo/vendor/autoload.php'; }
 spl_autoload_register(static function(string $class):void {
     $prefix='SecureS3StorageForWordpress\\';
     if(str_starts_with($class,$prefix))require_once '/repo/src/'.str_replace('\\','/',substr($class,strlen($prefix))).'.php';
@@ -32,7 +33,7 @@ function rejects(callable $action, string $label): void {
 }
 function bootFixture(string $prefix, bool $install): void {
     $config = "<?php\n";
-    foreach (['DB_NAME' => 'fixture', 'DB_USER' => 'fixture', 'DB_PASSWORD' => getenv('FIXTURE_PASSWORD'), 'DB_HOST' => 'fixture-db',
+    foreach (['DB_NAME' => 'fixture', 'DB_USER' => 'fixture', 'DB_PASSWORD' => getenv('FIXTURE_PASSWORD'), 'DB_HOST' => getenv('FIXTURE_DB_HOST') ?: 'fixture-db',
         'DB_CHARSET' => 'utf8mb4', 'DB_COLLATE' => '', 'DISABLE_WP_CRON' => true, 'WP_HTTP_BLOCK_EXTERNAL' => true,
         'AUTOMATIC_UPDATER_DISABLED' => true, 'DISALLOW_FILE_MODS' => true, 'WP_DISABLE_FATAL_ERROR_HANDLER' => true, 'WP_ENVIRONMENT_TYPE' => 'local'] as $key => $value) {
         $config .= 'define(' . var_export($key, true) . ', ' . var_export($value, true) . ");\n";
@@ -45,6 +46,12 @@ function bootFixture(string $prefix, bool $install): void {
 }
 
 $remote = new WordPressRecoveryRemote();
+$transport = $remote;
+if (getenv('ODBFS3_DIRECT_S3') === '1' && $mode === 'source') {
+    require __DIR__ . '/wordpress-direct-s3-reader.php';
+    $transport = \SecureS3StorageForWordpress\Aws\MediaS3Client::create('ap-northeast-1');
+    $remote = new WordPressDirectS3Reader($transport);
+}
 if ($mode === 'source') {
     bootFixture('fx_', true);
     require '/site/wp-load.php';
@@ -89,12 +96,18 @@ if ($mode === 'source') {
     require __DIR__ . '/test-wordpress-job-store.php';
     $checks = 0;
     $uploads = wp_get_upload_dir()['basedir'];
-    $connection = new DatabaseConnection('fixture-db', 3306, 'fixture', 'fixture', getenv('FIXTURE_PASSWORD'));
+    $connection = new DatabaseConnection(getenv('FIXTURE_DB_PORT') ? '127.0.0.1' : 'fixture-db', (int)(getenv('FIXTURE_DB_PORT') ?: 3306), 'fixture', 'fixture', getenv('FIXTURE_PASSWORD'));
     $configuration = ['source_id'=>str_repeat('a',32), 'profile'=>'database_uploads', 'bucket'=>'fixture-bucket', 'region'=>'us-east-1', 'prefix'=>'wordpress', 'backend'=>$backend,
         'environment'=>['wordpress'=>$GLOBALS['wp_version'], 'php'=>PHP_VERSION, 'plugin'=>'development', 'database_server'=>'MariaDB', 'table_prefix'=>'fx_']];
-    $adapterFactory = static function(RecoverySet $set, string $backend) use($connection,$remote,$uploads):array {
+    if (getenv('ODBFS3_DIRECT_S3') === '1') {
+        $prefix=getenv('FIXTURE_S3_PREFIX');
+        verify((bool)preg_match('#^wordpress-test/direct-worker/[a-f0-9]{12}/(native|php)$#D',$prefix),'Dedicated S3 prefix');
+        $configuration['bucket']='ceri-secure-s3-storage-test';
+        $configuration['region']='ap-northeast-1';$configuration['prefix']=$prefix;
+    }
+    $adapterFactory = static function(RecoverySet $set, string $backend) use($connection,$transport,$uploads):array {
         $workspace = new RecoveryWorkspace('/private', $set, '/site', $uploads);
-        return [new RecoveryPipeline($workspace, $backend==='native'?new NativeMySqlDumper():new PhpMySqlDumper(chunkSize:20), $connection,$backend,$remote,new MediaSource($uploads),'/site'), new RecoveryPublisher($remote,$workspace)];
+        return [new RecoveryPipeline($workspace, $backend==='native'?new NativeMySqlDumper():new PhpMySqlDumper(chunkSize:20), $connection,$backend,$transport,new MediaSource($uploads),'/site'), new RecoveryPublisher($transport,$workspace)];
     };
     // Exercise opt-in registration and WordPress callback dispatch.
     $cronResult = null;
@@ -102,6 +115,7 @@ if ($mode === 'source') {
         static function(array $result)use(&$cronResult):void{$cronResult=$result;});
     for ($i = 0; $i < 1000; ++$i) {
         do_action($hook);
+        if (getenv('ODBFS3_DIRECT_S3') === '1') { echo 'Direct worker tick phase='.$cronResult['phase']."\n"; }
         verify(!in_array($cronResult['phase'],['failed','unknown','blocked'],true),'Cron collection did not fail');
         if ($cronResult['phase'] === 'complete') { break; }
     }
