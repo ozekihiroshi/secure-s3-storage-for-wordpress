@@ -170,6 +170,12 @@ Next steps are operator-facing orchestration and cleanup guidance. Clearer opera
 states, scheduling health checks, and stable machine-readable outputs should
 support integrations without making the core customer-specific.
 
+The [operator roadmap and implementation inventory](docs/recovery-operator-roadmap.md)
+separate the existing recovery-set foundation from the pending status CLI,
+latest-set index, Cron orchestration, and workspace cleanup. This work is
+independent of shared database-core adoption. Publication completion, current
+availability, and restoration-test results will be reported separately.
+
 Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)
 for the completed work and remaining verification boundaries.
