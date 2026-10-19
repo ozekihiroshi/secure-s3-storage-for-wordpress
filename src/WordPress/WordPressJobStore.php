@@ -13,7 +13,7 @@ final class WordPressJobStore implements JobStore
 
     public function __construct(private wpdb $database, private string $optionName = self::OPTION_NAME)
     {
-        if ($optionName !== self::OPTION_NAME && preg_match('/^odbfs3_recovery_[a-f0-9]{32}$/D', $optionName) !== 1) {
+        if ($optionName !== self::OPTION_NAME && preg_match('/^odbfs3_(?:recovery|observer_run)_[a-f0-9]{32}$/D', $optionName) !== 1) {
             throw new RuntimeException('Invalid backup state slot.');
         }
     }
@@ -40,6 +40,13 @@ final class WordPressJobStore implements JobStore
             throw new RuntimeException('Invalid recovery state identity.');
         }
         return new self($database, 'odbfs3_recovery_' . $setId);
+    }
+
+    /** Caller persists/reuses this execution ID; never shares a Collector slot. */
+    public static function forObservationRun(wpdb $database, string $runId): self
+    {
+        if (preg_match('/^[a-f0-9]{32}$/D', $runId)!==1)throw new RuntimeException('Invalid observation execution identity.');
+        return new self($database,'odbfs3_observer_run_'.$runId);
     }
 
     public function compareAndSwap(?string $expected, string $replacement): bool

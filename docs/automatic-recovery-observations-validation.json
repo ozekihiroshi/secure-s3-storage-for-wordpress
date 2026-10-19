@@ -1,0 +1,26 @@
+{
+  "kind": "automatic_recovery_observation_validation",
+  "date": "2026-10-19",
+  "passed": true,
+  "new_contract_checks_each": 20,
+  "php_versions_executed": ["8.1", "8.3"],
+  "prior_contracts": {"recovery": 127, "status": 105, "catalog": 43},
+  "isolated_wordpress": {
+    "wordpress": "7.0.2",
+    "backends": ["native", "php"],
+    "source_checks_each": 43,
+    "restore_checks_each": 44,
+    "restored_media_files_each": 4,
+    "availability_automatically_registered": true,
+    "restore_automatically_registered": true,
+    "observations_visible_in_catalog": true,
+    "original_completion_preserved": true,
+    "source_database_destroyed_before_restore": true,
+    "network": "internal Docker networks; external HTTP and mail blocked",
+    "transport": "test-only disk object transport; no real S3 requests",
+    "observer_storage": "private file journal and dedicated operator options table in the restore lab database"
+  },
+  "failure_contracts": ["verifier exception", "false result", "swallowed check failure", "missing required checks", "registration acknowledgement loss", "delivery-only retry", "running journal rejected for delivery", "environment mismatch", "separate WordPress execution slot"],
+  "not_claimed": ["production deployment", "operator-facing general restore command", "scheduled verification", "cross-host authenticated observation delivery", "real S3 rerun"],
+  "git_scope": "codex/recovery-operator-plan; separate from shared core adoption"
+}

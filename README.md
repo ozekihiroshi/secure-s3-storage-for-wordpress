@@ -181,7 +181,10 @@ existing site-local set records as a table or versioned JSON. It does not create
 sets or contact S3. The separate [latest-set index and observation aggregation](docs/recovery-catalog-observations.md)
 commands expose the latest attempt versus latest complete set, and locally
 recorded availability/restoration observations bound to the exact manifest.
-Cron orchestration, automatic observer integration, and cleanup remain planned work.
+[Automatic observation recording](docs/automatic-recovery-observations.md) now
+connects the isolated verification/restoration pipeline to the catalog, with a
+durable delivery journal and delivery-only retries. General operator restore
+commands, scheduled verification, and cleanup remain planned work.
 
 Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)

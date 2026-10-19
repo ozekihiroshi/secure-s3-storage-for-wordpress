@@ -1,9 +1,16 @@
 <?php
 
 // Synthetic WordPress fixture only, run by tools/test-wordpress-recovery-local.sh.
-require '/repo/vendor/autoload.php';
+// This local disk-transport fixture needs only product source, not the AWS SDK.
+spl_autoload_register(static function(string $class):void {
+    $prefix='SecureS3StorageForWordpress\\';
+    if(str_starts_with($class,$prefix))require_once '/repo/src/'.str_replace('\\','/',substr($class,strlen($prefix))).'.php';
+});
 require __DIR__ . '/wordpress-recovery-remote.php';
 require __DIR__ . '/wordpress-recovery-package.php';
+require __DIR__ . '/wordpress-observation-run.php';
+use SecureS3StorageForWordpress\Backup\Recovery\{ObservedRecoveryRun, RecoveryManifest};
+use SecureS3StorageForWordpress\WordPress\WordPressRecoveryCatalog;
 
 use SecureS3StorageForWordpress\Backup\Recovery\{RecoverySet, RecoveryWorkspace, RecoveryPipeline, RecoveryCollector, RecoveryPublisher, RecoveryObservation};
 use SecureS3StorageForWordpress\Backup\Database\{DatabaseConnection, NativeMySqlDumper};
@@ -98,6 +105,24 @@ if ($mode === 'source') {
     verify($collector->publish($set->id, new RecoveryPublisher($remote, $workspace)) === 'complete', 'Manifest independently verified');
     $bytes = $collector->current()['manifest'];
     file_put_contents('/expected/locator.json', json_encode(['bucket' => $set->bucket, 'key' => $set->root() . 'manifest.json', 'size' => strlen($bytes), 'sha256' => hash('sha256', $bytes)], JSON_THROW_ON_ERROR));
+    file_put_contents('/expected/collector.json', $store->read());
+    $manifest=RecoveryManifest::decode($bytes);$catalog=new WordPressRecoveryCatalog($GLOBALS['wpdb']);
+    $run=new ObservedRecoveryRun(new FixtureObservationJournal('/private/availability-run.json'),$manifest,'availability',null,
+        static fn(array $r):string=>$catalog->appendObservation($set->id,$r,gmdate('Y-m-d\TH:i:s\Z')));
+    mkdir('/private/availability-stage',0700);
+    $availability=$run->execute(static function(ObservedRecoveryRun $run) use($remote,$manifest):void {
+        $locator=json_decode(file_get_contents('/expected/locator.json'),true,8,JSON_THROW_ON_ERROR);
+        $run->check('database_object',static function() use($locator,$remote):bool {
+            fixturePackage($locator,'/private/availability-stage',[$remote,'path']);return true;
+        });
+        $m=$manifest->toArray();
+        $run->check('inventory_object',static fn():bool=>hash_file('sha256','/private/availability-stage/inventory')===$m['media']['inventory']['sha256']);
+        $run->check('marker_object',static fn():bool=>hash_file('sha256','/private/availability-stage/marker')===$m['media']['marker']['sha256']);
+        $run->check('all_media_objects',static fn():bool=>(new MediaManifest())->verify(new MediaSource('/private/availability-stage/uploads'),'/private/availability-stage/inventory','/private')->successful());
+    });
+    verify($availability===['operation_passed'=>true,'registration'=>'registered'],'Actual availability automatically registered');
+    verify($catalog->observations($set->id,gmdate('Y-m-d\TH:i:s\Z'))['availability']['state']==='available','Availability visible in aggregation');
+    verify($store->read()===file_get_contents('/expected/collector.json'),'Availability registration preserved complete evidence');
     echo "PASS WordPress source backend=$backend core={$GLOBALS['wp_version']} checks=$checks\n";
     exit;
 }
@@ -129,12 +154,16 @@ mkdir('/private/link-stage', 0700); symlink('/private/corrupt', '/private/link-s
 rejects(static fn () => fixturePackage($locator, '/private/link-stage', [$remote, 'path']), 'Nonempty extraction destination');
 verify($db->query('SHOW TABLES')->num_rows === 0 && ! is_dir('/site/wp-content/uploads'), 'Failed preflights have no target side effects');
 $db->close();
+$environmentId=bin2hex(random_bytes(16));
+$observedRestore=new ObservedRecoveryRun(new FixtureObservationJournal('/private/restore-run.json'),$manifest,'restore',$environmentId,
+    static fn(array $r):string=>fixtureRestoreCatalog($manifest)->appendObservation($m['set_id'],$r,gmdate('Y-m-d\TH:i:s\Z')));
+$restoreResult=$observedRestore->execute(static function(ObservedRecoveryRun $observedRestore) use($manifest,$entries,$m):void {
 $process = proc_open(['mariadb', '-hfixture-db', '-ufixture', 'fixture'],
     [0 => ['file', '/private/stage/database.sql', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null,
     ['MYSQL_PWD' => getenv('FIXTURE_PASSWORD'), 'PATH' => getenv('PATH')]);
 if (! is_resource($process)) { throw new RuntimeException('Import launch failed.'); }
 $out = stream_get_contents($pipes[1]); $err = stream_get_contents($pipes[2]); fclose($pipes[1]); fclose($pipes[2]);
-verify(proc_close($process) === 0 && $err === '', 'SQL import');
+$observedRestore->check('sql_import',static fn():bool=>proc_close($process) === 0 && $err === '');
 mkdir('/site/wp-content/uploads', 0700);
 foreach ($entries as $entry) {
     $destination = '/site/wp-content/uploads/' . $entry->path;
@@ -151,7 +180,7 @@ verify(get_post($expected['post'])->post_title === 'コラム：負荷電流', '
 verify(get_option('fixture_nested') === $expected['nested'] && get_post_meta($expected['page'], 'fixture_nested', true) === $expected['nested'], 'Serialized options and postmeta');
 verify((int) get_option('page_on_front') === $expected['page'] && get_option('show_on_front') === 'page', 'Front page setting');
 verify(get_option('home') === 'http://fixture.invalid' && get_option('siteurl') === 'http://fixture.invalid', 'URLs preserved without unsafe string replacement');
-verify(get_post($expected['attachment'])->post_parent == $expected['page'] && get_post_thumbnail_id($expected['page']) === $expected['attachment'], 'Attachment and featured-image references');
+$observedRestore->check('attachment_references',static fn():bool=>get_post($expected['attachment'])->post_parent == $expected['page'] && get_post_thumbnail_id($expected['page']) === $expected['attachment']);
 verify(wp_get_attachment_metadata($expected['attachment']) === $expected['attachment_meta'], 'Attachment metadata');
 verify(get_post_meta($expected['attachment'], '_wp_attachment_image_alt', true) === '地域のエネルギー検証画像', 'Image alt text');
 verify(is_file(get_attached_file($expected['attachment'])) && getimagesize(get_attached_file($expected['attachment'])) !== false, 'Actual attached image decodes');
@@ -164,7 +193,7 @@ verify(wp_get_post_terms($expected['post'], 'category')[0]->name === 'エネル�
 verify(get_comments(['post_id' => $expected['post']])[0]->comment_content === '確認しました 🌱', 'Comment reference');
 verify(DISABLE_WP_CRON && wp_next_scheduled('odbfs3_fixture_cron') !== false, 'Restored scheduled job is not dispatched');
 verify(is_wp_error(wp_remote_get('https://example.invalid')) && ! wp_mail('recipient@example.invalid', 'fixture', 'blocked'), 'HTTP and mail blocked');
-verify((new MediaManifest())->verify(new MediaSource(wp_get_upload_dir()['basedir']), '/private/stage/inventory', '/private')->successful(), 'All restored media hashes match');
+$observedRestore->check('media_hashes',static fn():bool=>(new MediaManifest())->verify(new MediaSource(wp_get_upload_dir()['basedir']), '/private/stage/inventory', '/private')->successful());
 // HTTP requests stay on the restore container's loopback, with no published port.
 $server = proc_open([PHP_BINARY, '-S', '127.0.0.1:8765', '-t', '/site'],
     [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/private/http.log', 'a'], 2 => ['file', '/private/http.log', 'a']], $serverPipes);
@@ -179,14 +208,15 @@ try {
     verify($listening, 'Restored WordPress HTTP server starts');
     $context = stream_context_create(['http' => ['header' => "Host: fixture.invalid\r\n", 'timeout' => 15, 'follow_location' => 0]]);
     $html = file_get_contents('http://127.0.0.1:8765/', false, $context);
-    verify(str_contains($http_response_header[0] ?? '', '200') && str_contains($html, '復旧確認：日本語と絵文字'), 'Restored front page renders over HTTP');
+    $observedRestore->check('wordpress_content',static fn():bool=>str_contains($http_response_header[0] ?? '', '200') && str_contains($html, '復旧確認：日本語と絵文字'));
     verify(str_contains($html, 'wp-image-' . $expected['attachment']), 'Rendered page retains image reference');
     $imagePath = implode('/', array_map('rawurlencode', explode('/', $expected['attachment_relative'])));
     $response = file_get_contents('http://127.0.0.1:8765/wp-content/uploads/' . $imagePath, false, $context);
     verify(str_contains($http_response_header[0] ?? '', '200') && hash('sha256', $response) === hash_file('sha256', get_attached_file($expected['attachment'])), 'Actual image served with matching bytes');
 } finally { proc_terminate($server); proc_close($server); }
-$observation = RecoveryObservation::forManifest($manifest, ['set_id' => $m['set_id'], 'manifest_sha256' => hash('sha256', $manifest->encode()),
-    'kind' => 'restore', 'state' => 'passed', 'checked_at' => gmdate('Y-m-d\TH:i:s\Z'), 'environment_id' => bin2hex(random_bytes(16)),
-    'checks' => ['sql_import', 'wordpress_content', 'media_hashes', 'attachment_references']]);
-file_put_contents('/private/restore-observation.json', json_encode($observation->toArray(), JSON_THROW_ON_ERROR));
+});
+verify($restoreResult===['operation_passed'=>true,'registration'=>'registered'],'Actual restore automatically registered');
+$aggregated=fixtureRestoreCatalog($manifest)->observations($m['set_id'],gmdate('Y-m-d\TH:i:s\Z'));
+verify($aggregated['restore']['state']==='passed' && $aggregated['restore']['environment_id']===$environmentId,'Actual restore visible in aggregation');
+file_put_contents('/private/restore-observation.json',json_encode($aggregated,JSON_THROW_ON_ERROR));
 echo "PASS WordPress restore backend=$backend core={$GLOBALS['wp_version']} checks=$checks media_files=" . count($entries) . " manifest_sha256={$locator['sha256']}\n";

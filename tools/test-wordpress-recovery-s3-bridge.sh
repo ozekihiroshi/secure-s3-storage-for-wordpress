@@ -25,5 +25,5 @@ docker volume create --label odbfs3.test=wordpress-recovery "$download_volume" >
 docker volume create --label odbfs3.test=wordpress-recovery "$download_expected" >/dev/null
 docker run --rm --pull=never --network none -v "$download_volume:/download" -v "$download_expected:/expectations" \
     -v "$expected_volume:/original:ro" -v "$local_work:/input:ro" --entrypoint sh wordpress:php8.3-apache \
-    -c 'tar -xf /input/output.tar -C /download; cp /original/content.json /expectations/content.json; cp /download/locator.json /expectations/locator.json'
+    -c 'tar -xf /input/output.tar -C /download; cp /original/content.json /expectations/content.json; cp /download/locator.json /expectations/locator.json; cp /download/collector.json /expectations/collector.json'
 echo "S3 evidence retained: $local_work and community:$remote_work"

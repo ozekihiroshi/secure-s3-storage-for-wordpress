@@ -147,6 +147,7 @@ try {
         'all_downloads_verified' => true, 'checked_at' => gmdate(DATE_ATOM)];
     file_put_contents($work . '/download/locator.json', json_encode(['bucket' => $bucket, 'key' => $key, 'size' => strlen($bytes), 'sha256' => hash('sha256', $bytes)], JSON_THROW_ON_ERROR));
     file_put_contents($work . '/download/s3-report.json', json_encode($report, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+    file_put_contents($work . '/download/collector.json', $store->read());
     $process = proc_open(['tar', '-C', $work . '/download', '-cf', dirname($work) . '/output.tar', '.'], [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
     requireFixture(is_resource($process) && proc_close($process) === 0);
     echo 'PASS real S3 recovery transport backend=' . $argv[3] . ' objects=' . count($report['objects']) . ' prefix=' . $prefix . "\n";

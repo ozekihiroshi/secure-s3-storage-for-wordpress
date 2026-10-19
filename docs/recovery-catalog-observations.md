@@ -49,7 +49,7 @@ availabilityとrestoreで、それぞれchecked_atが最新の観測を選ぶ。
 
 正規化した観測バイト列のSHA-256を含む専用option名へ、autoload=noでINSERT IGNOREする。同じ観測の再送は同じIDとなり、既存行を更新しない。異なる観測は追記する。元のCollector記録・manifestを変更しない。書込み結果の照合ができない場合は成功を返さず、呼出し側は同じ観測の再送で照合できる。
 
-通常のstatus/latest/observationsからこのAPIは呼ばれない。任意の「成功」を登録するCLI・REST・管理画面は設けていない。独立署名や観測者の認証を提供する仕組みではなく、WordPress DBへ書ける主体からの改ざん耐性も主張しない。既存の実S3/復元処理からの自動記録接続は今後の統合作業である。
+通常のstatus/latest/observationsからこのAPIは呼ばれない。任意の「成功」を登録するCLI・REST・管理画面は設けていない。独立署名や観測者の認証を提供する仕組みではなく、WordPress DBへ書ける主体からの改ざん耐性も主張しない。[後続の自動登録実装](automatic-recovery-observations.md)で専用検証・復元処理から接続した。一般利用者向けの実S3定期検証への接続は引き続き未実施。
 
 ## 終了コードと境界
 
