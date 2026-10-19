@@ -15,6 +15,35 @@ final class RecoveryCleanup
 
     public function __construct(private JobStore $collector, private JobStore $journal) {}
 
+    /** Local journal projection only; does not inspect files or resume cleanup. */
+    public function status(string $id): array
+    {
+        $out=['state'=>'unknown','files'=>[],'scope'=>'local_journal_only'];
+        try{
+            Contract::id($id);$bytes=$this->collector->read();
+            $record=(new RecoveryCollector(new RecoveryRecordSnapshot($bytes)))->current();
+            Contract::require($record!==null && $record['intent']['id']===$id);
+            $saved=$this->journal->read();
+            if($saved===null){$out['state']='not_started';return $out;}
+            Contract::require($record['phase']==='complete' && strlen($saved)<=16384);
+            $raw=json_decode($saved,true,16,JSON_THROW_ON_ERROR);$binding=$raw['binding'];
+            Contract::fields($binding,['set_id','collector_sha256','parent','directory','manifest_sha256']);
+            Contract::require(is_string($binding['parent']) && str_starts_with($binding['parent'],'/'));
+            Contract::fields($binding['directory'],['dev','ino','mode','uid','gid']);
+            foreach($binding['directory'] as $v)Contract::require(is_int($v));
+            Contract::require(($binding['directory']['mode']&0177777)===0040700 && $binding['directory']['ino']>0
+                && $binding['directory']['dev']>=0 && $binding['directory']['uid']>=0 && $binding['directory']['gid']>=0);
+            $expected=$binding;$expected['set_id']=$id;$expected['collector_sha256']=hash('sha256',$bytes);
+            $expected['manifest_sha256']=hash('sha256',$record['manifest']);
+            $r=$this->decode($saved,$expected,$record);
+            $pending=false;$uncertain=false;
+            foreach($r['files'] as $name=>$entry){$out['files'][$name]=$entry['state'];
+                $pending=$pending||$entry['state']==='prepared';$uncertain=$uncertain||$entry['state']==='deleting';}
+            $out['state']=$uncertain?'needs_reconciliation':($pending?'pending':'complete');
+        }catch(Throwable $e){$out['files']=[];}
+        return $out;
+    }
+
     public function execute(string $id, string $parent, array $excludedRoots): array
     {
         $lock=null;$out=['schema_version'=>1,'set_id'=>$id,'state'=>'blocked','reason_code'=>'revalidation_failed','files'=>[]];
@@ -104,7 +133,9 @@ final class RecoveryCleanup
             Contract::require($e['sha256']===$expected['sha256'] && $e['size_bytes']===$expected['size_bytes']);
             if($e['state']==='absent_before'){Contract::require($e['identity']===null);}
             else {Contract::require(is_array($e['identity']));Contract::fields($e['identity'],['dev','ino','mode','nlink','uid','gid','size','mtime','ctime']);
-                foreach($e['identity'] as $v)Contract::require(is_int($v));}
+                foreach($e['identity'] as $v)Contract::require(is_int($v));
+                $i=$e['identity'];Contract::require(($i['mode']&0177777)===0100600 && $i['nlink']===1 && $i['ino']>0
+                    && $i['dev']>=0 && $i['uid']>=0 && $i['gid']>=0 && $i['size']===$expected['size_bytes'] && $i['mtime']>=0 && $i['ctime']>=0);}
         }return $r;
     }
     private function stat(string $path):array|false {

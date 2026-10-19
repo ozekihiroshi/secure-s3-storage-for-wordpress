@@ -33,6 +33,22 @@ final class WordPressRecoveryCatalog
         return RecoveryIndex::latest($rows,$source,$profile,$truncated);
     }
 
+    /** Bounded inventory for the read-only admin page; never implies newest when truncated. */
+    public function inventory(): array
+    {
+        [$rows,$truncated]=$this->scan('odbfs3_recovery_',196608);$sets=[];$invalid=0;
+        foreach($rows as $row){
+            try{
+                $id=substr($row['option_name'],strlen('odbfs3_recovery_'));Contract::id($id);
+                Contract::require(is_string($row['option_value']));
+                $status=\SecureS3StorageForWordpress\Backup\Recovery\RecoveryStatus::read(new RecoveryRecordSnapshot($row['option_value']),$id);
+                Contract::require($status!==null);$sets[]=$status;
+            }catch(\Throwable $e){++$invalid;}
+        }
+        usort($sets,static fn($a,$b)=>strcmp($b['created_at'],$a['created_at'])?:strcmp($b['set_id'],$a['set_id']));
+        return ['sets'=>$sets,'complete'=>!$truncated && $invalid===0,'truncated'=>$truncated,'invalid_records'=>$invalid];
+    }
+
     private function manifest(string $id): ?RecoveryManifest
     {
         Contract::id($id);

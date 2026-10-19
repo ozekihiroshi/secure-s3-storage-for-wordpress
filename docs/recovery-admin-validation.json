@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "passed": true,
+  "scope": "read-only WordPress Recovery Sets admin page and local projections",
+  "contracts": {"php_8_1_new_checks": 11, "php_8_3_new_checks": 11, "cleanup_execution_regression_each": 26, "counts_not_additive": true},
+  "wordpress": {
+    "checks": 25,
+    "menu_registered": true,
+    "admin_allowed": true,
+    "subscriber_and_logged_out_denied_before_catalog_reads": true,
+    "options_unchanged_for_each_render": true,
+    "workspace_files_unchanged": true,
+    "cases": ["inventory", "complete_and_failed", "availability_and_restore", "stale_observation", "cleanup_needs_reconciliation", "corrupt_journal", "invalid_inventory", "missing_set", "invalid_id", "array_id", "escaped_output", "no_mutation_form"],
+    "environment": "disposable WordPress/MariaDB on internal Docker network",
+    "bootstrap": "test-only registrar and actual menu/render callbacks",
+    "log_sha256": "68ccb1c31e871ac331ff41bcfafacf52646c38995c67f6d07ef05f136a5ff561"
+  },
+  "limits": ["inventory limited to 100 records with explicit incomplete warning", "observations use 24-hour freshness", "cleanup is journal status, not a file probe", "no browser login/click acceptance", "no full installed plugin activation acceptance", "no production deployment"]
+}

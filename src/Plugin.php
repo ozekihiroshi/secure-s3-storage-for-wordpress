@@ -16,6 +16,7 @@ final class Plugin
             new SettingsPage();
 
         $settingsPage->register();
+        (new \SecureS3StorageForWordpress\Admin\RecoverySetsPage())->register();
 
         $cronHandler =
             new DatabaseBackupCronHandler();

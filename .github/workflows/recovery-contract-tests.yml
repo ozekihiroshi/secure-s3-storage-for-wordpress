@@ -37,3 +37,5 @@ jobs:
           php tests/manual/test-recovery-cron.php
           php tests/manual/test-recovery-cleanup-plan.php
           php tests/manual/test-recovery-cleanup.php
+          php -l src/Admin/RecoverySetsPage.php
+          php tests/manual/test-recovery-admin-model.php

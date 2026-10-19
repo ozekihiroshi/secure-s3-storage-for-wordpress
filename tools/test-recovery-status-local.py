@@ -54,6 +54,12 @@ try:
             data=re.sub(r'(CREATE TABLE `wp_options` .*?AUTO_INCREMENT=)\d+',r'\g<1>JOURNAL_COUNTER',data,flags=re.S)
         return hashlib.sha256(data.encode()).hexdigest()
     before=snapshot()
+    if '--admin-only' in sys.argv:
+        wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
+        print(wp('eval-file','/repo/tests/manual/test-recovery-admin-wordpress.php',sid))
+        assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==workspace_before
+        print('PASS admin rendering leaves workspace files unchanged')
+        raise SystemExit(0)
     cleanup=('ozeki-database-backup-for-s3','recovery-set','cleanup-plan')
     plan=json.loads(wp(*cleanup,sid,'--workspace-parent=/inspection','--format=json'))
     assert plan['inspection_complete'] and plan['candidate_bytes']==27

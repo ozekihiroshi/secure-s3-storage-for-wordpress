@@ -204,6 +204,12 @@ the exact set ID twice, revalidates hashes under an exclusive lock, and journals
 each local temporary-file deletion for safe reconciliation after interruption.
 It retains evidence and media subtrees; automatic or recursive cleanup is not included.
 
+The [read-only Recovery Sets admin page](docs/recovery-admin-readonly.md), under
+Settings → Recovery Sets, displays local set status, recorded verification results,
+and cleanup journal progress for administrators. It does not start jobs, inspect
+workspace files, or contact S3. Stale, incomplete, and unreadable evidence is
+shown separately from successful results.
+
 Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)
 for the completed work and remaining verification boundaries.

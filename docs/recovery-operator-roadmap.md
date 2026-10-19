@@ -12,6 +12,8 @@
 
 ## 目的と開発単位
 
+後続の追記：[読取り専用管理画面](recovery-admin-readonly.md)を追加。設定 → Recovery Setsから一覧・状態・観測・cleanup台帳を確認する。表示だけで処理を起動しない。操作画面・ブラウザを通した全体受入・本番配置は未実施。
+
 後続の追記：[明示cleanup](recovery-cleanup-execution.md)を追加。exact set ID確認・排他ロック・削除直前hash検証・専用台帳・途中失敗後の照合を実装。対象は完了DB一時ファイル2種のみ。自動／再帰cleanup、メディア削除は含まない。
 
 最新の追記：[workspace cleanup dry-run](recovery-cleanup-plan.md)を追加。完了セットのDB一時ファイル候補と保護理由を読取り専用で表示する。media subtreeは保護し、再帰容量を推測しない。削除実行・自動cleanupは未実装。
