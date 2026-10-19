@@ -2,6 +2,8 @@
 
 2026-10-20 JSTに公式APIと配布ZIPを確認。
 
+**同日の対応完了:** [GitHub v0.3.0](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.3.0)を公開済みコミットへ追加し、WordPress.orgと同一のZIPを添付・再取得してSHA-256一致を確認。独立改善ブランチは[0.4.0](release-notes-0.4.0.md)へ採番した。以下の表と差異は対応前の調査記録であり、旧ZIPの証跡を保持するため残している。
+
 | 対象 | 確認結果 |
 | --- | --- |
 | WordPress.org公式API / 配布ZIP | 公開版0.3.0。最終更新2026-10-17 08:44 UTC |

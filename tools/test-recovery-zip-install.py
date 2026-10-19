@@ -61,7 +61,7 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
    files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'setup')
   before=snapshot()
   if old:
-   wp('eval-file','/repo/tests/manual/upgrade-recovery-zip.php')
+   wp('eval-file','/repo/tests/manual/upgrade-recovery-zip.php',info['version'])
    wp('plugin','activate',slug)
    assert snapshot()==before,'Upgrade changed existing settings/history/Cron/active/state'
    if sid:assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==files_before
@@ -80,7 +80,7 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   assert wp('eval',"global $wpdb; echo $wpdb->get_var(\"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE 'odbfs3_expectation_%'\");")=='0','Activation unexpectedly created expectation settings'
   wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','seed',sid)
   before=snapshot();files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')
-  wp('eval-file','/repo/tests/manual/upgrade-recovery-zip.php')
+  wp('eval-file','/repo/tests/manual/upgrade-recovery-zip.php',info['version'])
   wp('plugin','activate',slug)
   assert snapshot()==before,'Same-version replacement lost pending state'
   wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','verify',sid)
@@ -106,5 +106,3 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
  finally:
   for kind,item in reversed(created):run('docker',kind,'rm',*(['-f','-v'] if kind=='container' else []),item)
 print(json.dumps({'passed':True,'cases':results,'scope':'real ZIP Plugin_Upgrader on disposable WP; generated records; no S3'}))
-
-

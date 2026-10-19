@@ -4,7 +4,7 @@ Tags: backup, amazon s3, aws, database backup, media backup
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -283,7 +283,7 @@ After inspecting an exact failed media job, explicitly clean only its recorded i
 
 `wp ozeki-database-backup-for-s3 media cleanup <job-id> --yes`
 
-= Recovery Sets (0.3.0 development candidate) =
+= Recovery Sets (0.4.0 development candidate) =
 
 Settings > Recovery Sets displays existing site-local sets, component/manifest verification, later observations, execution records and cleanup journal progress. Reading the page does not create sets, contact S3, run restore tests or delete files. Existing standalone backup history is not automatically converted into sets.
 
@@ -313,12 +313,15 @@ There is no general Recovery Set create/restore command or acquisition configura
 
 == Changelog ==
 
-= 0.3.0 =
+= 0.4.0 =
 
 * Add read-only Recovery Set status/latest/observations JSON commands and an administrator page.
 * Add an opt-in developer Cron entry with persistent daily intents and duplicate suppression.
 * Add workspace cleanup planning and explicit, journaled DB temporary-file cleanup.
 * Connect dedicated verification/restore runs to durable observation delivery.
+* Add execution summaries, schedule-assessment JSON and guarded administrator settings. Assessment settings do not change actual Cron jobs.
+
+= 0.3.0 =
 
 * Add an internal recovery-set model, resumable DB/media collection and independently verified S3 manifest publication.
 * Preserve caller-owned upload streams on success and failure in the S3 adapter.

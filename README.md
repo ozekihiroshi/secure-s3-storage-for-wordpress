@@ -31,22 +31,23 @@ it is not a complete site recovery or one-click restore system.
 
 Ozeki Database Backup for S3 is published on [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/).
 In WordPress, open **Plugins > Add New**, search for **Ozeki Database Backup for S3**,
-then install and activate it. The directory release documented here is 0.2.1.
+then install and activate it. The current directory release is 0.3.0.
 
 This is the development repository. Its historical name,
 `secure-s3-storage-for-wordpress`, differs from the published plugin name.
 Use the directory package for installation; it includes the runtime dependencies.
 
-Version 0.2.1 is available from [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.2.1).
-It adds SQL/gzip and S3 SHA-256 integrity
+Version 0.3.0 is available from [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.3.0).
+It adds the internal Recovery Set foundation. Version 0.2.1 introduced
+SQL/gzip and S3 SHA-256 integrity
 verification, unique conditional-write backup keys, and verification evidence
 in backup history. It has been applied to the operator's existing WordPress
 site and is also published on WordPress.org.
 See [integrity verification](docs/database-integrity-verification.md) and
 [deployment record](docs/production-update-2026-10-17.md).
 
-The current source version is 0.3.0. Its internal recovery-set implementation
-and operator deployment are separate from the published 0.2.1 directory release;
+This branch's source version is 0.4.0, an unpublished development candidate.
+Its operator interfaces are separate from the published 0.3.0 directory release;
 updating this repository does not publish an update to WordPress.org.
 
 ## Who it is for
@@ -179,8 +180,8 @@ Recovery Sets. See [schedule settings (Japanese)](docs/recovery-schedule-setting
 for UTC input, grace periods, stopping/resuming assessment and stale-form protection.
 The [candidate ZIP installation checks (Japanese)](docs/recovery-schedule-zip.md)
 cover fresh installation, upgrades and preservation of settings and records.
-WordPress.org already distributes 0.3.0. This branch's same-numbered test ZIP
-contains additional unpublished changes and must not replace that release.
+WordPress.org distributes 0.3.0. This branch's improvements are now versioned
+0.4.0 and must not replace the historical 0.3.0 artifact.
 See [version reconciliation (Japanese)](docs/release-version-reconciliation.md)
 for the missing GitHub release entry and next-version plan.
 
