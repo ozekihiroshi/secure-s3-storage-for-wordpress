@@ -24,8 +24,8 @@ function check(ok,name){assert.ok(ok,name);checks.push(name)}
  let text=await wrap.innerText();
  for(const value of ['Manifest SHA-256','available','failed',(process.env.EXPECT_CLEANUP || 'not_started'),'databaseのセットID','mediaのセットID'])check(text.includes(value),'detail '+value);
  check(!text.includes('/inspection')&&!text.includes('SECRET'),'no internal paths');
- check(await wrap.locator('form[method="get"]').count()===1 && await wrap.locator('form[method="post"]').count()===0,'only GET form');
- check(await wrap.locator('button').count()===1,'no mutation buttons');
+ check(await wrap.locator('form[method="get"]').count()===2 && await wrap.locator('form[method="post"]').count()===1,'GET status searches and one expectation form');
+ check(await wrap.locator('form[method="post"] input[name="action"]').inputValue()==='odbfs3_save_schedule_expectation','only expectation settings mutation');
  await p.screenshot({path:path.join(output,'detail.png'),fullPage:true});
  await wrap.locator('#odb-set').fill('f'.repeat(32));await wrap.getByRole('button',{name:'状態を表示'}).click();
  check((await wrap.innerText()).includes('セット記録がありません'),'GET search missing set');

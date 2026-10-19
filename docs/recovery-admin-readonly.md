@@ -1,5 +1,7 @@
 # Recovery Sets管理画面（読取り専用）
 
+後続更新：状態表示は引き続き読取り専用。[予定判定専用の設定フォーム](recovery-schedule-settings.md)を追加し、専用POSTだけがexpectation設定を保存する。バックアップ・復元・cleanupは起動しない。以下は当初の仕様・検証記録であり、「書込みフォームなし」は当時の範囲を示す。
+
 共通DB部品の採用変更とは別の`codex/recovery-operator-plan`に追加。WordPress管理画面の **設定 → Recovery Sets** を開く。`manage_options`権限が必要で、購読者・未ログイン利用者は表示できない。
 
 ## 見られるもの

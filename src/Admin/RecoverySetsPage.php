@@ -6,11 +6,11 @@ use SecureS3StorageForWordpress\WordPress\{WordPressRecoveryCatalog,WordPressJob
 use SecureS3StorageForWordpress\Backup\Recovery\{RecoveryStatus,RecoveryCleanup};
 use Throwable;
 
-/** No mutation endpoints, scripts, polling, or remote/workspace access. */
+/** Read-only status views plus an explicit expectation-only settings form. */
 final class RecoverySetsPage
 {
     public const SLUG='odbfs3-recovery-sets';
-    public function register():void {add_action('admin_menu',[$this,'menu']);}
+    public function register():void {add_action('admin_menu',[$this,'menu']);(new RecoveryScheduleSettings())->register();}
     public function menu():void {add_options_page('Recovery Sets','Recovery Sets','manage_options',self::SLUG,[$this,'render']);}
     private function row(string $label,mixed $value):void {
         echo '<tr><th scope="row">'.esc_html($label).'</th><td>'.esc_html(is_bool($value)?($value?'はい':'いいえ'):(is_scalar($value)?(string)$value:($value===null?'—':wp_json_encode($value)))).'</td></tr>';
@@ -57,11 +57,13 @@ final class RecoverySetsPage
             if ($key==='completion') $this->row($label.'：完了時の遅延秒数',$r[$key]['completion_delay_seconds']);
         }
         echo '</tbody></table>';
+        (new RecoveryScheduleSettings())->render($source);
     }
     public function render():void
     {
         if(!current_user_can('manage_options')){wp_die(esc_html__('この画面を表示する権限がありません。','ozeki-database-backup-for-s3'));return;}
-        echo '<div class="wrap"><h1>Recovery Sets</h1><p>読取り専用です。表示してもバックアップ・検証・cleanupは実行されません。</p>';
+        echo '<div class="wrap"><h1>Recovery Sets</h1><p>状態の表示は読取り専用です。表示してもバックアップ・検証・cleanupは実行されません。予定判定の設定は専用フォームから明示的に保存します。</p>';
+        if (($_GET['schedule_saved']??null)==='1') echo '<p>予定判定の設定を保存しました。実Cronは変更していません。</p>';
         echo '<p>保存完了、取得可否の観測、復元試験は別の結果です。観測の鮮度は24時間。時刻はUTCです。</p>';
         echo '<form method="get" action="'.esc_url(admin_url('options-general.php')).'"><input type="hidden" name="page" value="'.esc_attr(self::SLUG).'"><label for="odb-source">Source ID</label> <input id="odb-source" name="source_id" maxlength="32" size="36"> <button class="button" type="submit">実行記録を表示</button></form>';
         echo '<form method="get" action="'.esc_url(admin_url('options-general.php')).'"><input type="hidden" name="page" value="'.esc_attr(self::SLUG).'"><label for="odb-set">セットID</label> <input id="odb-set" name="set_id" type="text" size="36" maxlength="32"> <button class="button" type="submit">状態を表示</button></form>';

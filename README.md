@@ -174,6 +174,10 @@ explicit enabled/stopped expectations and separate start/completion grace period
 Use `recovery-set schedule-status --source-id=<id> --format=json` for a read-only
 current-slot assessment. Configuring expectations does not change Cron execution.
 
+Administrators can now edit those expectations using the explicit POST form in
+Recovery Sets. See [schedule settings (Japanese)](docs/recovery-schedule-settings.md)
+for UTC input, grace periods, stopping/resuming assessment and stale-form protection.
+
 These improvements are on `codex/recovery-operator-plan`, separate from shared
 DB-core adoption. They are implemented and tested in dedicated environments;
 this does not publish a new directory package or enable Recovery Set scheduling

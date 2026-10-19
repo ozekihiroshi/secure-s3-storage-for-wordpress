@@ -44,7 +44,7 @@ schema_version=1。stateは全体、start/completionは個別判定。policy.set
 
 ## 設定の入口（開発者向け）
 
-Cron接続自体が明示bootstrapを必要とする現段階に合わせ、設定は信頼したPHPから行う。一般利用者向け設定フォーム・設定変更CLIは今回追加しない。自動有効化・暗黙のデフォルト予定もない。
+後続実装で[管理画面からの設定](recovery-schedule-settings.md)を追加した。下記は開発者向けAPIの説明。実Cron接続自体は引き続き明示bootstrapが必要で、自動有効化は行わない。
 
 ```php
 use SecureS3StorageForWordpress\WordPress\WordPressRecoveryScheduleStatus;
@@ -77,4 +77,4 @@ stoppedからenabledへ戻す際は、現在以降の新しいanchorを明示す
 
 [検証集計](recovery-schedule-validation.json)に専用環境の結果を記録する。PHP契約試験は`tests/manual/test-recovery-schedule-status.php`、実WordPress/MariaDB・実WP-CLI・管理画面renderは`tools/test-recovery-status-local.py --schedule-only`で再実行できる。
 
-全枠の履歴保存、設定変更の監査履歴、予定設定UI、ライブ稼働確認、通知、サイト停止中の検知は今回の範囲外。実S3への再保存・復元、本番適用・ZIP更新は行っていない。ブラウザ操作試験ではなく実WordPressのrenderとCLIの検証として区別する。
+全枠の履歴保存、設定変更の監査履歴、ライブ稼働確認、通知、サイト停止中の検知は今回の範囲外。予定設定UIは後続追加分の検証記録を参照。実S3への再保存・復元、本番適用・ZIP更新は行っていない。ブラウザ操作試験ではなく実WordPressのrenderとCLIの検証として区別する。

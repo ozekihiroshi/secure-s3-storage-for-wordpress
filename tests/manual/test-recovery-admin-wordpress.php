@@ -13,7 +13,7 @@ $render=static function($query)use($page,$fingerprint,$check){$_GET=$query;$befo
 $html=$render([]);$check(str_contains($html,$id) && str_contains($html,'failed'),'inventory exposes complete and failed');
 $html=$render(['set_id'=>$id]);$check(str_contains($html,'available') && str_contains($html,'failed') && str_contains($html,'not_started'),'observations and cleanup separated');
 $check(!str_contains($html,'/inspection') && !str_contains($html,'<script'),'no internal paths or scripts');
-$check(!str_contains($html,'method="post"') && !str_contains($html,'admin-post.php'),'no mutation forms');
+$check(str_contains($html,'odbfs3_save_schedule_expectation') && !str_contains($html,'name="confirm-set"'),'only expectation settings form, no cleanup action');
 $html=$render(['set_id'=>'<script>alert(1)</script>']);$check(!str_contains($html,'<script>') && str_contains($html,'32桁'),'invalid ID escaped or rejected');
 $html=$render(['set_id'=>[$id]]);$check(str_contains($html,'32桁'),'array ID rejected');
 $html=$render(['set_id'=>str_repeat('f',32)]);$check(str_contains($html,'セット記録がありません'),'missing explicit');

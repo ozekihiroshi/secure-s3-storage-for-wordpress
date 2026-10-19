@@ -54,6 +54,11 @@ try:
             data=re.sub(r'(CREATE TABLE `wp_options` .*?AUTO_INCREMENT=)\d+',r'\g<1>JOURNAL_COUNTER',data,flags=re.S)
         return hashlib.sha256(data.encode()).hexdigest()
     before=snapshot()
+    if '--schedule-settings-only' in sys.argv:
+        print(wp('eval-file','/repo/tests/manual/test-recovery-schedule-settings-wordpress.php',sid))
+        assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==workspace_before
+        print('PASS expectation settings: workspace unchanged')
+        raise SystemExit(0)
     if '--schedule-only' in sys.argv:
         print(wp('eval-file','/repo/tests/manual/test-recovery-schedule-wordpress.php',sid))
         schedule_before=snapshot()

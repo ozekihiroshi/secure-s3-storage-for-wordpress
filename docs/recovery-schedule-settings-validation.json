@@ -1,0 +1,14 @@
+{
+  "date_jst": "2026-10-20",
+  "passed": true,
+  "scope": "source branch, disposable WordPress/MariaDB, synthetic data",
+  "settings_checks": 38,
+  "existing_admin_regression_checks": 37,
+  "existing_execution_json_regression": true,
+  "cases": ["registered_post_handler", "render_read_only", "rendered_nonce_and_tokens", "get_denied", "nonce_denied", "source_swap_denied", "token_swap_denied", "invalid_numbers_dates_modes_arrays", "ack_required", "save", "stale_replay", "stop", "resume_anchor", "update_periods", "concurrent_update", "subscriber_and_guest_denied", "corrupt_policy_no_form", "local_redirect"],
+  "unrelated_options_unchanged": true,
+  "workspace_unchanged": true,
+  "php81_new_handler_lint": true,
+  "schedule_contract_regression": {"php": ["8.1", "8.3"], "checks_per_version": 39},
+  "limits": ["real WordPress rendering and handler tests, not a new browser click acceptance", "browser regression assertions updated but browser suite not rerun", "no real S3, package rebuild, production deployment or publication"]
+}
