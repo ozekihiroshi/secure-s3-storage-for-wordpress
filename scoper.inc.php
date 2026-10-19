@@ -7,6 +7,8 @@ return [
     'php-version' => '8.1',
     'exclude-namespaces' => [
         'SecureS3StorageForWordpress',
+        // WP-CLI owns its namespaced helpers as well as the global WP_CLI class.
+        'WP_CLI',
     ],
     'exclude-classes' => [
         'WP_CLI',
@@ -77,3 +79,4 @@ return [
     'expose-global-classes' => true,
     'expose-global-functions' => true,
 ];
+
