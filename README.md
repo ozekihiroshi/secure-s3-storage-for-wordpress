@@ -171,8 +171,8 @@ states, scheduling health checks, and stable machine-readable outputs should
 support integrations without making the core customer-specific.
 
 The [operator roadmap and implementation inventory](docs/recovery-operator-roadmap.md)
-separate the existing recovery-set foundation from the pending status CLI,
-latest-set index, Cron orchestration, and workspace cleanup. This work is
+separate the existing recovery-set foundation from operator interfaces,
+Cron orchestration, and pending workspace cleanup. This work is
 independent of shared database-core adoption. Publication completion, current
 availability, and restoration-test results will be reported separately.
 
@@ -185,6 +185,15 @@ recorded availability/restoration observations bound to the exact manifest.
 connects the isolated verification/restoration pipeline to the catalog, with a
 durable delivery journal and delivery-only retries. General operator restore
 commands, scheduled verification, and cleanup remain planned work.
+
+An opt-in [Recovery Set Cron entry](docs/recovery-cron-entry.md) now freezes a
+daily intent, deduplicates callbacks, and advances one Collector operation per
+invocation. Incomplete work resumes across days; failed or changed configurations
+require review. The WordPress hook accepts trusted adapters and a result reporter;
+it does not automatically replace the existing database Cron. Isolated WordPress
+tests cover native/PHP acquisition and restoration with a disk S3 double.
+Production setup UI, automatic failure reset, and long-running scheduler
+monitoring are not included.
 
 Those next steps are planned capabilities, not current guarantees or a finalized external
 integration API. See the [integrity implementation](docs/database-integrity-verification.md)

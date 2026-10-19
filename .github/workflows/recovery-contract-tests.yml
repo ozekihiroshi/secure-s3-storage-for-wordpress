@@ -32,3 +32,6 @@ jobs:
           php tests/manual/test-recovery-status.php
           php tests/manual/test-recovery-catalog.php
           php tests/manual/test-observed-recovery-run.php
+          php -l src/Cron/RecoverySetCronHandler.php
+          php -l src/WordPress/WordPressRecoverySchedule.php
+          php tests/manual/test-recovery-cron.php

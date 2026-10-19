@@ -89,20 +89,28 @@ if ($mode === 'source') {
     require __DIR__ . '/test-wordpress-job-store.php';
     $checks = 0;
     $uploads = wp_get_upload_dir()['basedir'];
-    $set = RecoverySet::create(str_repeat('a', 32), 'database_uploads', 'fixture-bucket', 'us-east-1', 'wordpress', gmdate('Y-m-d\TH:i:s\Z'));
-    $workspace = new RecoveryWorkspace('/private', $set, '/site', $uploads);
     $connection = new DatabaseConnection('fixture-db', 3306, 'fixture', 'fixture', getenv('FIXTURE_PASSWORD'));
-    $store = WordPressJobStore::forRecovery($GLOBALS['wpdb'], $set->id);
-    $collector = new RecoveryCollector($store);
-    $collector->enqueue($set, ['wordpress' => $GLOBALS['wp_version'], 'php' => PHP_VERSION, 'plugin' => 'development', 'database_server' => 'MariaDB', 'table_prefix' => 'fx_']);
-    $pipeline = new RecoveryPipeline($workspace, $backend === 'native' ? new NativeMySqlDumper() : new PhpMySqlDumper(chunkSize: 20), $connection, $backend, $remote, new MediaSource($uploads), '/site');
+    $configuration = ['source_id'=>str_repeat('a',32), 'profile'=>'database_uploads', 'bucket'=>'fixture-bucket', 'region'=>'us-east-1', 'prefix'=>'wordpress', 'backend'=>$backend,
+        'environment'=>['wordpress'=>$GLOBALS['wp_version'], 'php'=>PHP_VERSION, 'plugin'=>'development', 'database_server'=>'MariaDB', 'table_prefix'=>'fx_']];
+    $adapterFactory = static function(RecoverySet $set, string $backend) use($connection,$remote,$uploads):array {
+        $workspace = new RecoveryWorkspace('/private', $set, '/site', $uploads);
+        return [new RecoveryPipeline($workspace, $backend==='native'?new NativeMySqlDumper():new PhpMySqlDumper(chunkSize:20), $connection,$backend,$remote,new MediaSource($uploads),'/site'), new RecoveryPublisher($remote,$workspace)];
+    };
+    // Exercise opt-in registration and WordPress callback dispatch.
+    $cronResult = null;
+    $hook=\SecureS3StorageForWordpress\WordPress\WordPressRecoverySchedule::register($GLOBALS['wpdb'],$configuration,$adapterFactory,
+        static function(array $result)use(&$cronResult):void{$cronResult=$result;});
     for ($i = 0; $i < 1000; ++$i) {
-        $phase = (new RecoveryCollector(WordPressJobStore::forRecovery($GLOBALS['wpdb'], $set->id)))->tick($set->id, $pipeline);
-        verify($phase !== 'failed', 'Collection did not fail');
-        if ($phase === 'ready') { break; }
+        do_action($hook);
+        verify(!in_array($cronResult['phase'],['failed','unknown','blocked'],true),'Cron collection did not fail');
+        if ($cronResult['phase'] === 'complete') { break; }
     }
-    verify($collector->current()['phase'] === 'ready', 'Ready within bound');
-    verify($collector->publish($set->id, new RecoveryPublisher($remote, $workspace)) === 'complete', 'Manifest independently verified');
+    $store=WordPressJobStore::forRecovery($GLOBALS['wpdb'],$cronResult['set_id']);
+    $collector=new RecoveryCollector($store);
+    $set=RecoverySet::fromIntent($collector->current()['intent']);
+    verify($collector->current()['phase']==='complete','Cron bounded loop independently published manifest');
+    $before=$store->read();do_action($hook);
+    verify($cronResult['reason_code']==='already_complete' && $store->read()===$before,'Duplicate Cron preserves complete set');
     $bytes = $collector->current()['manifest'];
     file_put_contents('/expected/locator.json', json_encode(['bucket' => $set->bucket, 'key' => $set->root() . 'manifest.json', 'size' => strlen($bytes), 'sha256' => hash('sha256', $bytes)], JSON_THROW_ON_ERROR));
     file_put_contents('/expected/collector.json', $store->read());

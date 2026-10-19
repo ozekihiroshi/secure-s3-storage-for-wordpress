@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "scope": "opt-in Recovery Set Cron service and isolated WordPress hook, not installed plugin or long-running scheduler acceptance",
+  "branch": "codex/recovery-operator-plan",
+  "passed": true,
+  "contracts": {"php_8_1_new_checks": 25, "php_8_3_new_checks": 25, "prerequisites_not_additive": {"domain": 127, "status": 105}},
+  "regression_php_8_3": {"catalog": 43, "automatic_observation": 20},
+  "wordpress": {
+    "version": "7.0.2",
+    "dispatch": "WordPressRecoverySchedule::register and do_action",
+    "native": {"source_checks": 44, "restore_checks": 44, "media_files": 4, "manifest_sha256": "c907e348b38be507f469f29546812ad1ae63938bf4401bee17938222571fc76a"},
+    "php": {"source_checks": 44, "restore_checks": 44, "media_files": 4, "manifest_sha256": "560e0d8cf06d1f4990a477a5632a00946caa932ce83d04e6841f88c2892e8a6c"},
+    "source_database_removed_before_restore": true,
+    "network": "internal Docker networks",
+    "transport": "disk-backed S3 double",
+    "real_aws_requests": 0,
+    "log_sha256": "dcbdcd304214fbde9ab89afb259e1c5c013d3c9f7628f714538d72217543ffd4"
+  },
+  "limitations": [
+    "UTC daily slots only; no backfill",
+    "one Collector operation per invocation, not a hard process execution timeout",
+    "failure and configuration change require review; no reset API",
+    "concurrency and interrupted lease cases are fault-injection contracts, not multi-host load tests",
+    "no multi-day WP-Cron daemon test or production deployment",
+    "trusted adapters and result reporter must be explicitly configured"
+  ]
+}

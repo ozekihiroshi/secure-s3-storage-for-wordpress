@@ -8,6 +8,8 @@
 
 後続の追記：[専用検証・復元処理からの自動登録](automatic-recovery-observations.md)を接続し、登録待ちの永続記録と配送だけの再開を実装・検証した。一般利用者向けの復元入口・Cron・cleanupは引き続き未実装。
 
+後続の追記：[Cron作成入口](recovery-cron-entry.md)を実装。日次intentのCAS受付、同一セットの段階実行、失敗時の停止、明示的なWordPress hook登録を追加した。一般利用者向けcreate CLI・有効化画面、失敗の承認付きリセット、cleanup、長期の定期実行監視は未実装。過去の棚卸し表の「未実装」は着手時点の記録として保持する。
+
 ## 目的と開発単位
 
 Ozeki Database Backup for S3は、バックアップとリストアの完全性を高める独立製品として改善を続ける。既存Recovery Setの内部契約を利用し、オペレーターが不足・失敗・未検証を識別して操作できる入口を追加する。Resilienceの独立署名、侵害耐性、watchdogの仕組みをこの変更の必須要件にしない。
