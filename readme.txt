@@ -4,7 +4,7 @@ Tags: backup, amazon s3, aws, database backup, media backup
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -112,6 +112,8 @@ Retention operates only on database backup objects matching the plugin's expecte
 Manual backups do not automatically apply retention.
 
 Automatic backups and backups executed through the plugin's WP-CLI backup command apply the configured retention policy after a successful backup.
+
+Version 0.4.1 safeguard: before deleting older backups, retention checks the retained objects against their original SHA-256 metadata and S3 checksums. Missing evidence, mismatches, denied checks or incomplete listings stop cleanup. Older backups without this metadata can defer cleanup until enough newer verified backups exist. Backup success and retention failure remain separate results. These safeguards are introduced in 0.4.1.
 
 = Uninstall behavior =
 
@@ -285,7 +287,7 @@ After inspecting an exact failed media job, explicitly clean only its recorded i
 
 `wp ozeki-database-backup-for-s3 media cleanup <job-id> --yes`
 
-= Recovery Sets (0.4.0 development candidate) =
+= Recovery Sets (introduced in 0.4.0) =
 
 Settings > Recovery Sets displays existing site-local sets, component/manifest verification, later observations, execution records and cleanup journal progress. Reading the page does not create sets, contact S3, run restore tests or delete files. Existing standalone backup history is not automatically converted into sets.
 
@@ -311,9 +313,16 @@ After confirming recovery materials and the plan, explicitly execute:
 
 Only completed database.sql and database.sql.gz temporary files are eligible, with a 1 GiB limit per file. The command revalidates hashes under a lock and records deletion progress. Evidence, media subtrees and S3 objects are retained. If interrupted, review the reason and resume with the same ID and parent; preserve the journal. This is not automatic/recursive cleanup or a current S3 availability check.
 
-There is no general Recovery Set create/restore command or acquisition configuration UI. The schedule-assessment form does not configure acquisition. DB/media correspondence does not guarantee a point-in-time snapshot. Local records are not independently signed. See the repository docs/recovery-operations.md for integration, stopping and incident procedures. This candidate has not been published merely by building its ZIP.
+There is no general Recovery Set create/restore command or acquisition configuration UI. The schedule-assessment form does not configure acquisition. DB/media correspondence does not guarantee a point-in-time snapshot. Local records are not independently signed. See the repository docs/recovery-operations.md for integration, stopping and incident procedures. These operations were introduced in 0.4.0.
 
 == Changelog ==
+
+= 0.4.1 =
+
+* Verify retained database backups against original SHA-256 metadata before deleting older generations.
+* Stop retention on missing integrity evidence, incomplete pagination or duplicate object listings.
+* Restrict retention to generated database backup key formats while preserving legacy names.
+* Clarify independent product scope, Recovery Set boundaries and retention migration.
 
 = 0.4.0 =
 

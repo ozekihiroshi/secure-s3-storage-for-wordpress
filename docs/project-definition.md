@@ -1,5 +1,8 @@
 # Ozeki Database Backup for S3
 
+> 当初の設計・計画を保存した歴史資料。現在の実装要件や未完了作業の一覧ではない。
+> 独立製品としての現行方針は [2026-10-27レビュー](product-quality-review-2026-10-27.md) を参照。
+
 ## Project Definition
 
 **Document Version:** 0.1

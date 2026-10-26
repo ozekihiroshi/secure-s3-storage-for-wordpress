@@ -1,5 +1,8 @@
 # 0.4.0 開発候補
 
+> 以下は公開前の候補・試験の履歴。2026-10-27現在は0.4.0公開済み。
+> [現在の公開状態と次回更新](product-quality-review-2026-10-27.md) を参照。
+
 公開済み0.3.0とは別の独立改善版。共通DB部品の採用変更は含めない。WordPress.org、GitHub Releaseへの0.4.0公開は未実施。
 
 追加内容：Recovery Setのstatus/latest/observationsとJSON、管理画面、実行記録、予定判定と明示的設定保存、開発者用Cron入口、観測登録、workspace cleanupのdry-runと明示実行。

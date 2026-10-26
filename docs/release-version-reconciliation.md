@@ -1,5 +1,8 @@
 # WordPress.org・GitHub・開発候補の版番号整理
 
+> 履歴資料。2026-10-27にはWordPress.org 0.4.0配布とGitHub v0.4.0を確認済み。
+> 以下は当時の調査を保持する。現在の状態は [製品レビュー](product-quality-review-2026-10-27.md) を参照。
+
 2026-10-20 JSTに公式APIと配布ZIPを確認。
 
 **同日の対応完了:** [GitHub v0.3.0](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.3.0)を公開済みコミットへ追加し、WordPress.orgと同一のZIPを添付・再取得してSHA-256一致を確認。独立改善ブランチは[0.4.0](release-notes-0.4.0.md)へ採番した。以下の表と差異は対応前の調査記録であり、旧ZIPの証跡を保持するため残している。

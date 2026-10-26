@@ -18,11 +18,15 @@ def archive_info(p):
   header=z.read(slug+'/'+slug+'.php').decode();version=re.search(r'Version:\s*([^\s]+)',header)[1]
   return {'version':version,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'files':len(files)}
 info=archive_info(candidate)
+report_dir=pathlib.Path(os.environ['ODBFS3_RELEASE_REPORT_DIR']).resolve() if os.environ.get('ODBFS3_RELEASE_REPORT_DIR') else None
+checker=pathlib.Path(os.environ['ODBFS3_PLUGIN_CHECK_ZIP']).resolve() if os.environ.get('ODBFS3_PLUGIN_CHECK_ZIP') else None
 for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous:
+ preseeded=bool(old and archive_info(old)['version']=='0.4.0')
  name='odb-zip-'+uuid.uuid4().hex[:10];network=name+'-net';volume=name+'-site';private=name+'-private';db=name+'-db';created=[]
  def wp(*args):
   mounts=['-v',str(candidate)+':/candidate.zip:ro','-v',str(root)+':/repo:ro','-v',volume+':/var/www/html','-v',private+':/inspection']
   if old:mounts+=['-v',str(old)+':/previous.zip:ro']
+  if checker:mounts+=['-v',str(checker)+':/plugin-check.zip:ro']
   return run('docker','run','--rm','--network',network,'--user','0:0','-e','ODBFS3_STATUS_FIXTURE=1',*mounts,'wordpress:cli-php8.3','wp','--allow-root',*args)
  def snapshot(include_cron=True):
   sql="SELECT option_name,option_value,autoload FROM wp_options WHERE option_name LIKE 'odbfs3_%' OR option_name LIKE 'secure_s3_%' OR option_name IN ('cron','active_plugins') ORDER BY option_name"
@@ -55,17 +59,26 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   wp('plugin','install','/previous.zip' if old else '/candidate.zip','--activate')
   wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','legacy')
   sid=None
-  if old and archive_info(old)['version']=='0.3.0':
+  if old and archive_info(old)['version'] in ('0.3.0','0.4.0'):
    sid=wp('eval-file','/repo/tests/manual/seed-recovery-status.php')
    wp('eval',"delete_option('odbfs3_recovery_'.str_repeat('e',32));")
    files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'setup')
+   if archive_info(old)['version']=='0.4.0':
+    wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
+    wp('eval-file','/repo/tests/manual/seed-recovery-browser-cleanup.php',sid)
+    wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','extended',sid)
+    wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','seed',sid)
+    files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')
   before=snapshot()
   if old:
    wp('eval-file','/repo/tests/manual/upgrade-recovery-zip.php',info['version'])
    wp('plugin','activate',slug)
    assert snapshot()==before,'Upgrade changed existing settings/history/Cron/active/state'
    if sid:assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==files_before
+   if archive_info(old)['version']=='0.4.0':
+    wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','verify',sid)
   assert 'Active' in wp('plugin','status',slug)
+  wp('eval',"$o=get_option('secure_s3_storage_settings');$h=get_option('secure_s3_storage_backup_history');if(($o['retention_keep_count']??null)!==7||($h[0]['success']??null)!==true||($h[0]['verification']??null)!=='remote_integrity')throw new RuntimeException('Standalone settings/history lost');")
   wp('eval',"foreach(['Admin\\RecoverySetsPage','Cli\\RecoverySetCommand','Backup\\Recovery\\RecoveryCollector','Backup\\Recovery\\RecoveryCleanup','WordPress\\WordPressRecoveryCatalog','Cron\\RecoverySetCronHandler'] as $c){$r=new ReflectionClass('SecureS3StorageForWordpress'.chr(92).$c);if(!str_starts_with($r->getFileName(),WP_PLUGIN_DIR.'/ozeki-database-backup-for-s3/'))throw new RuntimeException('Source fallback');}")
   # Check every installed file against ZIP without bringing source or external autoload into runtime.
   with zipfile.ZipFile(candidate) as z:
@@ -74,11 +87,13 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   assert actual==expected,'Installed tree differs from ZIP'
   if sid is None:
    sid=wp('eval-file','/repo/tests/manual/seed-recovery-status.php');wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'setup')
-  wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
-  wp('eval-file','/repo/tests/manual/seed-recovery-browser-cleanup.php',sid)
-  wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','extended',sid)
-  assert wp('eval',"global $wpdb; echo $wpdb->get_var(\"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE 'odbfs3_expectation_%'\");")=='0','Activation unexpectedly created expectation settings'
-  wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','seed',sid)
+  if not preseeded:
+   wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
+   wp('eval-file','/repo/tests/manual/seed-recovery-browser-cleanup.php',sid)
+   wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','extended',sid)
+  expected_policies='2' if old and archive_info(old)['version']=='0.4.0' else '0'
+  assert wp('eval',"global $wpdb; echo $wpdb->get_var(\"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE 'odbfs3_expectation_%'\");")==expected_policies,'Activation changed expectation settings'
+  wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','verify' if preseeded else 'seed',sid)
   before=snapshot();files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')
   wp('eval-file','/repo/tests/manual/upgrade-recovery-zip.php',info['version'])
   wp('plugin','activate',slug)
@@ -108,6 +123,17 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   assert settings_result['passed'],'Installed settings handler regression'
   result={'previous':archive_info(old) if old else None,'candidate':info,'passed':True,'installed_files_match_zip':True,'upgrade_state_preserved':True,'same_version_pending_records_preserved':True,'schedule_settings_and_execution_preserved':True,'schedule_and_execution_json':True,'read_views_unchanged':True,'deactivate_reactivate_preserved':True,'workspace_preserved':True}
   result['settings_handler_checks']=settings_result['checks']
+  result['standalone_settings_history_validated']=True
+  result['wordpress_version']=wp('core','version')
+  result['php_version']=wp('eval','echo PHP_VERSION;')
+  if checker:
+   wp('plugin','install','/plugin-check.zip','--activate')
+   checked=wp('plugin','check',slug,'--format=json','--require=/var/www/html/wp-content/plugins/plugin-check/cli.php')
+   result['plugin_check_output']=checked
+   result['plugin_check_version']=wp('plugin','get','plugin-check','--field=version')
+  if report_dir:
+   report_dir.mkdir(parents=True,exist_ok=True)
+   (report_dir/('install-'+('from-'+archive_info(old)['version'] if old else 'fresh')+'.json')).write_text(json.dumps(result,indent=2)+'\n')
   results.append(result);print(json.dumps(result),flush=True)
  finally:
   for kind,item in reversed(created):run('docker',kind,'rm',*(['-f','-v'] if kind=='container' else []),item)

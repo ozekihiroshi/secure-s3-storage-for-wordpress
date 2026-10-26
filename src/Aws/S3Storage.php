@@ -53,6 +53,8 @@ final class S3Storage
                 'SourceFile' => $sourcePath,
                 'ContentType' => 'application/gzip',
                 'ChecksumSHA256' => base64_encode(hex2bin($sha256)),
+                // Retention must be able to compare S3 bytes with the original digest.
+                'Metadata' => ['odbfs3-sha256' => $sha256],
                 'IfNoneMatch' => '*',
             ]);
 

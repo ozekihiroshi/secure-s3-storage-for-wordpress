@@ -29,11 +29,13 @@ jobs:
           php -l tests/manual/test-database-restore.php
           php -l tests/manual/database-s3-test-transport.php
           php -l tests/manual/test-database-history.php
+          php -l tests/manual/test-retention-safety.php
           php -l tests/manual/test-recovery-pipeline.php
       - name: Corruption and independent download verification without AWS
         run: |
           php -d memory_limit=32M tests/manual/test-database-integrity.php
           php tests/manual/test-database-history.php
+          php tests/manual/test-retention-safety.php
       - name: Install isolated recovery prerequisites
         run: |
           sudo apt-get update

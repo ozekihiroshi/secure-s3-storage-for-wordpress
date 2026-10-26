@@ -9,6 +9,7 @@ final class DatabaseS3TestTransport
 {
     public array $objects = [];
     public array $calls = [];
+    public array $originalHashes = [];
     public string $fault = '';
 
     public function client(): S3Client
@@ -31,12 +32,17 @@ final class DatabaseS3TestTransport
                     }
                     $hash = base64_encode(hash('sha256', $body, true));
                     if ($request->getHeaderLine('x-amz-checksum-sha256') !== $hash) { throw new RuntimeException('Upload checksum mismatch'); }
+                    if ($request->getHeaderLine('x-amz-meta-odbfs3-sha256') !== hash('sha256', $body)) {
+                        throw new RuntimeException('Missing original digest for retention');
+                    }
                     $this->objects[$key] = $body;
+                    $this->originalHashes[$key] = $request->getHeaderLine('x-amz-meta-odbfs3-sha256');
                     return Create::promiseFor(new Response(200, ['ETag' => '"not-a-sha256"', 'x-amz-checksum-sha256' => $hash]));
                 }
                 if (! isset($this->objects[$key])) { return Create::promiseFor(new Response(404)); }
                 $body = $this->objects[$key];
                 $headers = ['Content-Length' => (string) strlen($body), 'x-amz-checksum-sha256' => base64_encode(hash('sha256', $body, true))];
+                $headers['x-amz-meta-odbfs3-sha256'] = $this->originalHashes[$key];
                 if ($this->fault === 'size') { $headers['Content-Length'] = (string) (strlen($body) + 1); }
                 if ($this->fault === 'hash') { $headers['x-amz-checksum-sha256'] = base64_encode(str_repeat('x', 32)); }
                 if ($this->fault === 'missing-hash') { unset($headers['x-amz-checksum-sha256']); }

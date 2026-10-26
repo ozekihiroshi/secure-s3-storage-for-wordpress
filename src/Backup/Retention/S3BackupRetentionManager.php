@@ -74,6 +74,28 @@ final class S3BackupRetentionManager
                 }
             );
 
+            if (count($objects) <= $policy->getKeepCount()) {
+                return [];
+            }
+
+            // A failed/unverified upload must not displace a good recovery resource.
+            // Legacy objects lack this evidence: retain everything until enough
+            // newer, verifiable backups fill the requested keep window.
+            foreach (array_slice($objects, 0, $policy->getKeepCount()) as $retained) {
+                $head = $this->client->headObject([
+                    'Bucket' => $bucket,
+                    'Key' => $retained->getKey(),
+                    'ChecksumMode' => 'ENABLED',
+                ]);
+                $hash = $head['Metadata']['odbfs3-sha256'] ?? null;
+                if (! is_string($hash) || preg_match('/^[a-f0-9]{64}$/D', $hash) !== 1
+                    || $retained->getSizeBytes() <= 0
+                    || ($head['ContentLength'] ?? null) !== $retained->getSizeBytes()
+                    || ($head['ChecksumSHA256'] ?? null) !== base64_encode(hex2bin($hash))) {
+                    throw new RuntimeException('Retention stopped: retained backup integrity is unverified.');
+                }
+            }
+
             return array_values(
                 array_slice(
                     $objects,
@@ -142,6 +164,7 @@ final class S3BackupRetentionManager
     ): array {
         $objects = [];
         $continuationToken = null;
+        $seenTokens = [];
 
         do {
             $arguments = [
@@ -159,6 +182,10 @@ final class S3BackupRetentionManager
                     $arguments
                 );
 
+            if (! is_bool($result['IsTruncated'] ?? null)
+                || (isset($result['Contents']) && ! is_array($result['Contents']))) {
+                throw new RuntimeException('Incomplete S3 retention listing.');
+            }
             $contents =
                 $result['Contents'] ?? [];
 
@@ -176,7 +203,10 @@ final class S3BackupRetentionManager
                         );
 
                     if ($candidate !== null) {
-                        $objects[] = $candidate;
+                        if (isset($objects[$candidate->getKey()])) {
+                            throw new RuntimeException('Duplicate object in S3 retention listing.');
+                        }
+                        $objects[$candidate->getKey()] = $candidate;
                     }
                 }
             }
@@ -196,12 +226,18 @@ final class S3BackupRetentionManager
                 && $nextToken !== ''
                     ? $nextToken
                     : null;
+            if ($isTruncated) {
+                if ($continuationToken === null || isset($seenTokens[$continuationToken])) {
+                    throw new RuntimeException('Invalid S3 retention pagination.');
+                }
+                $seenTokens[$continuationToken] = true;
+            }
         } while (
             $isTruncated
             && $continuationToken !== null
         );
 
-        return $objects;
+        return array_values($objects);
     }
 
     private function createCandidate(
@@ -319,51 +355,27 @@ final class S3BackupRetentionManager
             return false;
         }
 
-        $fileName =
-            basename($key);
-
-        if (
-            ! str_starts_with(
-                $fileName,
-                'db-'
-            )
-        ) {
-            return false;
-        }
-
-        return str_ends_with(
-            $fileName,
-            '.sql.gz'
-        );
+        return $this->isBackupRelativeKey(substr($key, strlen($backupPrefix)));
     }
 
     private function looksLikeDatabaseBackupKey(
         string $key
     ): bool {
-        if (
-            ! str_contains(
-                $key,
-                '/backups/database/'
-            )
-            && ! str_starts_with(
-                $key,
-                self::DATABASE_BACKUP_PATH
-            )
-        ) {
-            return false;
-        }
+        $qualifiedKey = '/' . $key;
+        $marker = '/' . self::DATABASE_BACKUP_PATH;
+        $offset = strrpos($qualifiedKey, $marker);
+        return $offset !== false && $this->isBackupRelativeKey(
+            substr($qualifiedKey, $offset + strlen($marker))
+        );
+    }
 
-        $fileName =
-            basename($key);
-
-        return str_starts_with(
-            $fileName,
-            'db-'
-        )
-            && str_ends_with(
-                $fileName,
-                '.sql.gz'
-            );
+    private function isBackupRelativeKey(string $key): bool
+    {
+        // Support both the original timestamp name and the newer random suffix.
+        return preg_match(
+            '~^(\d{4})/(\d{2})/(\d{2})/db-[A-Za-z0-9._-]+-\1\2\3-\d{6}(?:-[a-f0-9]{32})?\.sql\.gz$~D',
+            $key
+        ) === 1;
     }
 
     private function buildDatabaseBackupPrefix(

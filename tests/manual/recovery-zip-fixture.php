@@ -2,8 +2,9 @@
 if(getenv('ODBFS3_STATUS_FIXTURE')!=='1')throw new RuntimeException('Disposable fixture required');
 $mode=$args[0];$db=$GLOBALS['wpdb'];
 if($mode==='legacy'){
- update_option('secure_s3_storage_settings',['region'=>'ap-northeast-1','bucket'=>'fixture-never-contact','prefix'=>'generated-only','backup_schedule'=>'daily','retention_count'=>7],false);
- update_option('secure_s3_storage_backup_history',[['key'=>'generated-only/old.sql.gz','status'=>'success','sha256'=>str_repeat('a',64)]],false);
+ update_option('secure_s3_storage_settings',['region'=>'ap-northeast-1','bucket'=>'fixture-never-contact','prefix'=>'generated-only','backup_schedule'=>'daily','retention_keep_count'=>7],false);
+ $entry=new \SecureS3StorageForWordpress\Backup\History\BackupHistoryEntry(true,new DateTimeImmutable('2026-10-01T00:00:00Z'),'fixture','php',bucket:'fixture-never-contact',key:'generated-only/old.sql.gz',sizeBytes:100,message:'Synthetic history fixture',sha256:str_repeat('a',64),verification:'remote_integrity');
+ update_option('secure_s3_storage_backup_history',[$entry->toArray()],false);
  wp_schedule_event(time()+86400,'daily','secure_s3_storage_database_backup_cron');
 }elseif($mode==='extended'){
  $id=$args[1];$bytes=\SecureS3StorageForWordpress\WordPress\WordPressJobStore::forRecovery($db,$id)->read();$r=json_decode($bytes,true);

@@ -45,6 +45,8 @@ try {
     $uploaded = $storage->upload($gzip, 'fixture-bucket', 'backups/database/valid.sql.gz');
     $check($uploaded->getSha256() === hash_file('sha256', $gzip), 'persistable compressed hash');
     $check($transport->calls === ['PUT', 'HEAD'], 'upload followed by independent HEAD');
+    $head = $transport->client()->headObject(['Bucket' => 'fixture-bucket', 'Key' => $uploaded->getKey(), 'ChecksumMode' => 'ENABLED']);
+    $check(($head['Metadata']['odbfs3-sha256'] ?? null) === $uploaded->getSha256(), 'original digest survives SDK metadata serialization');
     $reject(fn () => $storage->upload($gzip, 'fixture-bucket', 'backups/database/valid.sql.gz'), 'no overwrite');
     foreach (['size', 'hash', 'missing-hash', 'denied'] as $fault) {
         $transport->fault = $fault;

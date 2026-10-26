@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ozeki Database Backup for S3
  * Description: Create secure WordPress database and uploaded-media backups in Amazon S3.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Author: Hiroshi Ozeki
  * License: GPL-2.0-or-later
  * Requires at least: 5.9
