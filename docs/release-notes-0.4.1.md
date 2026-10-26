@@ -1,4 +1,4 @@
-# 0.4.1 リリースノート（公開前）
+# 0.4.1 リリースノート
 
 独立したDB・メディア保全製品として、既存バックアップを誤って削除しないための
 限定的な保持処理の改善。Resilienceとの共通DB部品採用は含まない。
@@ -27,4 +27,4 @@ Recovery Set、メディアのS3保存領域はこのDB世代管理の対象外�
 全サイト復旧、DB/mediaの同時点snapshot、Object Lockや独立署名は提供しない。
 
 最終ZIP・Plugin Check・導入更新・実S3の結果は [0.4.1検証報告](release-0.4.1-validation.md) を参照。
-この文書やZIP作成は公開操作ではない。WordPress.org、GitHub Release、タグの作成は別途判断する。
+公開状況は [公開記録](release-0.4.1-publication.md) を参照。

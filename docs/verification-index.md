@@ -7,7 +7,7 @@
 
 | 分類 | 記録 |
 | --- | --- |
-| 0.4.1公開準備 | [リリースノート](release-notes-0.4.1.md)、[最終ZIP検証](release-0.4.1-validation.md) |
+| 0.4.1公開 | [公開状況](release-0.4.1-publication.md)、 [リリースノート](release-notes-0.4.1.md)、[最終ZIP検証](release-0.4.1-validation.md) |
 | 今回の限定修正 | [試験結果と再現方法](product-quality-validation-2026-10-27.md) |
 | DB圧縮・S3整合性 | [実装](database-integrity-verification.md)、[2026-10-17実S3・復元](aws-database-integrity-test-2026-10-17.md) |
 | メディア | [基盤試験](media-backup-foundation-tests.md)、[実S3 fixture](aws-media-fixture-test.md)、[転送](aws-media-transfer-test-2026-08-31.md)、[Cron](aws-media-cron-single-event-test-2026-09-01.md) |

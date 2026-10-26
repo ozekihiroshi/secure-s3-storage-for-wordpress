@@ -1,0 +1,111 @@
+{
+  "version": "0.4.1",
+  "checked_date_jst": "2026-10-27",
+  "publication_complete": true,
+  "source_commit": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+  "tag": "v0.4.1",
+  "verified_zip_sha256": "ccc7d9c8c994161d97b730e9df2964cb2f32eba5ff7d2c58c261d16ed32095d6",
+  "github_public_download_hash_matches": true,
+  "github": {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/ozekihiroshi/secure-s3-storage-for-wordpress/releases/assets/679835573",
+        "contentType": "application/zip",
+        "createdAt": "2026-10-26T23:38:53Z",
+        "downloadCount": 0,
+        "id": "RA_kwDOT0xcMM4ohXe1",
+        "label": "",
+        "name": "ozeki-database-backup-for-s3-0.4.1.zip",
+        "size": 8268241,
+        "state": "uploaded",
+        "updatedAt": "2026-10-26T23:38:54Z",
+        "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/download/v0.4.1/ozeki-database-backup-for-s3-0.4.1.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/ozekihiroshi/secure-s3-storage-for-wordpress/releases/assets/679835572",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-10-26T23:38:53Z",
+        "downloadCount": 0,
+        "id": "RA_kwDOT0xcMM4ohXe0",
+        "label": "",
+        "name": "ozeki-database-backup-for-s3-0.4.1.zip.sha256",
+        "size": 105,
+        "state": "uploaded",
+        "updatedAt": "2026-10-26T23:38:53Z",
+        "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/download/v0.4.1/ozeki-database-backup-for-s3-0.4.1.zip.sha256"
+      }
+    ],
+    "isDraft": false,
+    "publishedAt": "2026-10-26T23:39:32Z",
+    "tagName": "v0.4.1",
+    "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.1"
+  },
+  "wordpress_org": {
+    "svn_revision": 3767500,
+    "public_version": "0.4.1",
+    "download_url": "https://downloads.wordpress.org/plugin/ozeki-database-backup-for-s3.0.4.1.zip",
+    "file_count": 3894,
+    "all_files_match": true,
+    "old_040_tag_unchanged": true,
+    "only_trunk_and_new_tag_changed": true,
+    "verified_zip_sha256": "ccc7d9c8c994161d97b730e9df2964cb2f32eba5ff7d2c58c261d16ed32095d6",
+    "wporg_zip_sha256": "4f055a770aa7a757e14c9a2c986583275e43dc5c82f044c4b10fff079553338a"
+  },
+  "github_ci": [
+    {
+      "conclusion": "success",
+      "headSha": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+      "name": "Recovery Contract Tests",
+      "status": "completed",
+      "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/40421116558"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+      "name": "Media Inventory Tests",
+      "status": "completed",
+      "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/40421116527"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+      "name": "Plugin Check",
+      "status": "completed",
+      "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/40421116513"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+      "name": "Backup Job Tests",
+      "status": "completed",
+      "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/40421116492"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+      "name": "Database Integrity Tests",
+      "status": "completed",
+      "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/40421116435"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+      "name": "Isolated WordPress Recovery",
+      "status": "completed",
+      "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/40421116396"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "906b3bda232b3f9eda52020fc54648b9a3a20b20",
+      "name": "Media Upload Tests",
+      "status": "completed",
+      "url": "https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/actions/runs/40421116389"
+    }
+  ],
+  "pr_1": {
+    "merged": false,
+    "draft": true,
+    "head_sha": "b2e78ebaa61abbab9c5c402e7fbbbe2c8dfa5136",
+    "state": "open"
+  }
+}

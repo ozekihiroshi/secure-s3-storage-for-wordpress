@@ -15,14 +15,14 @@ or a packaged [GitHub release](https://github.com/ozekihiroshi/secure-s3-storage
 Packages include runtime dependencies; a source checkout requires Composer.
 The repository's historical name is `secure-s3-storage-for-wordpress`.
 
-As checked on **2026-10-27 JST**, WordPress.org distributes **0.4.0**. GitHub
-`main` and `v0.4.0` include PR #2's Recovery Set operator features. Version 0.3.0
-introduced the internal Recovery Set foundation; it is the preceding release.
+**0.4.1 is available on [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
+and [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.1)**.
+It adds retention safeguards and clarified product documentation.
+Version 0.4.0 includes PR #2's Recovery Set operator features, while 0.3.0
+introduced the internal Recovery Set foundation.
 
-**The source is now the 0.4.1 release candidate**, adding retention safeguards and
-updated documentation. It has not been published. See the
-[0.4.1 release validation](docs/release-0.4.1-validation.md) for the fixed package,
-checks and remaining release steps.
+See the [publication record](docs/release-0.4.1-publication.md) for current distribution
+status and the [release validation](docs/release-0.4.1-validation.md) for package checks.
 
 ## Requirements and first backup
 
