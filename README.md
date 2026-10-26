@@ -120,8 +120,9 @@ private workspaces. Stop externally registered Recovery Set schedules separately
 - [WordPress.org support](https://wordpress.org/support/plugin/ozeki-database-backup-for-s3/)
 - [Issues](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/issues)
 
-Develop from `main`. Shared DB-core adoption in PR #1 is a separate, unmerged
-experiment, not a prerequisite for this product. Any future shared component must
+Develop from `main`. Shared DB-core adoption in PR #1 was closed without merging;
+the experiment is archived and is not a prerequisite for this product. See the
+[branch cleanup decision](docs/branch-cleanup-2026-10-27.md). Any future shared component must
 be pinned and bundled, have an identified maintainer/update owner, and pass this
 product's own release checks. Resilience changes must not silently change backups.
 
