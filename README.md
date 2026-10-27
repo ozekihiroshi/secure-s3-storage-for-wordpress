@@ -122,7 +122,8 @@ private workspaces. Stop externally registered Recovery Set schedules separately
 
 Develop from `main`. Shared DB-core adoption in PR #1 was closed without merging;
 the experiment is archived and is not a prerequisite for this product. See the
-[branch cleanup decision](docs/branch-cleanup-2026-10-27.md). Any future shared component must
+[branch cleanup decision](docs/branch-cleanup-2026-10-27.md) and
+[local archive and restoration record](docs/local-archive-2026-10-27.md). Any future shared component must
 be pinned and bundled, have an identified maintainer/update owner, and pass this
 product's own release checks. Resilience changes must not silently change backups.
 
