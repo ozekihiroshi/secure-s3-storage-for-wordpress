@@ -204,6 +204,17 @@ class SettingsPage
             <?php $this->render_test_notice(); ?>
             <?php $this->render_backup_notice(); ?>
 
+            <div class="notice notice-info inline">
+                <h2>First backup / 初めてのバックアップ</h2>
+                <p>Start here: prepare S3 storage and AWS permissions, save the three fields below, then run Test Connection and Backup Now. Start with Schedule Disabled and Retention 0.</p>
+                <p>まずS3の保存先とAWSの権限を準備し、下の3項目を保存して「Test Connection（接続確認）」→「Backup Now（今すぐバックアップ）」の順に進みます。最初はScheduleをDisabled、Retentionを0にしてください。</p>
+                <p>
+                    <a href="<?php echo esc_url('https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started-ja.md'); ?>">日本語：S3・IAMの準備から初回保存まで</a>
+                    | <a href="<?php echo esc_url('https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started.md'); ?>">English: S3, IAM and your first backup</a>
+                </p>
+                <p>EC2以外のサーバーをお使いの場合も、最初にガイドの環境確認へ進んでください。 / Using hosting other than EC2? Start with the guide's hosting check.</p>
+            </div>
+
             <form method="post" action="options.php">
                 <?php
                 settings_fields(self::OPTION_GROUP);
@@ -392,7 +403,7 @@ class SettingsPage
             . 'name="%1$s[prefix]" '
             . 'value="%2$s" '
             . 'class="regular-text" '
-            . 'placeholder="wordpress-test/">',
+            . 'placeholder="sites/my-site/">',
             esc_attr(self::OPTION_NAME),
             esc_attr($value)
         );

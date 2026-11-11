@@ -12,6 +12,12 @@ Back up WordPress databases and uploads to Amazon S3 without storing long-lived 
 
 == Description ==
 
+= First backup / 初めて使う方へ =
+
+Start with the [step-by-step setup guide](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started.md): check your hosting, create private S3 storage, grant AWS permissions, then test the connection and create your first database backup. Includes a complete IAM policy example. No AWS keys are entered in WordPress.
+
+[日本語の導入ガイド：S3・IAMの準備から初回バックアップまで](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started-ja.md)。AWSに詳しくない方はここから始めてください。利用環境の確認、保存先の作成、権限設定、接続確認、初回保存の順に案内します。
+
 Ozeki Database Backup for S3 is a security-focused WordPress database and uploaded-media backup plugin for Amazon S3.
 
 The plugin is designed for environments where WordPress can obtain AWS credentials through the AWS SDK for PHP default credential provider chain, such as an EC2 instance using an IAM role.
@@ -177,6 +183,8 @@ No telemetry, analytics, advertising, or unrelated tracking data is intentionall
 
 == Installation ==
 
+Before filling in the settings, follow the [English setup guide](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started.md) or [日本語の導入ガイド](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started-ja.md). Both include AWS console steps and a complete IAM policy example. The same links appear at the top of the plugin settings page.
+
 1. Install and activate Ozeki Database Backup for S3.
 2. Make sure the WordPress server can obtain AWS credentials through the AWS SDK default credential provider chain.
 3. Grant the AWS identity access to the intended S3 bucket and prefix.
@@ -185,7 +193,7 @@ No telemetry, analytics, advertising, or unrelated tracking data is intentionall
 6. Save the settings.
 7. Use "Test Connection" to verify S3 read/write/delete access.
 8. Use "Backup Now" to create the first database backup.
-9. Optionally enable the daily automatic database backup schedule and configure retention.
+9. After the first successful backup, optionally enable daily backups. Before enabling retention deletion, follow the setup guide's additional permission step; the first-backup policy does not allow deletion of database backups.
 10. To use media backup, create a persistent private POSIX directory outside all web-accessible directories, owned by the WordPress PHP user with mode 0700.
 11. Define `ODBFS3_MEDIA_WORK_DIR` in `wp-config.php` with that directory's absolute path.
 12. Return to the settings page and use "Start Media Backup". Keep uploads unchanged until the job succeeds or fails.

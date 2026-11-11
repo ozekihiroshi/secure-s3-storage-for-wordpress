@@ -26,6 +26,10 @@ status and the [release validation](docs/release-0.4.1-validation.md) for packag
 
 ## Requirements and first backup
 
+**New to AWS? Start with [S3, IAM and your first backup](docs/getting-started.md).**
+**日本語：[S3・IAMの準備から初回バックアップまで](docs/getting-started-ja.md)。**
+These guides explain the hosting requirements, AWS console steps, a complete permission policy and how to recognize a successful first backup.
+
 - WordPress 5.9+, PHP 8.1+, an S3 bucket and a server-side AWS credential source.
 - S3 upload and metadata/checksum read permissions; connection testing and
   retention also need their respective delete permissions. Check KMS access if used.
