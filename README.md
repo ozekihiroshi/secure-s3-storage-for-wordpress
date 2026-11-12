@@ -10,6 +10,10 @@ and their evidence. Storage verification is not a promise of complete site recov
 
 ## Versions and installation
 
+**0.4.2 rc.1 is a GitHub prerelease candidate, not yet published to WordPress.org.** It adds first-time setup guidance in English and Japanese. [Candidate and validation record](docs/release-0.4.2-rc1.md).
+
+**0.4.2 rc.1はGitHubの公開候補です。WordPress.orgには未反映です。** 日英の初回導入案内を追加しました。[候補・確認記録](docs/release-0.4.2-rc1.md)。
+
 Install from [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
 or a packaged [GitHub release](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases).
 Packages include runtime dependencies; a source checkout requires Composer.
