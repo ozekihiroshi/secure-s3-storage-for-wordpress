@@ -12,7 +12,7 @@ and their evidence. Storage verification is not a promise of complete site recov
 
 **0.4.2 is published on WordPress.org.** The verified 0.4.2 rc.1 package was published unchanged, with first-time setup guidance in English and Japanese. [Publication record](docs/release-0.4.2-publication.md).
 
-The current development source adds language-aware settings and guide links. This change is not yet in the published 0.4.2 package. See the [localization review](docs/localization-review-2026-11-12.md).
+**0.4.3 rc.1 is the next GitHub release candidate**, adding language-aware settings and guide links. It is not yet published to WordPress.org. See the [candidate validation](docs/release-0.4.3-rc1.md) and [localization review](docs/localization-review-2026-11-12.md).
 
 Install from [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
 or a packaged [GitHub release](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases).

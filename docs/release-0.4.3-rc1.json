@@ -1,0 +1,309 @@
+{
+  "candidate": "0.4.3 rc.1",
+  "publication_performed": false,
+  "production_changed": false,
+  "package-audit": {
+    "version": "0.4.3",
+    "sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+    "file_count": 3896,
+    "added": [
+      "languages/ozeki-database-backup-for-s3-ja.mo",
+      "languages/ozeki-database-backup-for-s3-ja.po"
+    ],
+    "removed": [],
+    "changed": [
+      "ozeki-database-backup-for-s3.php",
+      "readme.txt",
+      "src/Admin/SettingsPage.php",
+      "vendor/scoper-autoload.php"
+    ],
+    "generated_alias_changes": [
+      "add_action",
+      "load_plugin_textdomain",
+      "plugin_basename"
+    ],
+    "all_other_files_unchanged": true,
+    "entrypoint_readme_translations_match_source": true,
+    "readme_english_only": true,
+    "packaged_mo_readable": true,
+    "previous_zip_unchanged": true
+  },
+  "install-fresh": {
+    "previous": null,
+    "candidate": {
+      "version": "0.4.3",
+      "sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+      "files": 3896
+    },
+    "passed": true,
+    "installed_files_match_zip": true,
+    "upgrade_state_preserved": true,
+    "same_version_pending_records_preserved": true,
+    "schedule_settings_and_execution_preserved": true,
+    "schedule_and_execution_json": true,
+    "read_views_unchanged": true,
+    "deactivate_reactivate_preserved": true,
+    "workspace_preserved": true,
+    "settings_handler_checks": 38,
+    "standalone_settings_history_validated": true,
+    "wordpress_version": "7.1.3",
+    "php_version": "8.3.36",
+    "plugin_check_output": "FILE: ozeki-database-backup-for-s3.php\n[{\"line\":26,\"column\":5,\"type\":\"WARNING\",\"code\":\"PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound\",\"message\":\"load_plugin_textdomain() has been discouraged since WordPress version 4.6. When your plugin is hosted on WordPress.org, you no longer need to manually include this function call for translations under your plugin slug. WordPress will automatically load the translations for you as needed.\",\"docs\":\"https:\\/\\/make.wordpress.org\\/core\\/2016\\/07\\/06\\/i18n-improvements-in-4-6\\/\"}]",
+    "plugin_check_version": "2.1.0"
+  },
+  "install-from-0.4.2": {
+    "previous": {
+      "version": "0.4.2",
+      "sha256": "30a227b766db693459dfb2a5b2544f95e34d5e56cbd3faeb4c0eda196876f162",
+      "files": 3894
+    },
+    "candidate": {
+      "version": "0.4.3",
+      "sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+      "files": 3896
+    },
+    "passed": true,
+    "installed_files_match_zip": true,
+    "upgrade_state_preserved": true,
+    "same_version_pending_records_preserved": true,
+    "schedule_settings_and_execution_preserved": true,
+    "schedule_and_execution_json": true,
+    "read_views_unchanged": true,
+    "deactivate_reactivate_preserved": true,
+    "workspace_preserved": true,
+    "settings_handler_checks": 38,
+    "standalone_settings_history_validated": true,
+    "wordpress_version": "7.1.3",
+    "php_version": "8.3.36",
+    "plugin_check_output": "FILE: ozeki-database-backup-for-s3.php\n[{\"line\":26,\"column\":5,\"type\":\"WARNING\",\"code\":\"PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound\",\"message\":\"load_plugin_textdomain() has been discouraged since WordPress version 4.6. When your plugin is hosted on WordPress.org, you no longer need to manually include this function call for translations under your plugin slug. WordPress will automatically load the translations for you as needed.\",\"docs\":\"https:\\/\\/make.wordpress.org\\/core\\/2016\\/07\\/06\\/i18n-improvements-in-4-6\\/\"}]",
+    "plugin_check_version": "2.1.0"
+  },
+  "locales-fresh": {
+    "passed": true,
+    "wordpress": "7.1.3",
+    "php": "8.3.36",
+    "cases": [
+      {
+        "site": "en_US",
+        "user": "operator",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "operator",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      }
+    ],
+    "authenticated_admin_http": true,
+    "interleaved_users": true,
+    "connection_validation_notices": [
+      "en_US",
+      "ja"
+    ],
+    "saved_settings_unchanged": true,
+    "aws_requests": false,
+    "published_zip_unchanged": true,
+    "exact_zip": true,
+    "zip_sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+    "previous_zip": null,
+    "plugin_version": "0.4.3"
+  },
+  "locales-upgrade": {
+    "passed": true,
+    "wordpress": "7.1.3",
+    "php": "8.3.36",
+    "cases": [
+      {
+        "site": "en_US",
+        "user": "operator",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "operator",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      }
+    ],
+    "authenticated_admin_http": true,
+    "interleaved_users": true,
+    "connection_validation_notices": [
+      "en_US",
+      "ja"
+    ],
+    "saved_settings_unchanged": true,
+    "aws_requests": false,
+    "published_zip_unchanged": true,
+    "exact_zip": true,
+    "zip_sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+    "previous_zip": "ozeki-database-backup-for-s3-0.4.2.zip",
+    "plugin_version": "0.4.3"
+  },
+  "loader-control-713": {
+    "passed": true,
+    "wordpress": "7.1.3",
+    "php": "8.3.36",
+    "cases": [
+      {
+        "site": "en_US",
+        "user": "operator",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "operator",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      }
+    ],
+    "authenticated_admin_http": true,
+    "interleaved_users": true,
+    "connection_validation_notices": [
+      "en_US",
+      "ja"
+    ],
+    "saved_settings_unchanged": true,
+    "aws_requests": false,
+    "published_zip_unchanged": true,
+    "exact_zip": true,
+    "zip_sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+    "previous_zip": null,
+    "plugin_version": "0.4.3",
+    "loader_control_without_registration_japanese": true,
+    "loader_control_original_restored": true
+  },
+  "loader-control-67": {
+    "passed": true,
+    "wordpress": "6.7",
+    "php": "8.3.36",
+    "cases": [
+      {
+        "site": "en_US",
+        "user": "operator",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "en_US",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "operator",
+        "expected_locale": "ja",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "english",
+        "expected_locale": "en_US",
+        "passed": true
+      },
+      {
+        "site": "ja",
+        "user": "japanese",
+        "expected_locale": "ja",
+        "passed": true
+      }
+    ],
+    "authenticated_admin_http": true,
+    "interleaved_users": true,
+    "connection_validation_notices": [
+      "en_US",
+      "ja"
+    ],
+    "saved_settings_unchanged": true,
+    "aws_requests": false,
+    "published_zip_unchanged": true,
+    "exact_zip": true,
+    "zip_sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+    "previous_zip": null,
+    "plugin_version": "0.4.3",
+    "loader_control_without_registration_japanese": false,
+    "loader_control_original_restored": true
+  }
+}

@@ -4,7 +4,7 @@ Tags: backup, amazon s3, aws, database backup, media backup
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.4.2
+Stable tag: 0.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -322,6 +322,11 @@ Only completed database.sql and database.sql.gz temporary files are eligible, wi
 There is no general Recovery Set create/restore command or acquisition configuration UI. The schedule-assessment form does not configure acquisition. DB/media correspondence does not guarantee a point-in-time snapshot. Local records are not independently signed. See the repository docs/recovery-operations.md for integration, stopping and incident procedures. These operations were introduced in 0.4.0.
 
 == Changelog ==
+
+= 0.4.3 =
+* Display backup settings and setup guidance in the administrator's language, with bundled Japanese translations.
+* Offer one setup-guide link matching the display language, and use English as the readme source language.
+* Align the Japanese guide with translated controls. Backup behavior and stored settings are unchanged.
 
 = 0.4.2 =
 * Add English and Japanese setup guides covering hosting, S3, IAM, connection testing and the first database backup.

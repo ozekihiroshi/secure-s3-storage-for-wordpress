@@ -21,7 +21,7 @@ info=archive_info(candidate)
 report_dir=pathlib.Path(os.environ['ODBFS3_RELEASE_REPORT_DIR']).resolve() if os.environ.get('ODBFS3_RELEASE_REPORT_DIR') else None
 checker=pathlib.Path(os.environ['ODBFS3_PLUGIN_CHECK_ZIP']).resolve() if os.environ.get('ODBFS3_PLUGIN_CHECK_ZIP') else None
 for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous:
- preseeded=bool(old and archive_info(old)['version'] in ('0.4.0','0.4.1'))
+ preseeded=bool(old and archive_info(old)['version'] in ('0.4.0','0.4.1','0.4.2'))
  name='odb-zip-'+uuid.uuid4().hex[:10];network=name+'-net';volume=name+'-site';private=name+'-private';db=name+'-db';created=[]
  def wp(*args):
   mounts=['-v',str(candidate)+':/candidate.zip:ro','-v',str(root)+':/repo:ro','-v',volume+':/var/www/html','-v',private+':/inspection']
@@ -59,11 +59,11 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   wp('plugin','install','/previous.zip' if old else '/candidate.zip','--activate')
   wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','legacy')
   sid=None
-  if old and archive_info(old)['version'] in ('0.3.0','0.4.0','0.4.1'):
+  if old and archive_info(old)['version'] in ('0.3.0','0.4.0','0.4.1','0.4.2'):
    sid=wp('eval-file','/repo/tests/manual/seed-recovery-status.php')
    wp('eval',"delete_option('odbfs3_recovery_'.str_repeat('e',32));")
    files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'setup')
-   if archive_info(old)['version'] in ('0.4.0','0.4.1'):
+   if archive_info(old)['version'] in ('0.4.0','0.4.1','0.4.2'):
     wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
     wp('eval-file','/repo/tests/manual/seed-recovery-browser-cleanup.php',sid)
     wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','extended',sid)
@@ -75,7 +75,7 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
    wp('plugin','activate',slug)
    assert snapshot()==before,'Upgrade changed existing settings/history/Cron/active/state'
    if sid:assert wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')==files_before
-   if archive_info(old)['version'] in ('0.4.0','0.4.1'):
+   if archive_info(old)['version'] in ('0.4.0','0.4.1','0.4.2'):
     wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','verify',sid)
   assert 'Active' in wp('plugin','status',slug)
   wp('eval',"$o=get_option('secure_s3_storage_settings');$h=get_option('secure_s3_storage_backup_history');if(($o['retention_keep_count']??null)!==7||($h[0]['success']??null)!==true||($h[0]['verification']??null)!=='remote_integrity')throw new RuntimeException('Standalone settings/history lost');")
@@ -98,7 +98,7 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
    wp('eval-file','/repo/tests/manual/seed-recovery-catalog.php',sid)
    wp('eval-file','/repo/tests/manual/seed-recovery-browser-cleanup.php',sid)
    wp('eval-file','/repo/tests/manual/recovery-zip-fixture.php','extended',sid)
-  expected_policies='2' if old and archive_info(old)['version'] in ('0.4.0','0.4.1') else '0'
+  expected_policies='2' if old and archive_info(old)['version'] in ('0.4.0','0.4.1','0.4.2') else '0'
   assert wp('eval',"global $wpdb; echo $wpdb->get_var(\"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE 'odbfs3_expectation_%'\");")==expected_policies,'Activation changed expectation settings'
   wp('eval-file','/repo/tests/manual/recovery-schedule-zip-fixture.php','verify' if preseeded else 'seed',sid)
   before=snapshot();files_before=wp('eval-file','/repo/tests/manual/seed-cleanup-plan.php',sid,'snapshot')

@@ -5,6 +5,9 @@ The directory must contain the validated 0.4.2 ZIP and language-changes.tar
 (entrypoint, SettingsPage.php and languages/ from the development source).
 ODBFS3_TEST_DOCKER optionally selects a rootless Docker client/socket.
 ODBFS3_TEST_WP_CLI must point to an existing official wp-cli.phar.
+For an exact release ZIP, set ODBFS3_TEST_CANDIDATE to its absolute path;
+no source overlay is applied. ODBFS3_TEST_PREVIOUS optionally installs an
+older ZIP first and upgrades it before the language checks.
 """
 import os,sys,shlex,uuid,pathlib,subprocess,time,zipfile,json,urllib.request,urllib.parse,hashlib,tarfile,re
 base=pathlib.Path(sys.argv[1]).resolve()
@@ -30,17 +33,41 @@ try:
  for _ in range(60):
   try:docker('exec',web,'test','-f','/var/www/html/wp-config.php');break
   except RuntimeError:time.sleep(1)
+ core_version=os.environ.get('ODBFS3_TEST_CORE_VERSION')
+ if core_version:
+  assert re.fullmatch(r'\d+\.\d+(?:\.\d+)?',core_version)
+  core=base/(name+'-wordpress.tar.gz')
+  core.write_bytes(urllib.request.urlopen('https://wordpress.org/wordpress-'+core_version+'.tar.gz',timeout=90).read())
+  core_dir=base/(name+'-core');core_dir.mkdir()
+  with tarfile.open(core) as t:t.extractall(core_dir,filter='data')
+  # Only this runner's new, empty WordPress fixture is changed.
+  docker('exec',web,'rm','-rf','/var/www/html/wp-admin','/var/www/html/wp-includes','/var/www/html/wp-content')
+  docker('cp',str(core_dir/'wordpress')+'/.',web+':/var/www/html/')
+  docker('exec',web,'chown','-R','www-data:www-data','/var/www/html')
  wp('core','install','--url=http://localhost','--title=Language fixture','--admin_user=operator','--admin_password=fixture-only-long-password','--admin_email=fixture@example.invalid','--skip-email')
  for key in ['DISABLE_WP_CRON','AUTOMATIC_UPDATER_DISABLED','WP_HTTP_BLOCK_EXTERNAL']:
   wp('config','set',key,'true','--raw')
- archive=base/'ozeki-database-backup-for-s3-0.4.2.zip'
- assert hashlib.sha256(archive.read_bytes()).hexdigest()=='30a227b766db693459dfb2a5b2544f95e34d5e56cbd3faeb4c0eda196876f162'
+ exact=bool(os.environ.get('ODBFS3_TEST_CANDIDATE'))
+ archive=pathlib.Path(os.environ['ODBFS3_TEST_CANDIDATE']) if exact else base/'ozeki-database-backup-for-s3-0.4.2.zip'
+ if not exact:assert hashlib.sha256(archive.read_bytes()).hexdigest()=='30a227b766db693459dfb2a5b2544f95e34d5e56cbd3faeb4c0eda196876f162'
  stage=base/(name+'-staging');stage.mkdir(exist_ok=False)
  with zipfile.ZipFile(archive) as z:z.extractall(stage)
- with tarfile.open(base/'language-changes.tar') as t:t.extractall(stage/'ozeki-database-backup-for-s3',filter='data')
- docker('cp',str(stage/'ozeki-database-backup-for-s3'),web+':/var/www/html/wp-content/plugins/')
- docker('exec',web,'chown','-R','www-data:www-data','/var/www/html/wp-content/plugins/ozeki-database-backup-for-s3')
+ if not exact:
+  with tarfile.open(base/'language-changes.tar') as t:t.extractall(stage/'ozeki-database-backup-for-s3',filter='data')
+ previous=os.environ.get('ODBFS3_TEST_PREVIOUS')
+ if previous:
+  assert exact,'Upgrade testing requires an exact ZIP'
+  docker('cp',previous,web+':/tmp/previous.zip');wp('plugin','install','/tmp/previous.zip','--activate')
+  docker('cp',str(archive),web+':/tmp/candidate.zip');wp('plugin','install','/tmp/candidate.zip','--force')
+ else:
+  docker('cp',str(stage/'ozeki-database-backup-for-s3'),web+':/var/www/html/wp-content/plugins/')
+  docker('exec',web,'chown','-R','www-data:www-data','/var/www/html/wp-content/plugins/ozeki-database-backup-for-s3')
  wp('plugin','activate','ozeki-database-backup-for-s3')
+ if exact:
+  with zipfile.ZipFile(archive) as z:
+   expected={n.split('/',1)[1]:hashlib.sha256(z.read(n)).hexdigest() for n in z.namelist() if not n.endswith('/')}
+  actual=json.loads(wp('eval',"$base=WP_PLUGIN_DIR.'/ozeki-database-backup-for-s3/';$out=[];foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base,FilesystemIterator::SKIP_DOTS)) as $f){if($f->isFile())$out[substr($f->getPathname(),strlen($base))]=hash_file('sha256',$f->getPathname());}echo json_encode($out);"))
+  assert actual==expected,'Installed language-test files differ from ZIP'
  version=wp('core','version')
  # Obtain only the official WordPress core language pack; no AWS connectivity.
  translation=urllib.request.urlopen('https://downloads.wordpress.org/translation/core/'+version+'/ja.zip',timeout=60).read()
@@ -88,6 +115,26 @@ try:
   assert expected in html,(user,'connection validation notice')
  assert wp('eval',"echo json_encode(get_option('secure_s3_storage_settings', []));")=='[]','Display/validation changed saved settings'
  result={'passed':True,'wordpress':version,'php':wp('eval','echo PHP_VERSION;'),'cases':results,'authenticated_admin_http':True,'interleaved_users':True,'connection_validation_notices':['en_US','ja'],'saved_settings_unchanged':True,'aws_requests':False,'published_zip_unchanged':True}
+ result.update({'exact_zip':exact,'zip_sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'previous_zip':pathlib.Path(previous).name if previous else None,'plugin_version':wp('plugin','get','ozeki-database-backup-for-s3','--field=version')})
+ if os.environ.get('ODBFS3_TEST_LOADER_CONTROL')=='1':
+  # Disposable negative control for Plugin Check's textdomain warning.
+  # Leave the ZIP untouched; restore the installed entrypoint in finally.
+  entry=stage/'ozeki-database-backup-for-s3/ozeki-database-backup-for-s3.php'
+  original=entry.read_text();assert original.count('load_plugin_textdomain(')==1
+  disabled=base/(name+'-loader-disabled.php')
+  disabled.write_text(original.replace('load_plugin_textdomain(', 'array(', 1))
+  destination=web+':/var/www/html/wp-content/plugins/ozeki-database-backup-for-s3/ozeki-database-backup-for-s3.php'
+  try:
+   docker('cp',str(disabled),destination)
+   # Restart this disposable web container to rule out cached PHP bytecode.
+   docker('restart',web);time.sleep(3)
+   control=request('japanese','wp-admin/options-general.php?page=ozeki-database-backup-for-s3')
+   result['loader_control_without_registration_japanese']='導入ガイドを開く' in control
+  finally:
+   docker('cp',str(entry),destination);docker('restart',web);time.sleep(3)
+  restored=request('japanese','wp-admin/options-general.php?page=ozeki-database-backup-for-s3')
+  assert '導入ガイドを開く' in restored,'Original loader did not restore Japanese UI'
+  result['loader_control_original_restored']=True
  (base/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
 finally:
  for kind,item in reversed(created):
