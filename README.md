@@ -12,8 +12,6 @@ and their evidence. Storage verification is not a promise of complete site recov
 
 **0.4.2 is published on WordPress.org.** The verified 0.4.2 rc.1 package was published unchanged, with first-time setup guidance in English and Japanese. [Publication record](docs/release-0.4.2-publication.md).
 
-**0.4.2をWordPress.orgへ公開しました。** 検証済み0.4.2 rc.1と同じ内容で、日英の初回導入案内を追加しています。[公開記録](docs/release-0.4.2-publication.md)。
-
 Install from [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
 or a packaged [GitHub release](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases).
 Packages include runtime dependencies; a source checkout requires Composer.
@@ -31,7 +29,7 @@ status and the [release validation](docs/release-0.4.2-rc1.md) for package check
 ## Requirements and first backup
 
 **New to AWS? Start with [S3, IAM and your first backup](docs/getting-started.md).**
-**日本語：[S3・IAMの準備から初回バックアップまで](docs/getting-started-ja.md)。**
+Also available: [Japanese setup guide](docs/getting-started-ja.md).
 These guides explain the hosting requirements, AWS console steps, a complete permission policy and how to recognize a successful first backup.
 
 - WordPress 5.9+, PHP 8.1+, an S3 bucket and a server-side AWS credential source.
