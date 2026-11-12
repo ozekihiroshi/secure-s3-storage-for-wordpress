@@ -10,23 +10,23 @@ and their evidence. Storage verification is not a promise of complete site recov
 
 ## Versions and installation
 
-**0.4.2 rc.1 is a GitHub prerelease candidate, not yet published to WordPress.org.** It adds first-time setup guidance in English and Japanese. [Candidate and validation record](docs/release-0.4.2-rc1.md).
+**0.4.2 is published on WordPress.org.** The verified 0.4.2 rc.1 package was published unchanged, with first-time setup guidance in English and Japanese. [Publication record](docs/release-0.4.2-publication.md).
 
-**0.4.2 rc.1はGitHubの公開候補です。WordPress.orgには未反映です。** 日英の初回導入案内を追加しました。[候補・確認記録](docs/release-0.4.2-rc1.md)。
+**0.4.2をWordPress.orgへ公開しました。** 検証済み0.4.2 rc.1と同じ内容で、日英の初回導入案内を追加しています。[公開記録](docs/release-0.4.2-publication.md)。
 
 Install from [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
 or a packaged [GitHub release](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases).
 Packages include runtime dependencies; a source checkout requires Composer.
 The repository's historical name is `secure-s3-storage-for-wordpress`.
 
-**0.4.1 is available on [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
-and [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.1)**.
-It adds retention safeguards and clarified product documentation.
+**0.4.2 is available on [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
+and [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.2-rc.1)**.
+The original candidate tag and ZIP are preserved. Version 0.4.1 introduced retention safeguards and clarified product documentation.
 Version 0.4.0 includes PR #2's Recovery Set operator features, while 0.3.0
 introduced the internal Recovery Set foundation.
 
-See the [publication record](docs/release-0.4.1-publication.md) for current distribution
-status and the [release validation](docs/release-0.4.1-validation.md) for package checks.
+See the [publication record](docs/release-0.4.2-publication.md) for current distribution
+status and the [release validation](docs/release-0.4.2-rc1.md) for package checks.
 
 ## Requirements and first backup
 

@@ -2,9 +2,9 @@
 
 ## 公開状態 / Status
 
-GitHubの公開候補。WordPress.orgには未反映。本番設定、公開済みZIPと既存タグは変更しない。
+2026-11-12追記：この候補と同じ内容をWordPress.orgへ0.4.2として公開済み。[公開記録](release-0.4.2-publication.md)。候補ZIP・タグと以下の検証結果は保全している。
 
-GitHub prerelease candidate; not published to WordPress.org. Production settings, previously published ZIPs and existing tags remain unchanged.
+Update, 2026-11-12: this candidate's contents were published unchanged as WordPress.org 0.4.2. See the [publication record](release-0.4.2-publication.md). The candidate ZIP, tag and validation results below are preserved.
 
 - Release: [v0.4.2-rc.1](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.2-rc.1)
 - Source: the same release tag (GitHub's source archives are not installable plugin packages).
@@ -36,8 +36,8 @@ Release assets include `package-audit.json`, `install-fresh.json`, `install-from
 
 ## 確認範囲 / Scope
 
-今回の導入・更新確認は本番と接続しない隔離環境で行う。AWSの新規構築、実S3へのバックアップ、初めて使う人による実利用試験は含めない。WordPress.orgの「詳細を表示」への反映は、次の公開時に行われる。GitHubのガイドは先に閲覧できる。
+今回の導入・更新確認は本番と接続しない隔離環境で行った。AWSの新規構築、実S3へのバックアップ、初めて使う人による実利用試験は含めない。公開後、WordPress.orgのプラグイン情報APIでも説明・導入手順から日英ガイドへのリンクを確認した。
 
-Installation and upgrade checks use disposable isolated WordPress instances. They do not provision AWS resources, run a real S3 backup or substitute for a novice user study. The live WordPress.org details view changes only after a later WordPress.org release; the GitHub guides are available separately.
+Installation and upgrade checks used disposable isolated WordPress instances. They did not provision AWS resources, run a real S3 backup or substitute for a novice user study. After publication, the WordPress.org plugin information API also confirmed both guide links in the description and installation sections.
 
 Earlier visual review: [Onboarding review](onboarding-review-2026-11-12.md).
