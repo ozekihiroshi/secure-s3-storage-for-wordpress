@@ -205,14 +205,15 @@ class SettingsPage
             <?php $this->render_backup_notice(); ?>
 
             <div class="notice notice-info inline">
-                <h2>First backup / 初めてのバックアップ</h2>
-                <p>Start here: prepare S3 storage and AWS permissions, save the three fields below, then run Test Connection and Backup Now. Start with Schedule Disabled and Retention 0.</p>
-                <p>まずS3の保存先とAWSの権限を準備し、下の3項目を保存して「Test Connection（接続確認）」→「Backup Now（今すぐバックアップ）」の順に進みます。最初はScheduleをDisabled、Retentionを0にしてください。</p>
+                <h2><?php echo esc_html__('Your first backup', 'ozeki-database-backup-for-s3'); ?></h2>
+                <p><?php echo esc_html__('Prepare S3 storage and AWS permissions, save the three fields below, then select Test Connection and Backup Now. Start with Schedule Disabled and Retention 0.', 'ozeki-database-backup-for-s3'); ?></p>
                 <p>
-                    <a href="<?php echo esc_url('https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started-ja.md'); ?>">日本語：S3・IAMの準備から初回保存まで</a>
-                    | <a href="<?php echo esc_url('https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started.md'); ?>">English: S3, IAM and your first backup</a>
+                    <a class="button" href="<?php echo esc_url(
+                        'https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/'
+                        . (determine_locale() === 'ja' ? 'getting-started-ja.md' : 'getting-started.md')
+                    ); ?>"><?php echo esc_html__('Open the setup guide', 'ozeki-database-backup-for-s3'); ?></a>
                 </p>
-                <p>EC2以外のサーバーをお使いの場合も、最初にガイドの環境確認へ進んでください。 / Using hosting other than EC2? Start with the guide's hosting check.</p>
+                <p><?php echo esc_html__('Using hosting other than EC2? Start with the hosting check in the guide.', 'ozeki-database-backup-for-s3'); ?></p>
             </div>
 
             <form method="post" action="options.php">

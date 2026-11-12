@@ -190,6 +190,8 @@ cp "${ROOT_DIR}/LICENSE" \
 cp -R "${ROOT_DIR}/src" \
     "${STAGE_DIR}/src"
 
+cp -R "${ROOT_DIR}/languages" "${STAGE_DIR}/languages"
+
 #
 # Composer files are copied temporarily so production dependencies
 # can be installed reproducibly from composer.lock.
@@ -323,6 +325,8 @@ runtime_files=(
     "${STAGE_DIR}/LICENSE"
     "${STAGE_DIR}/vendor/autoload.php"
     "${STAGE_DIR}/src/Admin/media-backup.js"
+    "${STAGE_DIR}/languages/ozeki-database-backup-for-s3-ja.mo"
+    "${STAGE_DIR}/languages/ozeki-database-backup-for-s3-ja.po"
 )
 
 for file in "${runtime_files[@]}"; do

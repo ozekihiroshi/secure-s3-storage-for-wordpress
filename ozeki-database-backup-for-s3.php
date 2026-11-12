@@ -8,6 +8,7 @@
  * Requires at least: 5.9
  * Requires PHP: 8.1
  * Text Domain: ozeki-database-backup-for-s3
+ * Domain Path: /languages
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,6 +21,14 @@ if ( ! file_exists( $secure_s3_storage_autoload ) ) {
 }
 
 require_once $secure_s3_storage_autoload;
+
+add_action('init', static function (): void {
+    load_plugin_textdomain(
+        'ozeki-database-backup-for-s3',
+        false,
+        dirname(plugin_basename(__FILE__)) . '/languages'
+    );
+});
 
 register_activation_hook(
     __FILE__,

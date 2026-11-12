@@ -4,6 +4,8 @@
 
 The goal is to save your WordPress database to S3 once and check the result. Images and other uploaded media are backed up separately afterwards. Resilience is not required.
 
+The next development version uses your WordPress user profile's Language setting for the settings page and setup-guide button. With "Site Default", it follows the site language. Published 0.4.2 still has the earlier bilingual introduction; its backup steps are the same.
+
 Follow **hosting check → S3 bucket → IAM permissions → WordPress settings → connection test → first backup**.
 
 ## 1. Check your hosting

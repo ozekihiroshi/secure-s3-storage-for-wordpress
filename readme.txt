@@ -12,11 +12,9 @@ Back up WordPress databases and uploads to Amazon S3 without storing long-lived 
 
 == Description ==
 
-= First backup / 初めて使う方へ =
+= Your first backup =
 
 Start with the [step-by-step setup guide](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started.md): check your hosting, create private S3 storage, grant AWS permissions, then test the connection and create your first database backup. Includes a complete IAM policy example. No AWS keys are entered in WordPress.
-
-[日本語の導入ガイド：S3・IAMの準備から初回バックアップまで](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started-ja.md)。AWSに詳しくない方はここから始めてください。利用環境の確認、保存先の作成、権限設定、接続確認、初回保存の順に案内します。
 
 Ozeki Database Backup for S3 is a security-focused WordPress database and uploaded-media backup plugin for Amazon S3.
 
@@ -183,7 +181,7 @@ No telemetry, analytics, advertising, or unrelated tracking data is intentionall
 
 == Installation ==
 
-Before filling in the settings, follow the [English setup guide](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started.md) or [日本語の導入ガイド](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started-ja.md). Both include AWS console steps and a complete IAM policy example. The same links appear at the top of the plugin settings page.
+Before filling in the settings, follow the [setup guide](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/blob/main/docs/getting-started.md). It includes AWS console steps and a complete IAM policy example. The settings page also offers a setup-guide button in your display language.
 
 1. Install and activate Ozeki Database Backup for S3.
 2. Make sure the WordPress server can obtain AWS credentials through the AWS SDK default credential provider chain.

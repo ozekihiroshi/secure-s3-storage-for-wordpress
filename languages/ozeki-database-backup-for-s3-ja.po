@@ -1,0 +1,284 @@
+# Japanese translations for the settings, media panel and connection test.
+# License: GPL-2.0-or-later
+msgid ""
+msgstr "Project-Id-Version: Ozeki Database Backup for S3\nLanguage: ja\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
+
+msgid "A POST request is required."
+msgstr "POSTリクエストが必要です。"
+
+msgid "A directory exceeded the background scan budget. Ask the server administrator to use media prepare followed by media start in WP-CLI."
+msgstr "ディレクトリの走査がバックグラウンド処理の上限を超えました。サーバー管理者にWP-CLIでmedia prepare、media startの順に実行するよう依頼してください。"
+
+msgid "A job already exists or this form is out of date. Review the current status before starting again."
+msgstr "処理がすでに存在するか、このフォームが古くなっています。再実行する前に現在の状態を確認してください。"
+
+msgid "AWS Configuration"
+msgstr "AWSの設定"
+
+msgid "AWS Default Credential Provider"
+msgstr "AWSの標準認証情報取得機能"
+
+msgid "AWS Region"
+msgstr "AWSリージョン"
+
+msgid "AWS credentials could not be found."
+msgstr "AWSの認証情報が見つかりません。"
+
+msgid "AWS region and S3 bucket are required."
+msgstr "AWSリージョンとS3バケットを入力してください。"
+
+msgid "Access denied while testing S3 object operations."
+msgstr "S3の接続確認中にアクセスが拒否されました。"
+
+msgid "All files and the completion marker were verified in S3. This does not verify a complete WordPress site restoration."
+msgstr "すべてのファイルと完了マーカーをS3で検証しました。WordPressサイト全体の復元を確認したものではありません。"
+
+msgid "An unexpected error occurred while testing the S3 connection."
+msgstr "S3の接続確認中に予期しないエラーが発生しました。"
+
+msgid "Ask the server administrator to define ODBFS3_MEDIA_WORK_DIR in wp-config.php as an existing persistent directory owned by the WordPress PHP user, with mode 0700, outside all public web directories and uploads. Symbolic links and Windows ACL-only storage are not supported. Do not use a publicly served path or a temporary directory that may be cleared."
+msgstr "サーバー管理者に、Web公開領域とuploadsの外に永続ディレクトリを作成し、WordPressのPHPユーザー所有・権限0700として、wp-config.phpのODBFS3_MEDIA_WORK_DIRに指定するよう依頼してください。シンボリックリンクとWindowsのACLだけで管理する保存領域には対応しません。公開される場所や、自動削除される一時ディレクトリは使用しないでください。"
+
+msgid "Authentication"
+msgstr "認証"
+
+msgid "Automatic Backup"
+msgstr "自動バックアップ"
+
+msgid "Automatic backup: Disabled"
+msgstr "自動バックアップ：無効"
+
+msgid "Back up files under the WordPress uploads directory using the saved AWS settings. WordPress Cron performs preparation and upload after this request; closing the browser does not cancel the job. Cron requires site traffic or a server scheduler."
+msgstr "保存済みのAWS設定を使ってWordPressのuploads内のファイルをバックアップします。準備とアップロードはWordPress Cronで行うため、ブラウザーを閉じても処理は続きます。Cronの実行にはサイトへのアクセスまたはサーバーの定期実行が必要です。"
+
+msgid "Backend"
+msgstr "書出し方式"
+
+msgid "Backup Now"
+msgstr "今すぐバックアップ"
+
+msgid "Backup completed successfully."
+msgstr "バックアップが完了しました。"
+
+msgid "Checking source changes"
+msgstr "元ファイルの変更を確認中"
+
+msgid "Configure automatic database backups using WordPress Cron."
+msgstr "WordPress Cronによるデータベースの自動バックアップを設定します。"
+
+msgid "Configure the Amazon S3 destination used by this plugin."
+msgstr "このプラグインで使用するAmazon S3の保存先を設定します。"
+
+msgid "Connection"
+msgstr "接続確認"
+
+msgid "Create a compressed database backup and upload it to the configured Amazon S3 destination."
+msgstr "データベースを圧縮してバックアップし、設定したAmazon S3の保存先へアップロードします。"
+
+msgid "Daily"
+msgstr "毎日"
+
+msgid "Daily backups are executed by WordPress Cron. Actual execution time may depend on site activity."
+msgstr "毎日のバックアップはWordPress Cronで実行します。実際の実行時刻はサイトへのアクセス状況によって変わる場合があります。"
+
+msgid "Database"
+msgstr "データベース"
+
+msgid "Database Backup"
+msgstr "データベースのバックアップ"
+
+#, php-format
+msgid "Database backup completed successfully. Backend: %1$s. S3 object: s3://%2$s/%3$s (%4$d bytes)."
+msgstr "データベースのバックアップが完了しました。書出し方式：%1$s。S3保存先：s3://%2$s/%3$s（%4$d バイト）。"
+
+msgid "Database backup failed."
+msgstr "データベースのバックアップに失敗しました。"
+
+msgid "Date"
+msgstr "日時"
+
+msgid "Disabled"
+msgstr "無効"
+
+msgid "Enter 0 to disable retention, or enter a positive whole number of latest backups to keep. After a successful automatic backup, older database backups beyond this count are deleted from S3. Manual backups do not trigger retention cleanup."
+msgstr "削除を無効にする場合は0、最新のバックアップを一定件数残す場合は1以上の整数を入力します。自動バックアップの成功後、この件数を超える古いデータベースのバックアップをS3から削除します。手動バックアップでは保持削除を行いません。"
+
+msgid "Failed"
+msgstr "失敗"
+
+msgid "Files with prepared checksums"
+msgstr "チェックサム準備済みのファイル数"
+
+msgid "Initialize the normal uploads year/month directory before the first backup of a new site. The backup itself does not create source directories. Ensure sufficient free disk space; private checkpoint files and incomplete S3 data remain until separately cleaned up."
+msgstr "新しいサイトでは、最初のバックアップ前に通常のuploadsの年・月ディレクトリを用意してください。バックアップ処理は元のディレクトリを作成しません。ディスクの空き容量を確保してください。非公開のチェックポイントと未完了のS3データは、別途削除するまで残ります。"
+
+msgid "Job ID"
+msgstr "処理ID"
+
+msgid "Keep uploads unchanged during a backup. New or changed files or directories can stop it. Media backups are separate from database backups; there is no automatic media schedule or retention. Failed private work is cleaned only by an explicit WP-CLI command after server-side inspection."
+msgstr "バックアップ中はuploadsを変更しないでください。ファイルやディレクトリの追加・変更で処理が停止する場合があります。メディアはデータベースとは別にバックアップし、自動実行や保持削除はありません。失敗した非公開作業データは、サーバー側で確認した後、専用のWP-CLIコマンドで削除します。"
+
+msgid "Last successful backup:"
+msgstr "最後に成功したバックアップ："
+
+msgid "Listing files"
+msgstr "ファイル一覧を作成中"
+
+msgid "Media Backup"
+msgstr "メディアのバックアップ"
+
+msgid "Media backup queued. You may close this page."
+msgstr "メディアのバックアップを予約しました。このページは閉じても構いません。"
+
+msgid "Message"
+msgstr "メッセージ"
+
+msgid "Next scheduled backup:"
+msgstr "次回のバックアップ予定："
+
+msgid "No backup history yet."
+msgstr "バックアップ履歴はまだありません。"
+
+msgid "No media backup yet"
+msgstr "メディアのバックアップはまだありません"
+
+msgid "None"
+msgstr "なし"
+
+msgid "Not verified."
+msgstr "未検証。"
+
+msgid "Open the setup guide"
+msgstr "導入ガイドを開く"
+
+msgid "Ozeki Database Backup for S3"
+msgstr "Ozeki Database Backup for S3"
+
+msgid "Phase"
+msgstr "処理段階"
+
+msgid "Prepare S3 storage and AWS permissions, save the three fields below, then select Test Connection and Backup Now. Start with Schedule Disabled and Retention 0."
+msgstr "S3の保存先とAWSの権限を準備し、下の3項目を保存して「接続確認」→「今すぐバックアップ」の順に進みます。最初は自動実行を「無効」、保持件数を0にしてください。"
+
+msgid "Preparing checksums"
+msgstr "チェックサムを準備中"
+
+msgid "Private storage requirements"
+msgstr "非公開作業領域の条件"
+
+msgid "Queued"
+msgstr "待機中"
+
+msgid "Recent Backups"
+msgstr "最近のバックアップ"
+
+msgid "Recovery attempts were exhausted. Check server resources and private storage before starting a new backup."
+msgstr "処理再開の試行回数が上限に達しました。新しいバックアップを開始する前に、サーバー資源と非公開作業領域を確認してください。"
+
+msgid "Refresh status / prepare a new start form"
+msgstr "状態を更新して開始フォームを開き直す"
+
+msgid "Region and bucket are required."
+msgstr "リージョンとバケットを入力してください。"
+
+msgid "Reload the settings page before starting a backup."
+msgstr "バックアップを開始する前に設定画面を再読み込みしてください。"
+
+msgid "Retention"
+msgstr "保持件数"
+
+msgid "Running"
+msgstr "実行中"
+
+msgid "S3 Bucket"
+msgstr "S3バケット"
+
+msgid "S3 Object"
+msgstr "S3保存先"
+
+msgid "S3 Prefix"
+msgstr "S3プレフィックス"
+
+msgid "S3 integrity verified; restore not tested."
+msgstr "S3の保存内容は検証済み。復元は未確認。"
+
+msgid "S3 read/write/delete test successful."
+msgstr "S3への書込み・読取り・削除の確認に成功しました。"
+
+msgid "S3 test object content verification failed."
+msgstr "S3の試験ファイルの内容を検証できませんでした。"
+
+msgid "Schedule"
+msgstr "自動実行"
+
+msgid "Size"
+msgstr "サイズ"
+
+msgid "Sorting file list"
+msgstr "ファイル一覧を並べ替え中"
+
+msgid "Start Media Backup"
+msgstr "メディアのバックアップを開始"
+
+msgid "Starting is unavailable. Check saved AWS settings, single-site support, readable job status and private storage configuration. A failed media job also requires server-side inspection before another start. Existing job status remains available when it can be read."
+msgstr "開始できません。保存済みのAWS設定、シングルサイトであること、処理状態の読取り、非公開作業領域の設定を確認してください。メディア処理が失敗した場合も、再実行前にサーバー側で確認が必要です。既存の処理状態は読み取れる場合に表示されます。"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Status could not be refreshed. The job may still be running. Reload this page to reconnect."
+msgstr "状態を更新できませんでした。処理は続いている可能性があります。このページを再読み込みして接続し直してください。"
+
+msgid "Succeeded"
+msgstr "成功"
+
+msgid "Success"
+msgstr "成功"
+
+msgid "Test Connection"
+msgstr "接続確認"
+
+msgid "The backup stopped. Do not submit another media job from this page. Ask the server administrator to inspect media status and run the explicit WP-CLI cleanup when required. Incomplete data is not a completed backup."
+msgstr "バックアップが停止しました。この画面から別のメディア処理を開始しないでください。サーバー管理者に状態の確認と、必要に応じた専用WP-CLI削除コマンドの実行を依頼してください。未完了のデータは完成したバックアップではありません。"
+
+msgid "The configured S3 bucket was not found."
+msgstr "設定したS3バケットが見つかりません。"
+
+msgid "The job is saved but no Cron event is scheduled. Ask the server administrator to check WordPress Cron; do not submit another job."
+msgstr "処理は保存されていますが、Cronイベントが予約されていません。別の処理を開始せず、サーバー管理者にWordPress Cronの確認を依頼してください。"
+
+msgid "The start request could not complete. A job may already be saved; check its status before retrying. Check private storage and saved AWS settings."
+msgstr "開始要求を完了できませんでした。処理がすでに保存されている可能性があるため、再試行する前に状態を確認してください。非公開作業領域と保存済みのAWS設定も確認してください。"
+
+msgid "Unable to complete the S3 connection test."
+msgstr "S3の接続確認を完了できませんでした。"
+
+msgid "Unable to read media status."
+msgstr "メディアの処理状態を読み取れません。"
+
+msgid "Unable to read media status. Reload the page before starting another backup."
+msgstr "メディアの処理状態を読み取れません。別のバックアップを開始する前にページを再読み込みしてください。"
+
+msgid "Uploaded files"
+msgstr "アップロード済みのファイル数"
+
+msgid "Uploaded size"
+msgstr "アップロード済みのサイズ"
+
+msgid "Uploading and verifying"
+msgstr "アップロード・検証中"
+
+msgid "Using hosting other than EC2? Start with the hosting check in the guide."
+msgstr "EC2以外のサーバーでも、最初にガイドの利用環境の確認へ進んでください。"
+
+msgid "Verification"
+msgstr "検証"
+
+msgid "Verify access to the configured S3 bucket and prefix."
+msgstr "設定したS3バケットとプレフィックスへのアクセスを確認します。"
+
+msgid "You are not allowed to perform this action."
+msgstr "この操作を行う権限がありません。"
+
+msgid "Your first backup"
+msgstr "初めてのバックアップ"

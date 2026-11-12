@@ -85,7 +85,11 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
    expected={n[len(slug)+1:]:hashlib.sha256(z.read(n)).hexdigest() for n in z.namelist() if not n.endswith('/')}
   actual=json.loads(wp('eval',"$base=WP_PLUGIN_DIR.'/ozeki-database-backup-for-s3/';$out=[];foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base,FilesystemIterator::SKIP_DOTS)) as $f){if($f->isFile())$out[substr($f->getPathname(),strlen($base))]=hash_file('sha256',$f->getPathname());}echo json_encode($out);"))
   assert actual==expected,'Installed tree differs from ZIP'
-  if info['version']=='0.4.2':
+  # Historical 0.4.2 shipped a bilingual banner; the new locale matrix is
+  # covered by test-settings-locales.py using authenticated admin requests.
+  with zipfile.ZipFile(candidate) as package:
+   legacy_bilingual = b'First backup /' in package.read(slug+'/src/Admin/SettingsPage.php')
+  if legacy_bilingual:
    for locale in ['en_US','ja']:
     wp('eval',"wp_set_current_user(1); require_once ABSPATH.'wp-admin/includes/admin.php'; add_filter('locale',fn()=> '"+locale+"'); $p=new SecureS3StorageForWordpress\\Admin\\SettingsPage(); $p->register_settings(); ob_start(); $p->render_page(); $html=ob_get_clean(); foreach(['First backup / 初めてのバックアップ','docs/getting-started-ja.md','docs/getting-started.md','sites/my-site/','Test Connection','Backup Now'] as $needle){if(!str_contains($html,$needle))throw new RuntimeException('Missing guidance: '.$needle);}")
   if sid is None:
@@ -127,7 +131,7 @@ for old in ([] if os.environ.get('ODBFS3_SKIP_FRESH')=='1' else [None])+previous
   result={'previous':archive_info(old) if old else None,'candidate':info,'passed':True,'installed_files_match_zip':True,'upgrade_state_preserved':True,'same_version_pending_records_preserved':True,'schedule_settings_and_execution_preserved':True,'schedule_and_execution_json':True,'read_views_unchanged':True,'deactivate_reactivate_preserved':True,'workspace_preserved':True}
   result['settings_handler_checks']=settings_result['checks']
   result['standalone_settings_history_validated']=True
-  if info['version']=='0.4.2':result['installed_onboarding_render_locales']=['en_US','ja']
+  if legacy_bilingual:result['installed_onboarding_render_locales']=['en_US','ja']
   result['wordpress_version']=wp('core','version')
   result['php_version']=wp('eval','echo PHP_VERSION;')
   if checker:

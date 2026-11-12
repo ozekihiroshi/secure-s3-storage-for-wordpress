@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "wordpress": "7.1.3",
+  "php": "8.3.36",
+  "cases": [
+    {
+      "site": "en_US",
+      "user": "operator",
+      "expected_locale": "en_US",
+      "passed": true
+    },
+    {
+      "site": "en_US",
+      "user": "english",
+      "expected_locale": "en_US",
+      "passed": true
+    },
+    {
+      "site": "en_US",
+      "user": "japanese",
+      "expected_locale": "ja",
+      "passed": true
+    },
+    {
+      "site": "ja",
+      "user": "operator",
+      "expected_locale": "ja",
+      "passed": true
+    },
+    {
+      "site": "ja",
+      "user": "english",
+      "expected_locale": "en_US",
+      "passed": true
+    },
+    {
+      "site": "ja",
+      "user": "japanese",
+      "expected_locale": "ja",
+      "passed": true
+    }
+  ],
+  "authenticated_admin_http": true,
+  "interleaved_users": true,
+  "connection_validation_notices": [
+    "en_US",
+    "ja"
+  ],
+  "saved_settings_unchanged": true,
+  "aws_requests": false,
+  "published_zip_unchanged": true
+}
