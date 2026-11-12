@@ -2,9 +2,9 @@
 
 ## Status / 公開状態
 
-GitHub release candidate, **not yet published to WordPress.org or installed on production**. Public 0.4.2 ZIPs and existing tags remain unchanged. S3/IAM settings and backup schedules have not been changed.
+**Published as 0.4.3 on WordPress.org on 2026-11-12**, unchanged from this verified candidate (SVN revision 3797337). All 3,896 public ZIP files match. See the [publication record](release-0.4.3-publication.md). This release operation did not update the production installation or its settings. Existing ZIPs and tags are preserved.
 
-GitHubの公開候補。WordPress.orgへの公開と本番への導入はまだ行っていない。公開済み0.4.2のZIP・既存タグ、本番のS3/IAM設定・バックアップ設定は保全している。
+2026-11-12に検証済み候補を変更せずWordPress.orgへ0.4.3として公開した（SVN 3797337）。配布ZIP全3,896ファイルが一致。本番サイトの更新・設定変更は行っていない。既存ZIP・タグは保全している。
 
 - [GitHub candidate and matching source tag](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.3-rc.1)
 - Installable ZIP: `ozeki-database-backup-for-s3-0.4.3.zip`

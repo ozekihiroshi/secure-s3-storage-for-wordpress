@@ -10,23 +10,20 @@ and their evidence. Storage verification is not a promise of complete site recov
 
 ## Versions and installation
 
-**0.4.2 is published on WordPress.org.** The verified 0.4.2 rc.1 package was published unchanged, with first-time setup guidance in English and Japanese. [Publication record](docs/release-0.4.2-publication.md).
-
-**0.4.3 rc.1 is the next GitHub release candidate**, adding language-aware settings and guide links. It is not yet published to WordPress.org. See the [candidate validation](docs/release-0.4.3-rc1.md) and [localization review](docs/localization-review-2026-11-12.md).
+**0.4.3 is published on WordPress.org.** The verified 0.4.3 rc.1 package was published unchanged, adding language-aware settings and guide links. The public ZIP's 3,896 files match the validated candidate. See the [publication record](docs/release-0.4.3-publication.md), [package validation](docs/release-0.4.3-rc1.md) and [localization review](docs/localization-review-2026-11-12.md).
 
 Install from [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
 or a packaged [GitHub release](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases).
 Packages include runtime dependencies; a source checkout requires Composer.
 The repository's historical name is `secure-s3-storage-for-wordpress`.
 
-**0.4.2 is available on [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
-and [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.2-rc.1)**.
-The original candidate tag and ZIP are preserved. Version 0.4.1 introduced retention safeguards and clarified product documentation.
+**0.4.3 is available on [WordPress.org](https://wordpress.org/plugins/ozeki-database-backup-for-s3/)
+and [GitHub Releases](https://github.com/ozekihiroshi/secure-s3-storage-for-wordpress/releases/tag/v0.4.3-rc.1)**.
+The original candidate tag and ZIP are preserved, as are older releases. Version 0.4.2 introduced first-time S3/IAM setup guidance; version 0.4.1 introduced retention safeguards and clarified product documentation.
 Version 0.4.0 includes PR #2's Recovery Set operator features, while 0.3.0
 introduced the internal Recovery Set foundation.
 
-See the [publication record](docs/release-0.4.2-publication.md) for current distribution
-status and the [release validation](docs/release-0.4.2-rc1.md) for package checks.
+The WordPress.org Japanese description is prepared but not yet submitted or approved. The bundled Japanese settings translations work independently of that approval.
 
 ## Requirements and first backup
 

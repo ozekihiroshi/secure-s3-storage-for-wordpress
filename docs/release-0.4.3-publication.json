@@ -1,0 +1,31 @@
+{
+  "version": "0.4.3",
+  "publication_complete": true,
+  "svn_revision": 3797337,
+  "source_commit": "74b90522ff111bc7e138a72704d9f02720f02ecb",
+  "github_tag": "v0.4.3-rc.1",
+  "download_url": "https://downloads.wordpress.org/plugin/ozeki-database-backup-for-s3.0.4.3.zip",
+  "file_count": 3896,
+  "all_files_match": true,
+  "candidate_sha256": "ba091c4f24f33905f82530438fccb0bda85ad84b082ecae242dab390f04a2665",
+  "wordpress_org_zip_sha256": "729f038076660f7595f1cc26ad5565a36ec2b79404a8c6bb2d61d0e1130ea5e1",
+  "description_and_installation_guide_links_verified": true,
+  "existing_svn_tags_unchanged": true,
+  "svn_changed_paths": [
+    "/ozeki-database-backup-for-s3/tags/0.4.3",
+    "/ozeki-database-backup-for-s3/tags/0.4.3/languages",
+    "/ozeki-database-backup-for-s3/tags/0.4.3/languages/ozeki-database-backup-for-s3-ja.mo",
+    "/ozeki-database-backup-for-s3/tags/0.4.3/languages/ozeki-database-backup-for-s3-ja.po",
+    "/ozeki-database-backup-for-s3/tags/0.4.3/ozeki-database-backup-for-s3.php",
+    "/ozeki-database-backup-for-s3/tags/0.4.3/readme.txt",
+    "/ozeki-database-backup-for-s3/tags/0.4.3/src/Admin/SettingsPage.php",
+    "/ozeki-database-backup-for-s3/tags/0.4.3/vendor/scoper-autoload.php",
+    "/ozeki-database-backup-for-s3/trunk/languages",
+    "/ozeki-database-backup-for-s3/trunk/languages/ozeki-database-backup-for-s3-ja.mo",
+    "/ozeki-database-backup-for-s3/trunk/languages/ozeki-database-backup-for-s3-ja.po",
+    "/ozeki-database-backup-for-s3/trunk/ozeki-database-backup-for-s3.php",
+    "/ozeki-database-backup-for-s3/trunk/readme.txt",
+    "/ozeki-database-backup-for-s3/trunk/src/Admin/SettingsPage.php",
+    "/ozeki-database-backup-for-s3/trunk/vendor/scoper-autoload.php"
+  ]
+}
